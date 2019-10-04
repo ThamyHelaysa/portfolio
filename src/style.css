@@ -1,0 +1,21 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    display: grid;
+    grid-template: .5fr 2fr .5fr/1fr
+}
+
+.menu {
+    grid-row: 1/2;
+}
+
+.content {
+    grid-row: 2/3;
+}
+
+.footer{
+    grid-column: 3/4;
+}

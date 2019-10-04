@@ -1,32 +1,4 @@
-* {
-  margin: 0;
-  padding: 0;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body, html {
-  min-height: 100vh;
-  height: 100vh;
-  scroll-behavior: smooth;
-  overflow: hidden;
-  text-rendering: optimizeSpeed;
-  line-height: 1.5;
-}
-
-ul[class],
-ol[class] {
-  list-style: none;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
+html, body {height:100vh}
 
 .wrapper {
   display: grid;

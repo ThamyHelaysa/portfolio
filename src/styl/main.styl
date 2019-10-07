@@ -39,7 +39,11 @@ html, body
   width 100vw
   height 100%
   margin 0 -16px
+  overflow hidden
+  &:hover .item
+    height 100vh
   &-list 
+    position relative
     display grid
     grid-gap sm
     grid-auto-flow column
@@ -53,12 +57,14 @@ html, body
       content ''
       width 16px
   &-item 
+    position absolute
     display block
     justify-self center
     width 100%
     height 100%
     padding sm
     background cz
+    transition height 500ms 
   &-prev, &-next
     position absolute
     display flex

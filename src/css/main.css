@@ -34,8 +34,13 @@ body {
   width: 100vw;
   height: 100%;
   margin: 0 -16px;
+  overflow: hidden;
+}
+.slider:hover .item {
+  height: 100vh;
 }
 .slider-list {
+  position: relative;
   display: grid;
   grid-gap: 16px;
   grid-auto-flow: column;
@@ -52,12 +57,14 @@ body {
   width: 16px;
 }
 .slider-item {
+  position: absolute;
   display: block;
   justify-self: center;
   width: 100%;
   height: 100%;
   padding: 16px;
   background: #f0f0f0;
+  transition: height 500ms;
 }
 .slider-prev,
 .slider-next {

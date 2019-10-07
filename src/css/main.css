@@ -1,3 +1,6 @@
+/*
+* Variables
+*/
 html,
 body {
   height: 100vh;
@@ -6,7 +9,7 @@ body {
   display: grid;
   grid-template: 0.5fr 2fr 0.5fr/1fr;
   height: 100%;
-  padding: var(--main-padding);
+  padding: 16px;
 }
 .menu {
   grid-row: 1/2;
@@ -17,20 +20,25 @@ body {
 .slider {
   width: 100vw;
   height: 100%;
-  margin: 0 var(--main-neg-padding);
+  margin: 0 -16px;
 }
 .slider-list {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: var(--main-padding);
-  grid-auto-columns: calc(50% - var(--main-padding));
+  grid-template-columns: 16px;
+  grid-auto-columns: calc(80% - 16px);
   grid-template-rows: 1fr;
   overflow-x: scroll;
   scroll-snap-type: x proximity;
+}
+.slider-list::before,
+.slider-list::after {
+  content: '';
+  width: 16px;
 }
 .slider-item {
   justify-self: center;
 }
 .footer {
-  grid-column: 3/4;
+  grid-row: 3/4;
 }

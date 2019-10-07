@@ -1,3 +1,9 @@
+/*
+* Variables
+*/
+sm = 16px
+
+
 html, body 
   height 100vh
 
@@ -5,7 +11,7 @@ html, body
   display grid
   grid-template .5fr 2fr .5fr/1fr
   height 100%
-  padding var(--main-padding)
+  padding sm
 
 .menu
   grid-row 1/2
@@ -17,17 +23,20 @@ html, body
 .slider 
   width 100vw
   height 100%
-  margin 0 var(--main-neg-padding)
+  margin 0 -16px
 
 
 .slider-list 
   display grid
   grid-auto-flow column
-  grid-template-columns var(--main-padding)
-  grid-auto-columns calc(50% - var(--main-padding))
+  grid-template-columns sm
+  grid-auto-columns "calc(80% - %s)" % sm
   grid-template-rows 1fr
   overflow-x scroll
   scroll-snap-type x proximity
+  &::before, &::after
+    content ''
+    width 16px
 
 
 .slider-item 
@@ -35,4 +44,4 @@ html, body
 
 
 .footer 
-  grid-column 3/4
+  grid-row 3/4

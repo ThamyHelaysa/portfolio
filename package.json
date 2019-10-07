@@ -1,0 +1,15 @@
+{
+  "name": "portifolio",
+  "version": "1.0.0",
+  "description": "Portifolio da Thamy",
+  "main": "index.html",
+  "author": "Thamires H",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "stylus": "^0.54.7"
+  },
+  "scripts": {
+    "css": "stylus ./src/styl/main.styl -o ./src/css"
+  }
+}

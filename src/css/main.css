@@ -1,45 +1,36 @@
-:root {
-  --main-padding: 1rem;
-  --main-neg-padding: -1rem;
+html,
+body {
+  height: 100vh;
 }
-
-html, body {height:100vh}
-
 .wrapper {
   display: grid;
-  grid-template: .5fr 2fr .5fr/1fr;
+  grid-template: 0.5fr 2fr 0.5fr/1fr;
   height: 100%;
-  padding: var(--main-padding)
+  padding: var(--main-padding);
 }
-
 .menu {
   grid-row: 1/2;
 }
-
 .content {
   grid-row: 2/3;
 }
-
 .slider {
   width: 100vw;
   height: 100%;
   margin: 0 var(--main-neg-padding);
 }
-
 .slider-list {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: 10%;
-  grid-auto-columns: calc(50% - 10%);
+  grid-template-columns: var(--main-padding);
+  grid-auto-columns: calc(50% - var(--main-padding));
   grid-template-rows: 1fr;
   overflow-x: scroll;
   scroll-snap-type: x proximity;
 }
-
 .slider-item {
   justify-self: center;
 }
-
 .footer {
   grid-column: 3/4;
 }

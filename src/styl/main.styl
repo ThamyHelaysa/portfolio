@@ -40,24 +40,23 @@ html, body
   height 100%
   margin 0 -16px
   overflow hidden
-  &:hover .item
-    height 100vh
+  // &:hover .item
+  //   height 100vh
   &-list 
     position relative
     display grid
     grid-gap sm
     grid-auto-flow column
-    grid-template-columns sm
-    grid-auto-columns "calc(80% - %s)" % sm
+    grid-template-columns 0
+    grid-auto-columns "calc(100% - %s * 2)" % sm // equals -> calc(80vw - 16px)
     grid-template-rows 1fr
     height 100%
-    overflow-x scroll
     scroll-snap-type x proximity
     &::before, &::after
       content ''
-      width 16px
+      width 0
   &-item 
-    position absolute
+    //position absolute
     display block
     justify-self center
     width 100%

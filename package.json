@@ -10,6 +10,7 @@
     "stylus": "^0.54.7"
   },
   "scripts": {
-    "css": "stylus ./src/styl/main.styl -o ./src/css"
+    "css": "stylus ./src/styl/main.styl -o ./src/css",
+    "stylus": "stylus -w ./src/styl/main.styl -o ./src/css"
   }
 }

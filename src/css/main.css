@@ -36,28 +36,23 @@ body {
   margin: 0 -16px;
   overflow: hidden;
 }
-.slider:hover .item {
-  height: 100vh;
-}
 .slider-list {
   position: relative;
   display: grid;
   grid-gap: 16px;
   grid-auto-flow: column;
-  grid-template-columns: 16px;
-  grid-auto-columns: calc(80% - 16px);
+  grid-template-columns: 0;
+  grid-auto-columns: calc(100% - 16px * 2);
   grid-template-rows: 1fr;
   height: 100%;
-  overflow-x: scroll;
   scroll-snap-type: x proximity;
 }
 .slider-list::before,
 .slider-list::after {
   content: '';
-  width: 16px;
+  width: 0;
 }
 .slider-item {
-  position: absolute;
   display: block;
   justify-self: center;
   width: 100%;

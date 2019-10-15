@@ -1,5 +1,7 @@
 const slider      = document.getElementById("slider_list"),
-      sliderItems = document.getElementsByClassName("slider-item").length,
+      sliderItem  = document.querySelectorAll(".slider-item"),
+      sliderItems = sliderItem.length,
+      wrapper     = document.querySelectorAll(".wrapper"),
       gap         = 16
 
 var count = 1;
@@ -75,3 +77,28 @@ document.addEventListener('touchend', function(e) {
       }
    }
 }, false);
+
+
+
+sliderItem.forEach(function(el){
+  el.addEventListener('click', function(e) {
+    addClass(wrapper[0], 'openArticle');
+  })
+})
+
+function addClass(el, cls){
+  el.classList.add(`${cls}`)
+}
+
+const rclass = /[\n\t\r]/g
+
+function hasClass(selector) {
+  var className = " " + selector + " ";
+  for (var i = 0, l = this.length; i < l; i++) {
+      if ((" " + this[i].className + " ").replace(rclass, " ").indexOf(className) > -1) {
+          return true;
+      }
+  }
+
+  return false;
+}

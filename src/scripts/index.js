@@ -61,11 +61,9 @@ document.addEventListener('touchend', function(e) {
       // é horizontal
       if( td_x < 0 ) {
          // é para esquerda
-         console.log("esquerda")
          nextSlider();
       } else {
          // direita
-         console.log("direita")
          prevSlider();
       }
    } else {

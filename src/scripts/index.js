@@ -86,5 +86,3 @@ sliderItem.forEach(function(el){
   })
 })
 
-
-console.log(hasClass(wrapper, "wrapper"))

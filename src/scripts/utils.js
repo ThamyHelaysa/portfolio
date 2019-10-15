@@ -27,7 +27,7 @@ function removeClass(el, cls){
  */
 function hasClass(el, selector) {
 
-  if ( (" " + el[0].className + " ").replace(rclass, " ").indexOf(selector) > -1) {
+  if ( (" " + el.className + " ").replace(rclass, " ").indexOf(selector) > -1) {
     return true;
   }
 

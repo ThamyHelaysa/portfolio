@@ -15,6 +15,7 @@ body {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
   line-height: 1.5;
   text-align: center;
+  overflow: hidden;
 }
 .wrapper {
   position: relative;
@@ -25,9 +26,21 @@ body {
   padding: 16px;
 }
 .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: -16px;
   padding: 16px;
   z-index: 9;
+}
+.close {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 300ms 100ms ease;
+}
+.openArticle .close {
+  opacity: 1;
+  visibility: visible;
 }
 .menu {
   grid-row: 1/2;
@@ -87,14 +100,21 @@ body {
   top: calc(50% - 25px);
   width: 50px;
   height: 50px;
+  transition: all 500ms ease;
 }
 .slider-prev {
   left: auto;
   right: calc(100% - 50px);
 }
+.openArticle .slider-prev {
+  transform: translateX(-100%);
+}
 .slider-next {
   left: calc(100% - 50px);
   right: auto;
+}
+.openArticle .slider-next {
+  transform: translateX(100%);
 }
 .footer {
   grid-row: 3/4;

@@ -46,7 +46,7 @@ document.addEventListener ('keydown', (event) => {
 
 
 /**
- * teste
+ * Touch Handler
  * Disponível em: 
  * https://pt.stackoverflow.com/questions/34149/como-determinar-a-dire%C3%A7%C3%A3o-do-touchmove
  */

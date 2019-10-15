@@ -1,7 +1,7 @@
 const slider      = document.getElementById("slider_list"),
       sliderItem  = document.querySelectorAll(".slider-item"),
       sliderItems = sliderItem.length,
-      wrapper     = document.getElementsByClassName("wrapper"),
+      wrapper     = document.querySelector(".wrapper"),
       gap         = 16
 
 var count = 1;
@@ -9,32 +9,38 @@ var count = 1;
 // Go to the next slide
 function nextSlider(e){
   //console.log(e)
-  if (count < sliderItems){
-    slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
-    count++
-  } else {
-    return false
+  if ( !hasClass(wrapper, "openArticle") ){
+    if (count < sliderItems){
+      slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
+      count++
+    } else {
+      return false
+    }
   }
 }
 
 // Return to the previous slide
 function prevSlider(e){
   //console.log(e)
-  if (count != 1){
-    count--
-    slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
-  } else {
-    return false
+  if (!hasClass(wrapper, "openArticle")){
+    if (count != 1){
+      count--
+      slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
+    } else {
+      return false
+    }
   }
 }
 
 // Return or go forward with arrow key
 document.addEventListener ('keydown', (event) => {
   const keyName = event.key;
-  if (keyName === "ArrowRight"){
-    nextSlider();
-  } else if (keyName === "ArrowLeft"){
-    prevSlider();
+  if ( !hasClass(wrapper, "openArticle") ){
+    if (keyName === "ArrowRight"){
+      nextSlider();
+    } else if (keyName === "ArrowLeft"){
+      prevSlider();
+    }
   }
 });
 
@@ -59,7 +65,7 @@ document.addEventListener('touchend', function(e) {
    td_x = touch.pageX - ts_x; // deslocamento na horizontal
    td_y = touch.pageY - ts_y; // deslocamento na vertical
    // O movimento principal foi vertical ou horizontal?
-   if( Math.abs( td_x ) > Math.abs( td_y ) ) {
+   if( Math.abs( td_x ) > Math.abs( td_y ) && !hasClass(wrapper, "openArticle")) {
       // é horizontal
       if( td_x < 0 ) {
          // é para esquerda
@@ -82,7 +88,6 @@ document.addEventListener('touchend', function(e) {
 
 sliderItem.forEach(function(el){
   el.addEventListener('click', function(e) {
-    addClass(wrapper[0], 'openArticle');
+    addClass(wrapper, 'openArticle');
   })
 })
-

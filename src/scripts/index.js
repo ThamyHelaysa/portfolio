@@ -1,15 +1,15 @@
-const slider = document.getElementById("slider_list")
+const slider      = document.getElementById("slider_list"),
+      sliderItems = document.getElementsByClassName("slider-item").length,
+      gap         = 16
+
+var count = 0;
 
 function nextSlider(el){
-    const items = document.getElementsByClassName("slider-item").length
-    let gap   = 16,
-        count = 1;
     
-    if (count <= items){
-        slider.style.transform = `translateX( calc( ${count} * -100% + (${gap}px) ) )`
+    if (count < sliderItems){
+        slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
         count++
-        console.log(count)
-
+        console.log("next", count)
     } else {
         return false
     }
@@ -17,4 +17,11 @@ function nextSlider(el){
 
 function prevSlider(el){
     
+    if (count > 0 && count <= sliderItems){
+        slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
+        count--
+        console.log("prev", count)
+    } else {
+        return false
+    }
 }

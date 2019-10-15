@@ -24,7 +24,7 @@ function prevSlider(el){
   }
 }
 
-
+// Return or go forward with arrow key
 document.addEventListener ('keydown', (event) => {
   const keyName = event.key;
   if (keyName === "ArrowRight"){

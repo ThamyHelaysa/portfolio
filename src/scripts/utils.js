@@ -7,7 +7,7 @@ const rclass = /[\t\r\n\f]/g
  * @param {class} cls Class to be added
  */
 function addClass(el, cls){
-  el[0].classList.add(`${cls}`)
+  el.classList.add(`${cls}`)
 }
 
 /**
@@ -16,7 +16,7 @@ function addClass(el, cls){
  * @param {class} cls Class to be removed
  */
 function removeClass(el, cls){
-  el[0].classList.remove(`${cls}`)
+  el.classList.remove(`${cls}`)
 }
 
 

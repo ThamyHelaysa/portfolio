@@ -85,9 +85,22 @@ document.addEventListener('touchend', function(e) {
 }, false);
 
 
-
+/**
+ * Add Event Listener for each item
+ * on slider list
+ */
 sliderItem.forEach(function(el){
   el.addEventListener('click', function(e) {
     addClass(wrapper, 'openArticle');
   })
 })
+
+
+/**
+ * Close Button
+ */
+function closeArticle(){
+  removeClass(wrapper, 'openArticle');
+}
+
+

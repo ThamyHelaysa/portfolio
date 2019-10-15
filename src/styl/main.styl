@@ -102,7 +102,12 @@ html, body
     top calc(50% - 25px)
     width 50px
     height 50px
+    opacity 1
     transition all 500ms ease
+    visibility visible
+    .openArticle &
+      opacity 0
+      visibility hidden
     
   &-prev
     left auto

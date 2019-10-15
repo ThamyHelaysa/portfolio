@@ -1,7 +1,7 @@
 const slider      = document.getElementById("slider_list"),
       sliderItem  = document.querySelectorAll(".slider-item"),
       sliderItems = sliderItem.length,
-      wrapper     = document.querySelectorAll(".wrapper"),
+      wrapper     = document.getElementsByClassName("wrapper"),
       gap         = 16
 
 var count = 1;
@@ -86,19 +86,5 @@ sliderItem.forEach(function(el){
   })
 })
 
-function addClass(el, cls){
-  el.classList.add(`${cls}`)
-}
 
-const rclass = /[\n\t\r]/g
-
-function hasClass(selector) {
-  var className = " " + selector + " ";
-  for (var i = 0, l = this.length; i < l; i++) {
-      if ((" " + this[i].className + " ").replace(rclass, " ").indexOf(className) > -1) {
-          return true;
-      }
-  }
-
-  return false;
-}
+console.log(hasClass(wrapper, "wrapper"))

@@ -5,7 +5,8 @@ const slider      = document.getElementById("slider_list"),
 var count = 1;
 
 // Go to the next slide
-function nextSlider(el){
+function nextSlider(e){
+  //console.log(e)
   if (count < sliderItems){
     slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
     count++
@@ -15,7 +16,8 @@ function nextSlider(el){
 }
 
 // Return to the previous slide
-function prevSlider(el){
+function prevSlider(e){
+  //console.log(e)
   if (count != 1){
     count--
     slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
@@ -33,3 +35,45 @@ document.addEventListener ('keydown', (event) => {
     prevSlider();
   }
 });
+
+
+/**
+ * teste
+ * Disponível em: 
+ * https://pt.stackoverflow.com/questions/34149/como-determinar-a-dire%C3%A7%C3%A3o-do-touchmove
+ */
+var ts_x;
+var ts_y;
+document.addEventListener('touchstart', function(e) {
+   //e.preventDefault();
+   var touch = e.changedTouches[0];
+   ts_x = touch.pageX;
+   ts_y = touch.pageY;
+}, false);
+
+document.addEventListener('touchend', function(e) {
+   //e.preventDefault();
+   var touch = e.changedTouches[0];
+   td_x = touch.pageX - ts_x; // deslocamento na horizontal
+   td_y = touch.pageY - ts_y; // deslocamento na vertical
+   // O movimento principal foi vertical ou horizontal?
+   if( Math.abs( td_x ) > Math.abs( td_y ) ) {
+      // é horizontal
+      if( td_x < 0 ) {
+         // é para esquerda
+         console.log("esquerda")
+         nextSlider();
+      } else {
+         // direita
+         console.log("direita")
+         prevSlider();
+      }
+   } else {
+      // é vertical
+      if( td_y < 0 ) {
+         // cima
+      } else {
+         // baixo
+      }
+   }
+}, false);

@@ -22,22 +22,27 @@
           TO DO: Add content
         -->
         <div class="slider">
-          <div id="slider_list" class="list slider-list">
-            <article class="item slider-item">Exemplo 1</article>
-            <article class="item slider-item">Exemplo 2</article>
+          <div id="slider_list" class="list">
+            <article id="item1" class="item">Exemplo 1</article>
+            <article id="item2" class="item">Exemplo 2</article>
+            <article id="item3" class="item">Exemplo 3</article>
           </div>
         </div>
       </main>
 
-      <div class="slider-controls">
-        <div class="slider-buttons">
-          <div class="slider-prev">
-            <button id="bt-prev" class="slider-btn btn-prev" onclick="prevSlider(event)">prev</button>
+      <div class="controls">
+        <div class="buttons">
+          <div class="prev">
+            <button id="bt-prev" class="sliderbtn btnprev" onclick="prevSlider(event)">prev</button>
           </div>
-          <div class="slider-next">
-            <button id="bt-next" class="slider-btn btn-next" onclick="nextSlider(event)">next</button>
+          <div class="next">
+            <button id="bt-next" class="sliderbtn btnnext" onclick="nextSlider(event)">next</button>
           </div>
         </div>
+      </div>
+
+      <div class="itemcontent">
+
       </div>
       <!--
         TO DO: Think on something to put here

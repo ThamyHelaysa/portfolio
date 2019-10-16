@@ -1,5 +1,5 @@
 const slider      = document.getElementById("slider_list"),
-      sliderItem  = document.querySelectorAll(".slider-item"),
+      sliderItem  = document.querySelectorAll(".item"),
       sliderItems = sliderItem.length,
       wrapper     = document.querySelector(".wrapper"),
       gap         = 16

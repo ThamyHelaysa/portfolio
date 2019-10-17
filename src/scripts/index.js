@@ -127,6 +127,7 @@ sliderItem.forEach(function(el){
 /**
  * Close Article
  */
-function closeArticle(){
+function closeArticle(e){
   Utils.removeClass(wrapper, 'openArticle');
+  Router.transitionTo(e, "/")
 }

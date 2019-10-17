@@ -51,31 +51,7 @@
         footer
       </div>
     </div>
-    <script>
-        const headers = {
-            'content-type': 'application/json',
-            'credentials':'include',
-            'x-requested-with':'XMLHttpRequest',
-        }
-
-        async function load(arq){
-            try {
-                const res = await fetch(`/content/${arq}.html`, {
-                    headers,
-                    method: 'GET'
-                })
-                if (res.ok){
-                    return res.json();
-                }
-            } catch(err) {
-                throw new Error(`Vish deu merda aqui: ${err}`)
-            }
-        }
-
-        const Services = {
-            load
-        }
-    </script>
+    <script type="module" src="scripts/services.js"></script>
     <script src="scripts/utils.js"></script>
     <script src="scripts/index.js"></script>
   </body>

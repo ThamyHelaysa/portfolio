@@ -4,7 +4,7 @@ const headers = {
     'x-requested-with':'XMLHttpRequest',
 }
 
-async function load(arq){
+export async function load(arq){
     try {
         const res = await fetch(`/content/${arq}.html`, {
             headers,

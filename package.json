@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "express": "^4.17.1",
     "stylus": "^0.54.7"
   },
   "scripts": {

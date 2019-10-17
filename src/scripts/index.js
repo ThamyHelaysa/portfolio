@@ -128,8 +128,4 @@ function closeArticle(){
 }
 
 
-document.addEventListener("DOMContentLoaded", function(event) {
-  console.log(Services)
-});
-
 

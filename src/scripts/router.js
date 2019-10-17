@@ -2,6 +2,7 @@ import Services from './services.js'
 
 
 function changeView() {
+    console.log('changeView')
     var content = document.querySelector("#itemcontent");
     switch (window.location.pathname) {
         case "/tcc":
@@ -33,5 +34,10 @@ function transitionTo(e, url) {
     changeView();
 }
 
+const Router = {
+    transitionTo,
+    changeView
+}
 
+export default Router
 

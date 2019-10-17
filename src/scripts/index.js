@@ -1,4 +1,5 @@
 import Utils from './utils.js'
+import Router from './router.js'
 
 //'use strict';
 
@@ -116,6 +117,7 @@ document.addEventListener('touchend', function(e) {
 sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
+    Router.transitionTo(e, "tcc");
     Utils.addClass(wrapper, 'openArticle');
   })
 })

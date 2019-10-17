@@ -11,6 +11,7 @@ export async function load(arq){
             method: 'GET'
         })
         if (res.ok){
+            console.log(res.json())
             return res.json();
         }
     } catch(err) {

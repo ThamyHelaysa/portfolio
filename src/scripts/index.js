@@ -1,51 +1,51 @@
+import Utils from './utils.js'
+
 //'use strict';
 
 const slider      = document.getElementById("slider_list"),
       sliderItem  = document.querySelectorAll(".item"),
       sliderItems = sliderItem.length,
+      prevBtn     = document.querySelector('.btnprev'),
+      nextButton  = document.querySelector('.btnnext'),
+      closeBtn    = document.querySelector('#close'),
       wrapper     = document.querySelector(".wrapper"),
       gap         = 16
 
 var count = 1;
 
+
+/*
+* Putting Listener Buttons
+*/
+prevBtn.addEventListener('click', (e) => {
+  prevSlider();
+})
+
+nextButton.addEventListener('click', (e) => {
+  nextSlider();
+})
+
+closeBtn.addEventListener('click', (e) => {
+  closeArticle();
+})
+
 // Go to the next slide
 function nextSlider(e){
   //console.log(e)
-  if ( !hasClass(wrapper, "openArticle") ){
+  if ( !Utils.hasClass(wrapper, "openArticle") ){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
-    } else if (count === sliderItems){
-      count = 0
-      slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
-      count = 1
     } else {
       return false
     }
   }
 }
 
-// Go to the next slide
-// function nextSlider(e){
-//   //console.log(e)
-//   if ( !hasClass(wrapper, "openArticle") ){
-//     if (count < sliderItems){
-//       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
-//       count++
-//     } else if (count === sliderItems){
-//       count = 0
-//       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
-//       count = 1
-//     } else {
-//       return false
-//     }
-//   }
-// }
-
 // Return to the previous slide
 function prevSlider(e){
   //console.log(e)
-  if (!hasClass(wrapper, "openArticle")){
+  if (!Utils.hasClass(wrapper, "openArticle")){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
@@ -59,7 +59,7 @@ function prevSlider(e){
 // Return or go forward with arrow key
 document.addEventListener ('keydown', (event) => {
   const keyName = event.key;
-  if ( !hasClass(wrapper, "openArticle") ){
+  if ( !Utils.hasClass(wrapper, "openArticle") ){
     if (keyName === "ArrowRight"){
       nextSlider();
     } else if (keyName === "ArrowLeft"){
@@ -74,8 +74,8 @@ document.addEventListener ('keydown', (event) => {
  * Disponível em: 
  * https://pt.stackoverflow.com/questions/34149/como-determinar-a-dire%C3%A7%C3%A3o-do-touchmove
  */
-var ts_x;
-var ts_y;
+var ts_x = 0;
+var ts_y = 0;
 document.addEventListener('touchstart', function(e) {
    //e.preventDefault();
    var touch = e.changedTouches[0];
@@ -86,10 +86,10 @@ document.addEventListener('touchstart', function(e) {
 document.addEventListener('touchend', function(e) {
    //e.preventDefault();
    var touch = e.changedTouches[0];
-   td_x = touch.pageX - ts_x; // deslocamento na horizontal
-   td_y = touch.pageY - ts_y; // deslocamento na vertical
+   var td_x = touch.pageX - ts_x; // deslocamento na horizontal
+   var td_y = touch.pageY - ts_y; // deslocamento na vertical
    // O movimento principal foi vertical ou horizontal?
-   if( Math.abs( td_x ) > Math.abs( td_y ) && !hasClass(wrapper, "openArticle")) {
+   if( Math.abs( td_x ) > Math.abs( td_y ) && !Utils.hasClass(wrapper, "openArticle")) {
       // é horizontal
       if( td_x < 0 ) {
          // é para esquerda
@@ -114,18 +114,17 @@ document.addEventListener('touchend', function(e) {
  * on slider list
  */
 sliderItem.forEach(function(el){
+  var URL = el.dataset.url
   el.addEventListener('click', function(e) {
-    addClass(wrapper, 'openArticle');
+    Utils.addClass(wrapper, 'openArticle');
   })
 })
 
 
+
 /**
- * Close Button
+ * Close Article
  */
 function closeArticle(){
-  removeClass(wrapper, 'openArticle');
+  Utils.removeClass(wrapper, 'openArticle');
 }
-
-
-

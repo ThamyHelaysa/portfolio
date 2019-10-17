@@ -33,3 +33,12 @@ function hasClass(el, selector) {
 
   return false;
 }
+
+const Utils = {
+  hasClass,
+  removeClass,
+  addClass
+}
+
+
+export default Utils;

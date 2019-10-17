@@ -1,8 +1,12 @@
+import Services from './services.js'
+
+
 function changeView() {
-    var content = $("#itemcontent");
+    var content = document.querySelector("#itemcontent");
     switch (window.location.pathname) {
-        case "/produtos/criar":
-            content.load("/src/produto/form.html");
+        case "/tcc":
+            const urlContent = Services.load("tcc");
+            content.innerHTML = urlContent
             break;
         case "/produtos":
             content.load("/src/produto/list.html");
@@ -29,4 +33,5 @@ function transitionTo(e, url) {
     changeView();
 }
 
-$(document).ready(changeView);
+
+

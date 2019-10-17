@@ -15,7 +15,7 @@
           TO DO: Add svg logo on menu
         -->
           <div id="logo" tabindex="0">header</div>
-          <button id="close" class="close" onclick="closeArticle()">X</button>
+          <button id="close" class="close">X</button>
       </header>
       <main class="content">
         <!--
@@ -23,7 +23,7 @@
         -->
         <div class="slider">
           <div id="slider_list" class="list">
-            <article id="item1" class="item">Exemplo 1</article>
+            <article data-url="tcc" id="item1" class="item">Exemplo 1</article>
             <article id="item2" class="item">Exemplo 2</article>
             <article id="item3" class="item">Exemplo 3</article>
           </div>
@@ -33,10 +33,10 @@
       <div class="controls">
         <div class="buttons">
           <div class="prev">
-            <button id="bt-prev" class="sliderbtn btnprev" onclick="prevSlider(event)">prev</button>
+            <button id="bt-prev" class="sliderbtn btnprev">prev</button>
           </div>
           <div class="next">
-            <button id="bt-next" class="sliderbtn btnnext" onclick="nextSlider(event)">next</button>
+            <button id="bt-next" class="sliderbtn btnnext">next</button>
           </div>
         </div>
       </div>
@@ -51,8 +51,10 @@
         footer
       </div>
     </div>
+    <script type="module" src="scripts/index.js"></script>
+    <script type="module" src="scripts/utils.js"></script>
     <script type="module" src="scripts/services.js"></script>
-    <script src="scripts/utils.js"></script>
-    <script src="scripts/index.js"></script>
+    <script type="module" src="scripts/router.js"></script>
+    
   </body>
 </html>

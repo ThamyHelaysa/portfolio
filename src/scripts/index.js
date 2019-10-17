@@ -1,3 +1,5 @@
+//'use strict';
+
 const slider      = document.getElementById("slider_list"),
       sliderItem  = document.querySelectorAll(".item"),
       sliderItems = sliderItem.length,
@@ -13,11 +15,32 @@ function nextSlider(e){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
+    } else if (count === sliderItems){
+      count = 0
+      slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
+      count = 1
     } else {
       return false
     }
   }
 }
+
+// Go to the next slide
+// function nextSlider(e){
+//   //console.log(e)
+//   if ( !hasClass(wrapper, "openArticle") ){
+//     if (count < sliderItems){
+//       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
+//       count++
+//     } else if (count === sliderItems){
+//       count = 0
+//       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
+//       count = 1
+//     } else {
+//       return false
+//     }
+//   }
+// }
 
 // Return to the previous slide
 function prevSlider(e){
@@ -26,7 +49,8 @@ function prevSlider(e){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
-    } else {
+    } else if (count < 0){
+      console.log('aqui')
       return false
     }
   }
@@ -102,5 +126,10 @@ sliderItem.forEach(function(el){
 function closeArticle(){
   removeClass(wrapper, 'openArticle');
 }
+
+
+document.addEventListener("DOMContentLoaded", function(event) {
+  console.log(Services)
+});
 
 

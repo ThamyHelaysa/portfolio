@@ -121,7 +121,7 @@ body {
 .openArticle .controls .next {
   transform: translateX(100%);
 }
-.itemcontent {
+#itemcontent {
   position: absolute;
   left: 0;
   width: 100vw;
@@ -133,7 +133,7 @@ body {
   transition: transform 500ms ease, opacity 500ms ease, visibility 500ms ease;
   z-index: -1;
 }
-.openArticle .itemcontent {
+.openArticle #itemcontent {
   transform: translateY(0%);
   opacity: 1;
   visibility: visible;

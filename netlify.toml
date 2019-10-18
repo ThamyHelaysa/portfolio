@@ -7,6 +7,7 @@
 [[redirects]]
   from = "/*"
   to = "/"
+  force = true
 
 # A redirect rule with all the supported properties
 [[redirects]]
@@ -25,7 +26,7 @@
   # params needs to be defined in a separate [[redirects]] block.
   # More information at https://docs.netlify.com/routing/redirects/redirect-options/#query-parameters
 
-  # query = {id = ":id"}
+  query = {id = ":id"}
 
   # Redirect based on browser language, geolocation, and/or identity role.
   

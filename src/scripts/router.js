@@ -1,12 +1,11 @@
 import Services from './services.js'
 
 
-function changeView() {
-    console.log('changeView')
+async function changeView() {
     var content = document.querySelector("#itemcontent");
     switch (window.location.pathname) {
         case "/tcc":
-            const urlContent = Services.load("tcc");
+            const urlContent = await Services.load("tcc");
             content.innerHTML = urlContent
             break;
         case "/produtos":

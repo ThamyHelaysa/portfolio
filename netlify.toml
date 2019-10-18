@@ -5,7 +5,7 @@
 
 # A redirect rule with all the supported properties
 [[redirects]]
-  from = "/tcc"
+  from = "/*"
   to = "/index.html"
 
   # The default HTTP status code is 301, but you can define a different one.
@@ -20,7 +20,7 @@
   # params needs to be defined in a separate [[redirects]] block.
   # More information at https://docs.netlify.com/routing/redirects/redirect-options/#query-parameters
 
-  query = {id = ":id"}
+  # query = {id = ":id"}
 
   # Redirect based on browser language, geolocation, and/or identity role.
   

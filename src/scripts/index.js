@@ -7,9 +7,21 @@ const slider      = document.getElementById("slider_list"),
       prevBtn     = document.querySelector('.btnprev'),
       nextButton  = document.querySelector('.btnnext'),
       closeBtn    = document.querySelector('#close'),
+      bodyCon     = document.querySelector("body"),
       wrapper     = document.querySelector(".wrapper"),
       content     = document.querySelector(".project"),
       gap         = 16;
+
+
+
+document.addEventListener('DOMContentLoaded', (e) => {
+
+  setTimeout(()=>{
+    Utils.removeClass(bodyCon, '--loading');
+  }, 5000)
+
+})
+
 
 
 /**

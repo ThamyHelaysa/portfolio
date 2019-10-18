@@ -1,0 +1,5 @@
+# See svg change path to the cursor
+# https://www.bram.us/2017/06/21/changing-svg-path-data-with-css/
+
+# Make the loader 
+# https://www.w3schools.com/js/js_timing.asp

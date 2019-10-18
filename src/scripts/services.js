@@ -10,7 +10,6 @@ export async function load(arq){
             method: 'GET'
         })
         if (res.ok){
-            console.log(res.text())
             return res.text();
         } else {
             throw new Error("Alguma coisa deu errado")

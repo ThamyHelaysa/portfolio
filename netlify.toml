@@ -3,13 +3,6 @@
 # For context-specific rules, use _headers or _redirects files, which are
 # PER-DEPLOY.
 
-# A basic redirect rule
-[[redirects]]
-  from = "/*"
-  to = "/"
-  force = true
-  status = 200
-
 # A redirect rule with all the supported properties
 [[redirects]]
   from = "/tcc"

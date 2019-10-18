@@ -1,45 +1,56 @@
-import Services from './services.js'
+import Utils from './utils.js'
 
+const wrapper = document.querySelector(".wrapper");
 
-async function changeView() {
-    var content = document.querySelector("#itemcontent_tcc");
-    switch (window.location.pathname) {
-        case "/tcc":
-            const urlContent = await Services.load("tcc");
-            content.innerHTML = urlContent
-            break;
-        case "/produtos":
-            content.load("/src/produto/list.html");
-            break;
-        case "/categorias/criar":
-            content.load("/src/categoria/form.html");
-            break;
-        case "/categorias":
-            content.load("/src/categoria/list.html");
-            break;
-        case "/login":
-            content.load("/src/login.html");
-            break;
-        case "/logout":
-            localStorage.clear();
-            window.location = "/";
-            break;
-    }
+async function changeView(data) {
+
+  /**
+   * Switch that deals with location pathname
+   * and sets the classes for the content
+   */
+  if (data != "/"){
+      var newData = data.replace("/", "");
+      var container = document.querySelector(`.project.${newData}`);
+  } 
+  switch (window.location.pathname) {
+    case "/tcc":
+      Utils.addClass(container, 'openArticle');
+      break;
+    case "/produtos":
+      content.load("/src/produto/list.html");
+      break;
+    case "/categorias/criar":
+      content.load("/src/categoria/form.html");
+      break;
+  }
 }
 
+/**
+ * 
+ * @param {event} e event
+ * @param {url} url pathname
+ */
 function transitionTo(e, url) {
-    e && e.preventDefault();
-    window.history.pushState("", "", url);
-    changeView();
+  e && e.preventDefault();
+  window.history.pushState("", "", url);
+  changeView(url);
 }
 
+/**
+ * On the first load verifies the url
+ * for adding or not the classes
+ */
 document.addEventListener("DOMContentLoaded", (e) => {
-    changeView();
+  var URL = window.location.pathname
+  if (URL != "/"){
+    Utils.addClass(wrapper, `open-${URL}`);
+  }
+  changeView(window.location.pathname);
 });
 
 const Router = {
-    transitionTo,
-    changeView
+  transitionTo,
+  changeView
 }
 
 export default Router

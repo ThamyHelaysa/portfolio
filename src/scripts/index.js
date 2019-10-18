@@ -1,8 +1,6 @@
 import Utils from './utils.js'
 import Router from './router.js'
 
-//'use strict';
-
 const slider      = document.getElementById("slider_list"),
       sliderItem  = document.querySelectorAll(".item"),
       sliderItems = sliderItem.length,
@@ -10,8 +8,13 @@ const slider      = document.getElementById("slider_list"),
       nextButton  = document.querySelector('.btnnext'),
       closeBtn    = document.querySelector('#close'),
       wrapper     = document.querySelector(".wrapper"),
-      gap         = 16
+      gap         = 16;
 
+
+/**
+ * Variable that handle the
+ * transforms numbers
+ */
 var count = 1;
 
 
@@ -30,7 +33,11 @@ closeBtn.addEventListener('click', (e) => {
   closeArticle();
 })
 
-// Go to the next slide
+/**
+ * 
+ * @param {event} e event nextSlider:
+ * It skips the slide
+ */
 function nextSlider(e){
   //console.log(e)
   if ( !Utils.hasClass(wrapper, "openArticle") ){
@@ -44,6 +51,12 @@ function nextSlider(e){
 }
 
 // Return to the previous slide
+
+/**
+ * 
+ * @param {event} e event for prevSlider:
+ * It returns to the previous slide
+ */
 function prevSlider(e){
   //console.log(e)
   if (!Utils.hasClass(wrapper, "openArticle")){
@@ -57,8 +70,10 @@ function prevSlider(e){
   }
 }
 
-// Return or go forward with arrow key
-document.addEventListener ('keydown', (event) => {
+/**
+ * Listener that triggers on arrow keys down
+ */
+document.addEventListener('keydown', (event) => {
   const keyName = event.key;
   if ( !Utils.hasClass(wrapper, "openArticle") ){
     if (keyName === "ArrowRight"){
@@ -117,8 +132,8 @@ document.addEventListener('touchend', function(e) {
 sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
-    Router.transitionTo(e, "tcc");
-    Utils.addClass(wrapper, 'openArticle');
+    Router.transitionTo(e, URL);
+    Utils.addClass(wrapper, `open-${URL}`);
   })
 })
 

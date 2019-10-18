@@ -39,7 +39,7 @@ body {
   visibility: hidden;
   transition: all 300ms 100ms ease;
 }
-.openArticle .close {
+[class*="open-"] .close {
   opacity: 1;
   visibility: visible;
 }
@@ -104,8 +104,8 @@ body {
   transition: all 500ms ease;
   visibility: visible;
 }
-.openArticle .controls .prev,
-.openArticle .controls .next {
+[class*="open-"] .controls .prev,
+[class*="open-"] .controls .next {
   opacity: 0;
   visibility: hidden;
 }
@@ -113,14 +113,14 @@ body {
   left: auto;
   right: calc(100% - 50px);
 }
-.openArticle .controls .prev {
+[class*="open-"] .controls .prev {
   transform: translateX(-100%);
 }
 .controls .next {
   left: calc(100% - 50px);
   right: auto;
 }
-.openArticle .controls .next {
+[class*="open-"] .controls .next {
   transform: translateX(100%);
 }
 .project {
@@ -135,7 +135,7 @@ body {
   transition: transform 500ms ease, opacity 500ms ease, visibility 500ms ease;
   z-index: 8;
 }
-.openArticle .project {
+.project.openArticle {
   transform: translateY(0%);
   opacity: 1;
   visibility: visible;

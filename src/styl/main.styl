@@ -44,7 +44,7 @@ html, body
   opacity 0
   visibility hidden
   transition all 300ms 100ms ease
-  .openArticle &
+  [class*="open-"] &
     opacity 1
     visibility visible
 
@@ -61,9 +61,6 @@ html, body
   bottom 0
   height 100%
   transition all 300ms ease
-  // .openArticle &
-  //   height 100vh
-  //   top calc(50% - 50vh)
 
 
 
@@ -110,18 +107,18 @@ html, body
     opacity 1
     transition all 500ms ease
     visibility visible
-    .openArticle &
+    [class*="open-"] &
       opacity 0
       visibility hidden
   .prev
     left auto
     right calc(100% - 50px)
-    .openArticle &
+    [class*="open-"] &
       transform translateX(-100%)
   .next
     left calc(100% - 50px)
     right auto
-    .openArticle &
+    [class*="open-"] &
       transform translateX(100%)
 
 
@@ -136,7 +133,7 @@ html, body
   transform translateY(100%)
   transition transform 500ms ease, opacity 500ms ease, visibility 500ms ease
   z-index 8
-  .openArticle &
+  &.openArticle
     transform translateY(0%)
     opacity 1
     visibility visible

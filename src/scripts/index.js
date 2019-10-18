@@ -8,6 +8,7 @@ const slider      = document.getElementById("slider_list"),
       nextButton  = document.querySelector('.btnnext'),
       closeBtn    = document.querySelector('#close'),
       wrapper     = document.querySelector(".wrapper"),
+      content     = document.querySelector(".project"),
       gap         = 16;
 
 
@@ -143,6 +144,8 @@ sliderItem.forEach(function(el){
  * Close Article
  */
 function closeArticle(e){
-  Utils.removeClass(wrapper, 'openArticle');
+  var URL = window.location.pathname.replace("/", "");
+  Utils.removeClass(wrapper, `open-${URL}`);
+  Utils.removeClass(content, "openArticle");
   Router.transitionTo(e, "/")
 }

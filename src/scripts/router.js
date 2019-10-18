@@ -42,8 +42,9 @@ function transitionTo(e, url) {
  */
 document.addEventListener("DOMContentLoaded", (e) => {
   var URL = window.location.pathname
+  var newUrl = URL.replace("/", "");
   if (URL != "/"){
-    Utils.addClass(wrapper, `open-${URL}`);
+    Utils.addClass(wrapper, `open-${newUrl}`);
   }
   changeView(window.location.pathname);
 });

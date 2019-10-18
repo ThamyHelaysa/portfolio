@@ -8,6 +8,7 @@
   from = "/*"
   to = "/"
   force = true
+  status = 200
 
 # A redirect rule with all the supported properties
 [[redirects]]

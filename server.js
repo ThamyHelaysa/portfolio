@@ -6,7 +6,7 @@ app.get(/.+\.(js|ico|html|png|css|map)$/, function(req, res) {
     res.sendFile(req.originalUrl.replace(/^./, ""));
 });
 app.get(/.+$/, function(req, res) {
-    res.sendFile(__dirname + "/index.html");
+    res.sendFile(__dirname + "/src/index.html");
 });
 
 app.listen(8080, () => {

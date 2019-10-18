@@ -2,7 +2,7 @@ import Services from './services.js'
 
 
 async function changeView() {
-    var content = document.querySelector("#itemcontent");
+    var content = document.querySelector("#itemcontent_tcc");
     switch (window.location.pathname) {
         case "/tcc":
             const urlContent = await Services.load("tcc");
@@ -32,6 +32,10 @@ function transitionTo(e, url) {
     window.history.pushState("", "", url);
     changeView();
 }
+
+document.addEventListener("DOMContentLoaded", (e) => {
+    changeView();
+});
 
 const Router = {
     transitionTo,

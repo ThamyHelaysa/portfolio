@@ -14,11 +14,12 @@ const slider      = document.getElementById("slider_list"),
 
 
 
+
 document.addEventListener('DOMContentLoaded', (e) => {
 
   setTimeout(()=>{
     Utils.removeClass(bodyCon, '--loading');
-  }, 5000)
+  }, 11000)
 
 })
 

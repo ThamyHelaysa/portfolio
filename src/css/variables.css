@@ -1,0 +1,19 @@
+:root {
+    --brightness: #eee;
+    --highlight: #E1523C;
+    --midtone: #f0f0f0;
+    --shadow: 0;
+    --darkness: #212121;
+    --blue: #3c75a3;
+    --pink: #ed265c;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --brightness: #212121;
+        --highlight: #E1523C;
+        --midtone: #f0f0f0;
+        --shadow: 0;
+        --darkness: #eee;
+    }
+}

@@ -148,6 +148,7 @@ sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
     Router.transitionTo(e, URL);
+    Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);
   })
 })
@@ -159,6 +160,7 @@ sliderItem.forEach(function(el){
  */
 function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
+  Utils.removeClass(mainBody, `open`);
   Utils.removeClass(mainBody, `open-${URL}`);
   Utils.removeClass(content, "openArticle");
   Router.transitionTo(e, "/")

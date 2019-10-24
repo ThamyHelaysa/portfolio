@@ -227,11 +227,13 @@ body {
   top: 50%;
   left: 50%;
   width: 100vw;
-  height: 100vw;
-  margin: -50vh -50vw;
-  background: url("https://www.shutterstock.com/blog/wp-content/uploads/sites/5/2018/04/shutterstock_481521433.jpg");
+  height: 80vh;
+  margin: -40vh -50vw;
+  background: url("https://www.shutterstock.com/blog/wp-content/uploads/sites/5/2018/04/shutterstock_481521433.jpg") no-repeat 50%;
+  background-size: cover;
   transform: scale(0.8);
-  transition: transform 2s ease;
+  transition: transform 0.4s ease;
+  will-change: transform;
 }
 [class*="open-"] .slider .content {
   transform: scale(1);
@@ -281,7 +283,7 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(100%);
-  transition: transform 500ms ease, opacity 500ms ease, visibility 500ms ease;
+  transition: all 500ms ease;
   z-index: 8;
 }
 .project.openArticle {
@@ -291,7 +293,7 @@ body {
 }
 .project > .content {
   height: 100%;
-  background: var(--darkness);
+  background: var(--brightness);
 }
 .footer {
   grid-row: 3/4;

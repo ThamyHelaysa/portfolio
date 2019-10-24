@@ -9,6 +9,7 @@ const slider      = document.getElementById("slider_list"),
       closeBtn    = document.querySelector('#close'),
       bodyCon     = document.querySelector("body"),
       wrapper     = document.querySelector(".wrapper"),
+      mainBody    = document.querySelector("body"),
       content     = document.querySelector(".project"),
       gap         = 16;
 
@@ -54,7 +55,7 @@ closeBtn.addEventListener('click', (e) => {
  */
 function nextSlider(e){
   //console.log(e)
-  if ( !Utils.hasClass(wrapper, "openArticle") ){
+  if ( !Utils.hasClass(content, "openArticle") ){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
@@ -73,7 +74,7 @@ function nextSlider(e){
  */
 function prevSlider(e){
   //console.log(e)
-  if (!Utils.hasClass(wrapper, "openArticle")){
+  if (!Utils.hasClass(content, "openArticle")){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
@@ -89,7 +90,7 @@ function prevSlider(e){
  */
 document.addEventListener('keydown', (event) => {
   const keyName = event.key;
-  if ( !Utils.hasClass(wrapper, "openArticle") ){
+  if ( !Utils.hasClass(content, "openArticle") ){
     if (keyName === "ArrowRight"){
       nextSlider();
     } else if (keyName === "ArrowLeft"){
@@ -147,7 +148,7 @@ sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
     Router.transitionTo(e, URL);
-    Utils.addClass(wrapper, `open-${URL}`);
+    Utils.addClass(mainBody, `open-${URL}`);
   })
 })
 
@@ -158,7 +159,7 @@ sliderItem.forEach(function(el){
  */
 function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
-  Utils.removeClass(wrapper, `open-${URL}`);
+  Utils.removeClass(mainBody, `open-${URL}`);
   Utils.removeClass(content, "openArticle");
   Router.transitionTo(e, "/")
 }

@@ -33,23 +33,25 @@
         <!--
           TO DO: Add svg logo on menu
         -->
-          <div id="logo">
+          <nav id="logo">
               <span class="key">{</span>
-              <button class="btn"> <span class="letter">th,</span> </button>
-              <button class="btn"> <span class="letter">tcc,</span> </button>
-              <button class="btn"> <span class="letter">projetos,</span> </button>
-              <button class="btn"> <span class="letter">sobre</span> </button>
+              <button class="btn th"> <span class="letter">th,</span> </button>
+              <button class="btn tcc"> <span class="letter">tcc,</span> </button>
+              <button class="btn projects"> <span class="letter">projetos,</span> </button>
+              <button class="btn about"> <span class="letter">sobre</span> </button>
               <span class="key">}</span>
-          </div>
+          </nav>
           <button id="close" class="close">X</button>
       </header>
-      <main class="content">
+      <main class="main">
         <!--
           TO DO: Add content
         -->
         <div class="slider">
           <div id="slider_list" class="list">
-            <article data-url="tcc" id="item1" class="item">Exemplo 1</article>
+            <article data-url="tcc" id="item1" class="item">
+              <div class="content"></div>
+            </article>
             <article data-url="proj1" id="item2" class="item">Exemplo 2</article>
             <article data-url="proj2" id="item3" class="item">Exemplo 3</article>
           </div>
@@ -59,17 +61,17 @@
       <div class="controls">
         <div class="buttons">
           <div class="prev">
-            <button id="bt-prev" class="sliderbtn btnprev btn">prev</button>
+            <button id="bt-prev" class="btnslider btnprev btn"><span>prev</span></button>
           </div>
           <div class="next">
-            <button id="bt-next" class="sliderbtn btnnext btn">next</button>
+            <button id="bt-next" class="btnslider btnnext btn"><span>next</span></button>
           </div>
         </div>
       </div>
 
       <!-- TCC Content-->
       <div id="itemcontent_tcc" class="project tcc">
-        <div class="project-content">
+        <div class="content">
           <div class="title"><span></span></div>
           <div class="inner">
             <div class="wrap">

@@ -1,6 +1,6 @@
 import Utils from './utils.js'
 
-const wrapper = document.querySelector(".wrapper");
+const mainBody = document.querySelector("body");
 
 async function changeView(data) {
 
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
   var URL = window.location.pathname
   var newUrl = URL.replace("/", "");
   if (URL != "/"){
-    Utils.addClass(wrapper, `open-${newUrl}`);
+    Utils.addClass(mainBody, `open-${newUrl}`);
   }
   changeView(window.location.pathname);
 });

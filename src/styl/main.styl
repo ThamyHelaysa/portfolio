@@ -9,7 +9,7 @@
 * Variables
 */
 sm = 16px
-x  = 1s
+sec  = 1s
 
 cubic = cubic-bezier(.75,-1.27,.3,2.3)
 
@@ -65,8 +65,11 @@ html, body
     display flex
     align-items center
     justify-content center
+  .open-tcc &
+    display none
   .--loading &
-    transform translateY(0%);
+    //transform translateY(0%);
+  
 
 .welcome
   position relative
@@ -99,12 +102,10 @@ html, body
     margin 0 auto
     letter-spacing .10em
     &:last-child
-      animation typing x 8.5s steps(8, end) forwards
+      animation typing sec 8.5s steps(8, end) forwards
   for i in 1 2 3 4
     .char:nth-of-type({i})
-      animation typing x (2 * x) * (i - 1) steps(8, end) forwards, typing-back x (2 * x) * (i - 1) + x steps(8, end) forwards
-    
-  
+      animation typing sec (2 * sec) * (i - 1) steps(8, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(8, end) forwards
   .letter
     display inline-block
     color var(--highlight)
@@ -129,7 +130,7 @@ html, body
   position relative
   display grid
   grid-gap sm
-  grid-template .3fr 2fr .3fr/1fr
+  grid-template 10vh 2fr 10vh/1fr
   height 100%
   padding sm
 
@@ -142,12 +143,16 @@ html, body
   z-index 9
 
 #logo
+  display flex
+  align-items center
+  justify-content space-between
   font-size 1.5rem
   font-family 'Nunito', sans-serif
   font-weight bold
   letter-spacing .15em
   .key
     color var(--darkness)
+    font-size 1.7rem
   .link
     color var(--highlight)
 
@@ -162,8 +167,8 @@ html, body
 .menu
   grid-row 1/2
 
-.content
-  position absolute
+.main
+  //position absolute
   grid-column 1/2
   grid-row 2/3
   top 0
@@ -175,15 +180,30 @@ html, body
 
 .btn
   min-height 50px
+  padding 5px
+  background none
+  border 0
+  box-shadow none
+  color var(--highlight)
+  &slider
+    font-size 1rem
+  #logo &
+    width 0
+    padding 0
+    overflow hidden
+  .open-tcc #logo .tcc
+    width 100%
+    padding 5px
+    overflow visible
+
 
 .slider 
-  position relative
-  width 100vw
+  //position relative
+  width 100%
   height 100%
-  margin 0 -16px
   overflow hidden
   > .list 
-    position relative
+    //position relative
     display grid
     grid-gap sm
     grid-auto-flow column
@@ -197,7 +217,6 @@ html, body
       content ''
       width 0
   .item 
-    //position absolute
     display block
     justify-self center
     width 100%
@@ -205,8 +224,22 @@ html, body
     padding sm
     background #666
     transition height 500ms 
+  .content
+    position absolute
+    top 50%
+    left 50%
+    width 100vw
+    height 100vw
+    margin -50vh -50vw
+    background url(https://www.shutterstock.com/blog/wp-content/uploads/sites/5/2018/04/shutterstock_481521433.jpg)
+    transform scale(.8)
+    transition transform 2s ease
+    [class*="open-"] &
+      transform scale(1)
 
 .controls
+  grid-column 1/2
+  grid-row 2/3
   .prev, .next
     position absolute
     display flex
@@ -237,8 +270,9 @@ html, body
   position absolute
   left 0
   width 100vw
-  height 100%
-  background var(--darkness)
+  height 4000px
+  //background var(--darkness)
+  padding-top 80vh
   opacity 0
   visibility hidden
   transform translateY(100%)
@@ -248,10 +282,12 @@ html, body
     transform translateY(0%)
     opacity 1
     visibility visible
+  > .content
+    height 100%
+    background var(--darkness)
 
 
 
 .footer 
   grid-row 3/4
-  background cz
   z-index 9

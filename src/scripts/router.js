@@ -16,12 +16,6 @@ async function changeView(data) {
     case "/tcc":
       Utils.addClass(container, 'openArticle');
       break;
-    case "/produtos":
-      content.load("/src/produto/list.html");
-      break;
-    case "/categorias/criar":
-      content.load("/src/categoria/form.html");
-      break;
   }
 }
 
@@ -47,7 +41,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${newUrl}`);
   }
-  changeView(window.location.pathname);
+  changeView(URL);
 });
 
 const Router = {

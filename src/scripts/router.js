@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
   var URL = window.location.pathname
   var newUrl = URL.replace("/", "");
   if (URL != "/"){
+    Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${newUrl}`);
   }
   changeView(window.location.pathname);

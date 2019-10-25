@@ -137,10 +137,11 @@ html, body
   padding sm
 
 .header
+  position fixed
   display flex
   align-items center
   justify-content space-between
-  margin -(sm)
+  width "calc(100% - %s * 2)" % sm 
   padding sm
   z-index 9
 

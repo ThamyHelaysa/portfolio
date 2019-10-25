@@ -11,6 +11,7 @@ const slider      = document.getElementById("slider_list"),
       wrapper     = document.querySelector(".wrapper"),
       mainBody    = document.querySelector("body"),
       content     = document.querySelector(".project"),
+      scrollBody  = mainBody.scrollTop,
       gap         = 16;
 
 
@@ -120,7 +121,7 @@ document.addEventListener('touchend', function(e) {
    var td_x = touch.pageX - ts_x; // deslocamento na horizontal
    var td_y = touch.pageY - ts_y; // deslocamento na vertical
    // O movimento principal foi vertical ou horizontal?
-   if( Math.abs( td_x ) > Math.abs( td_y ) && !Utils.hasClass(wrapper, "openArticle")) {
+   if( Math.abs( td_x ) > Math.abs( td_y ) ) {
       // é horizontal
       if( td_x < 0 ) {
          // é para esquerda
@@ -150,9 +151,18 @@ sliderItem.forEach(function(el){
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);
+    mainBody.style.overflowY = "auto"
   })
 })
 
+
+
+
+
+// var scrollBodyValue;
+// document.addEventListener('scroll', (e) => {
+//   scrollBodyValue = document.body.scrollTop
+// })
 
 
 /**
@@ -160,8 +170,47 @@ sliderItem.forEach(function(el){
  */
 function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
-  Utils.removeClass(mainBody, `open`);
-  Utils.removeClass(mainBody, `open-${URL}`);
-  Utils.removeClass(content, "openArticle");
-  Router.transitionTo(e, "/")
+
+  function initClose(){
+    Utils.removeClass(mainBody, `open`);
+    Utils.removeClass(mainBody, `open-${URL}`);
+    Utils.removeClass(content, "openArticle");
+    Router.transitionTo(e, "/")
+  }
+
+
+
+  if (document.body.scrollTop > 0){
+    console.log(scrollBody)
+    document.body.scrollTop = 0
+    
+    //return false
+  }
+
+  initClose();
+
+  
 }
+
+const Index = {
+  "vars": {
+    slider,
+    sliderItem,
+    sliderItems,
+    prevBtn,
+    nextButton,
+    closeBtn,
+    bodyCon,
+    wrapper,
+    mainBody,
+    content,
+    scrollBody,
+    gap
+  },
+  nextSlider,
+  prevSlider
+}
+
+
+export default Index
+

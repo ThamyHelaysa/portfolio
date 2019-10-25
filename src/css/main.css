@@ -130,10 +130,11 @@ body {
   padding: 16px;
 }
 .header {
+  position: fixed;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: -16px;
+  width: calc(100% - 16px * 2);
   padding: 16px;
   z-index: 9;
 }

@@ -1,6 +1,6 @@
 import Utils from './utils.js'
+import Index from './index.js'
 
-const mainBody = document.querySelector("body");
 
 async function changeView(data) {
 
@@ -35,11 +35,14 @@ function transitionTo(e, url) {
  * for adding or not the classes
  */
 document.addEventListener("DOMContentLoaded", (e) => {
+  const mainBody = Index.vars.mainBody;
+  
   var URL = window.location.pathname
   var newUrl = URL.replace("/", "");
   if (URL != "/"){
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${newUrl}`);
+    mainBody.style.overflowY = "auto"
   }
   changeView(URL);
 });

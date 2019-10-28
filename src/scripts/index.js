@@ -15,7 +15,7 @@ const slider      = document.getElementById("slider_list"),
       gap         = 16;
 
 
-var content  = document.querySelector(".project");
+var projectContent  = document.querySelector(".project");
 
 document.addEventListener('DOMContentLoaded', (e) => {
 
@@ -71,7 +71,7 @@ closeBtn.addEventListener('click', (e) => {
  * It skips the slide
  */
 function nextSlider(e){
-  if ( !Utils.hasClass(content, "openArticle") ){
+  if ( !Utils.hasClass(projectContent, "openArticle") ){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
@@ -87,7 +87,7 @@ function nextSlider(e){
  * It returns to the previous slide
  */
 function prevSlider(e){
-  if (!Utils.hasClass(content, "openArticle")){
+  if (!Utils.hasClass(projectContent, "openArticle")){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
@@ -101,7 +101,7 @@ function prevSlider(e){
 document.addEventListener('keydown', (e) => {
   e.stopPropagation();
   const keyName = event.key;
-  if ( !Utils.hasClass(content, "openArticle") ){
+  if ( !Utils.hasClass(projectContent, "openArticle") ){
     if (keyName === "ArrowRight"){
       nextSlider();
     } else if (keyName === "ArrowLeft"){
@@ -160,7 +160,7 @@ sliderItem.forEach(function(el){
   el.addEventListener('click', function(e) {
     e.stopPropagation();
 
-    content = document.querySelector(`.project.${URL}`)
+    projectContent = document.querySelector(`.project.${URL}`)
 
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
@@ -180,11 +180,11 @@ function closeArticle(e){
   function initClose(){
     Utils.removeClass(mainBody, `open`);
     Utils.removeClass(mainBody, `open-${URL}`);
-    Utils.removeClass(content, "openArticle");
+    Utils.removeClass(projectContent, "openArticle");
     mainBody.style.overflowY = "hidden"
     Router.transitionTo(e, "/")
 
-    console.log(content)
+    console.log(projectContent)
     
   }
 
@@ -208,7 +208,7 @@ const Index = {
     bodyCon,
     wrapper,
     mainBody,
-    content,
+    projectContent,
     scrollBody,
     gap
   },

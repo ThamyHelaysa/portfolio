@@ -233,7 +233,7 @@ body {
   width: 100vw;
   height: 80vh;
   margin: -40vh -50vw;
-  background: url("https://www.shutterstock.com/blog/wp-content/uploads/sites/5/2018/04/shutterstock_481521433.jpg") no-repeat 50%;
+  background: url("../media/teste-imagem.jpg") no-repeat 50%;
   background-size: cover;
   transform: scale(0.8);
   transition: all 0.4s ease;

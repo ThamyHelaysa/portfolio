@@ -157,14 +157,6 @@ sliderItem.forEach(function(el){
 
 
 
-
-
-// var scrollBodyValue;
-// document.addEventListener('scroll', (e) => {
-//   scrollBodyValue = document.body.scrollTop
-// })
-
-
 /**
  * Close Article
  */
@@ -178,13 +170,10 @@ function closeArticle(e){
     Router.transitionTo(e, "/")
   }
 
-
-
+  // Check if body is on scroll
   if (document.body.scrollTop > 0){
-    console.log(scrollBody)
     document.body.scrollTop = 0
-    
-    //return false
+    mainBody.style.overflowY = "hidden"
   }
 
   initClose();

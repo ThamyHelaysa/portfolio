@@ -275,6 +275,11 @@ body {
   grid-column: 1/2;
   grid-row: 2/3;
 }
+@media (max-width: 992px) {
+  .controls {
+    display: none;
+  }
+}
 .controls .prev,
 .controls .next {
   position: absolute;

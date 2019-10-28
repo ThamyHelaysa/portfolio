@@ -10,18 +10,19 @@ const slider      = document.getElementById("slider_list"),
       bodyCon     = document.querySelector("body"),
       wrapper     = document.querySelector(".wrapper"),
       mainBody    = document.querySelector("body"),
-      content     = document.querySelector(".project"),
+      
       scrollBody  = mainBody.scrollTop,
       gap         = 16;
 
 
-
+var content  = document.querySelector(".project");
 
 document.addEventListener('DOMContentLoaded', (e) => {
 
   setTimeout(()=>{
     Utils.removeClass(bodyCon, '--loading');
   }, 11000)
+
 
 })
 
@@ -34,20 +35,35 @@ document.addEventListener('DOMContentLoaded', (e) => {
 var count = 1;
 
 
+function is992(){
+  var w = window.innerWidth
+  if (w < 992){
+    return true
+  } else {
+    return false
+  }
+}
+
+
 /*
 * Putting Listener Buttons
 */
 prevBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
   prevSlider(e);
 })
 
 nextButton.addEventListener('click', (e) => {
+  e.stopPropagation();
   nextSlider(e);
 })
 
 closeBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
   closeArticle(e);
 })
+
+
 
 /**
  * 
@@ -55,14 +71,11 @@ closeBtn.addEventListener('click', (e) => {
  * It skips the slide
  */
 function nextSlider(e){
-  //console.log(e)
   if ( !Utils.hasClass(content, "openArticle") ){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
-    } else {
-      return false
-    }
+    } 
   }
 }
 
@@ -74,22 +87,19 @@ function nextSlider(e){
  * It returns to the previous slide
  */
 function prevSlider(e){
-  //console.log(e)
   if (!Utils.hasClass(content, "openArticle")){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
-    } else if (count < 0){
-      console.log('aqui')
-      return false
-    }
+    } 
   }
 }
 
 /**
  * Listener that triggers on arrow keys down
  */
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', (e) => {
+  e.stopPropagation();
   const keyName = event.key;
   if ( !Utils.hasClass(content, "openArticle") ){
     if (keyName === "ArrowRight"){
@@ -148,6 +158,10 @@ document.addEventListener('touchend', function(e) {
 sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
+    e.stopPropagation();
+
+    content = document.querySelector(`.project.${URL}`)
+
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);
@@ -162,12 +176,15 @@ sliderItem.forEach(function(el){
  */
 function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
+
   function initClose(){
     Utils.removeClass(mainBody, `open`);
     Utils.removeClass(mainBody, `open-${URL}`);
     Utils.removeClass(content, "openArticle");
     mainBody.style.overflowY = "hidden"
     Router.transitionTo(e, "/")
+
+    console.log(content)
     
   }
 
@@ -177,7 +194,6 @@ function closeArticle(e){
   }
 
   initClose();
-
   
 }
 

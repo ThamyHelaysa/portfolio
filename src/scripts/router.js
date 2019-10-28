@@ -15,19 +15,16 @@ async function changeView(data) {
   switch (window.location.pathname) {
     case "/tcc":
       Utils.addClass(container, 'openArticle');
-      Index.vars.count = 1
       break;
     case "/proj1":
       Utils.addClass(container, 'openArticle');
-      Index.vars.count = 2
       break;
     case "/proj2":
       Utils.addClass(container, 'openArticle');
-      Index.vars.count = 3
       break;
     case "/proj3":
       Utils.addClass(container, 'openArticle');
-      Index.vars.count = 4
+      //Index.vars.count = 4
       break;
   }
 }
@@ -53,11 +50,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
   var URL = window.location.pathname
   var newUrl = URL.replace("/", "");
 
-  Index.nextSlider();
+  //Index.nextSlider();
   
   if (URL != "/"){
-    Index.vars.projectContent = document.querySelector(`.project.${newUrl}`);
-    console.log(Index.vars.projectContent)
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${newUrl}`);
     mainBody.style.overflowY = "auto"

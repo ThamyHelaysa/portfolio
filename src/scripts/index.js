@@ -10,7 +10,6 @@ const slider      = document.getElementById("slider_list"),
       bodyCon     = document.querySelector("body"),
       wrapper     = document.querySelector(".wrapper"),
       mainBody    = document.querySelector("body"),
-      
       scrollBody  = mainBody.scrollTop,
       gap         = 16;
 
@@ -71,7 +70,7 @@ closeBtn.addEventListener('click', (e) => {
  * It skips the slide
  */
 function nextSlider(e){
-  if ( !Utils.hasClass(projectContent, "openArticle") ){
+  if ( !Utils.hasClass(bodyCon, "open") ){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
@@ -87,7 +86,7 @@ function nextSlider(e){
  * It returns to the previous slide
  */
 function prevSlider(e){
-  if (!Utils.hasClass(projectContent, "openArticle")){
+  if (!Utils.hasClass(bodyCon, "open")){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
@@ -101,7 +100,7 @@ function prevSlider(e){
 document.addEventListener('keydown', (e) => {
   e.stopPropagation();
   const keyName = event.key;
-  if ( !Utils.hasClass(projectContent, "openArticle") ){
+  if ( !Utils.hasClass(projectContent, "open") ){
     if (keyName === "ArrowRight"){
       nextSlider();
     } else if (keyName === "ArrowLeft"){
@@ -160,8 +159,6 @@ sliderItem.forEach(function(el){
   el.addEventListener('click', function(e) {
     e.stopPropagation();
 
-    //Utils.addClass(slider.parentNode, "o")
-
     projectContent = document.querySelector(`.project.${URL}`)
 
     Router.transitionTo(e, URL);
@@ -180,12 +177,12 @@ function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
 
   function initClose(){
+    console.log(projectContent)
     Utils.removeClass(mainBody, `open`);
     Utils.removeClass(mainBody, `open-${URL}`);
     Utils.removeClass(projectContent, "openArticle");
     mainBody.style.overflowY = "hidden"
     Router.transitionTo(e, "/")
-    
   }
 
   // Check if body is on scroll
@@ -210,7 +207,8 @@ const Index = {
     mainBody,
     projectContent,
     scrollBody,
-    gap
+    gap,
+    count
   },
   nextSlider,
   prevSlider

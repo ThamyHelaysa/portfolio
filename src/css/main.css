@@ -47,9 +47,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-.--loading .loader {
-  transform: translateY(0%);
-}
 .welcome {
   position: relative;
   display: flex;

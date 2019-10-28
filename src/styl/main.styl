@@ -220,6 +220,7 @@ html, body
       content ''
       width 0
   .item 
+    position relative
     display block
     justify-self center
     width 100%
@@ -243,7 +244,7 @@ html, body
     transition all .4s ease
     will-change transform
   [data-url="proj1"] .content
-    background url(../media/dadaismo.jpg) no-repeat 50%
+    background url(../media/dadaismo.png) no-repeat 50%
     background-size cover
   .open-tcc & [data-url="tcc"] .content
     height 100vh
@@ -270,6 +271,7 @@ html, body
     opacity 1
     transition all 500ms ease
     visibility visible
+    z-index 15
     .open &
       opacity 0
       visibility hidden

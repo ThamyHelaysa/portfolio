@@ -16,6 +16,15 @@ async function changeView(data) {
     case "/tcc":
       Utils.addClass(container, 'openArticle');
       break;
+    case "/proj1":
+      Utils.addClass(container, 'openArticle');
+      break;
+    case "/proj2":
+      Utils.addClass(container, 'openArticle');
+      break;
+    case "/proj3":
+      Utils.addClass(container, 'openArticle');
+      break;
   }
 }
 

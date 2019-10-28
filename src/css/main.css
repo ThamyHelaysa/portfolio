@@ -218,6 +218,7 @@ body {
   width: 0;
 }
 .slider .item {
+  position: relative;
   display: block;
   justify-self: center;
   width: 100%;
@@ -255,7 +256,7 @@ body {
   will-change: transform;
 }
 .slider [data-url="proj1"] .content {
-  background: url("../media/dadaismo.jpg") no-repeat 50%;
+  background: url("../media/dadaismo.png") no-repeat 50%;
   background-size: cover;
 }
 .open-tcc .slider [data-url="tcc"] .content {
@@ -286,6 +287,7 @@ body {
   opacity: 1;
   transition: all 500ms ease;
   visibility: visible;
+  z-index: 15;
 }
 .open .controls .prev,
 .open .controls .next {

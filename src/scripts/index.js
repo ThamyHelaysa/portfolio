@@ -38,15 +38,15 @@ var count = 1;
 * Putting Listener Buttons
 */
 prevBtn.addEventListener('click', (e) => {
-  prevSlider();
+  prevSlider(e);
 })
 
 nextButton.addEventListener('click', (e) => {
-  nextSlider();
+  nextSlider(e);
 })
 
 closeBtn.addEventListener('click', (e) => {
-  closeArticle();
+  closeArticle(e);
 })
 
 /**
@@ -148,7 +148,6 @@ document.addEventListener('touchend', function(e) {
 sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
-    console.log(URL)
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);
@@ -163,18 +162,18 @@ sliderItem.forEach(function(el){
  */
 function closeArticle(e){
   var URL = window.location.pathname.replace("/", "");
-
   function initClose(){
     Utils.removeClass(mainBody, `open`);
     Utils.removeClass(mainBody, `open-${URL}`);
     Utils.removeClass(content, "openArticle");
+    mainBody.style.overflowY = "hidden"
     Router.transitionTo(e, "/")
+    
   }
 
   // Check if body is on scroll
   if (document.body.scrollTop > 0){
     document.body.scrollTop = 0
-    mainBody.style.overflowY = "hidden"
   }
 
   initClose();

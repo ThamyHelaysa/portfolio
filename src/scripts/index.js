@@ -148,6 +148,7 @@ document.addEventListener('touchend', function(e) {
 sliderItem.forEach(function(el){
   var URL = el.dataset.url
   el.addEventListener('click', function(e) {
+    console.log(URL)
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);

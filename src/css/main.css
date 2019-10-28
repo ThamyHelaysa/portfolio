@@ -226,6 +226,21 @@ body {
   background: #666;
   transition: height 500ms;
 }
+.slider .item:nth-last-child(1) .content {
+  z-index: 1;
+}
+.slider .item:nth-last-child(2) .content {
+  z-index: 2;
+}
+.slider .item:nth-last-child(3) .content {
+  z-index: 3;
+}
+.slider .item:nth-last-child(4) .content {
+  z-index: 4;
+}
+.slider .item:nth-last-child(5) .content {
+  z-index: 5;
+}
 .slider .content {
   position: absolute;
   top: 50%;
@@ -239,10 +254,21 @@ body {
   transition: all 0.4s ease;
   will-change: transform;
 }
+.slider [data-url="proj1"] .content {
+  background: url("../media/dadaismo.jpg") no-repeat 50%;
+  background-size: cover;
+}
 .open-tcc .slider [data-url="tcc"] .content {
   height: 100vh;
   margin: -50vh -50vw;
   transform: scale(1);
+  z-index: 8;
+}
+.open-proj1 .slider [data-url="proj1"] .content {
+  height: 100vh;
+  margin: -50vh -50vw;
+  transform: scale(1);
+  z-index: 8;
 }
 .controls {
   grid-column: 1/2;

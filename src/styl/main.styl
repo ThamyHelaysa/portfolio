@@ -9,9 +9,10 @@
 * Variables
 */
 sm = 16px
-sec  = 1s
+sec  = 1.5s
 
 cubic = cubic-bezier(.75,-1.27,.3,2.3)
+
 
 /*
 * Animations
@@ -20,11 +21,11 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
 /* The typing effect */
 @keyframes typing {
   from { max-width: 0 }
-  to { max-width: 700px }
+  to { max-width: var(--w-animation) }
 }
 
 @keyframes typing-back {
-  from { max-width: 700px }
+  from { max-width: var(--w-animation) }
   to { max-width: 0 }
 }
 
@@ -51,6 +52,9 @@ html, body
 
 .loader
   position fixed
+  display flex
+  align-items center
+  justify-content center
   top 0
   right 0
   left 0
@@ -60,13 +64,13 @@ html, body
   background var(--brightness)
   transition transform 500ms ease
   transform translateY(100%);
-  z-index 15
+  z-index 16
   .content
     display flex
     align-items center
     justify-content center
   .--loading &
-    //transform translateY(0%);
+    transform translateY(0%);
   
 
 .welcome
@@ -103,7 +107,7 @@ html, body
       animation typing sec 8.5s steps(8, end) forwards
   for i in 1 2 3 4
     .char:nth-of-type({i})
-      animation typing sec (2 * sec) * (i - 1) steps(8, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(8, end) forwards
+      animation typing sec (2 * sec) * (i - 1) steps(20, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(20, end) forwards
   .letter
     display inline-block
     color var(--highlight)

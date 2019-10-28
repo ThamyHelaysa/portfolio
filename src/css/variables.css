@@ -3,19 +3,26 @@
     --highlight: #D93425;
     --midtone: #f0f0f0;
     --shadow: 0;
-    --darkness: #212121;
+    --darkness: #121212;
     --blue: #023059;
     --pink: #D9043D;
+    --w-animation: 700px;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --brightness: #212121;
+        --brightness: #121212;
         --highlight: #D93425;
         --midtone: #f0f0f0;
         --shadow: 0;
         --darkness: #eee;
-        --blue: rgba(1, 48, 89, .8);
+        --blue: #C4EAF2;
+    }
+}
+
+@media (max-width: 992px){
+    :root {
+        --w-animation: 300px
     }
 }
 

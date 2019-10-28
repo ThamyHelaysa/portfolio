@@ -28,6 +28,9 @@ body {
 }
 .loader {
   position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   top: 0;
   right: 0;
   left: 0;
@@ -37,12 +40,15 @@ body {
   background: var(--brightness);
   transition: transform 500ms ease;
   transform: translateY(100%);
-  z-index: 15;
+  z-index: 16;
 }
 .loader .content {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.--loading .loader {
+  transform: translateY(0%);
 }
 .welcome {
   position: relative;
@@ -80,19 +86,19 @@ body {
   letter-spacing: 0.1em;
 }
 .welcome .char:last-child {
-  animation: typing 1s 8.5s steps(8, end) forwards;
+  animation: typing 1.5s 8.5s steps(8, end) forwards;
 }
 .welcome .char:nth-of-type(1) {
-  animation: typing 1s 0s steps(8, end) forwards, typing-back 1s 1s steps(8, end) forwards;
+  animation: typing 1.5s 0s steps(20, end) forwards, typing-back 1.5s 1.5s steps(20, end) forwards;
 }
 .welcome .char:nth-of-type(2) {
-  animation: typing 1s 2s steps(8, end) forwards, typing-back 1s 3s steps(8, end) forwards;
+  animation: typing 1.5s 3s steps(20, end) forwards, typing-back 1.5s 4.5s steps(20, end) forwards;
 }
 .welcome .char:nth-of-type(3) {
-  animation: typing 1s 4s steps(8, end) forwards, typing-back 1s 5s steps(8, end) forwards;
+  animation: typing 1.5s 6s steps(20, end) forwards, typing-back 1.5s 7.5s steps(20, end) forwards;
 }
 .welcome .char:nth-of-type(4) {
-  animation: typing 1s 6s steps(8, end) forwards, typing-back 1s 7s steps(8, end) forwards;
+  animation: typing 1.5s 9s steps(20, end) forwards, typing-back 1.5s 10.5s steps(20, end) forwards;
 }
 .welcome .letter {
   display: inline-block;
@@ -343,7 +349,7 @@ body {
     max-width: 0;
   }
   to {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
 }
 @-webkit-keyframes typing {
@@ -351,7 +357,7 @@ body {
     max-width: 0;
   }
   to {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
 }
 @-o-keyframes typing {
@@ -359,7 +365,7 @@ body {
     max-width: 0;
   }
   to {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
 }
 @keyframes typing {
@@ -367,12 +373,12 @@ body {
     max-width: 0;
   }
   to {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
 }
 @-moz-keyframes typing-back {
   from {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
   to {
     max-width: 0;
@@ -380,7 +386,7 @@ body {
 }
 @-webkit-keyframes typing-back {
   from {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
   to {
     max-width: 0;
@@ -388,7 +394,7 @@ body {
 }
 @-o-keyframes typing-back {
   from {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
   to {
     max-width: 0;
@@ -396,7 +402,7 @@ body {
 }
 @keyframes typing-back {
   from {
-    max-width: 700px;
+    max-width: var(--w-animation);
   }
   to {
     max-width: 0;

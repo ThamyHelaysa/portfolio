@@ -160,6 +160,8 @@ sliderItem.forEach(function(el){
   el.addEventListener('click', function(e) {
     e.stopPropagation();
 
+    //Utils.addClass(slider.parentNode, "o")
+
     projectContent = document.querySelector(`.project.${URL}`)
 
     Router.transitionTo(e, URL);
@@ -183,8 +185,6 @@ function closeArticle(e){
     Utils.removeClass(projectContent, "openArticle");
     mainBody.style.overflowY = "hidden"
     Router.transitionTo(e, "/")
-
-    console.log(projectContent)
     
   }
 

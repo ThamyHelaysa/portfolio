@@ -8,6 +8,7 @@
     <meta name="description" content="Olá! Meu nome é Thamires Helaysa, e eu sou desenvolvedora front-end e designer.">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css" />
+    <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body class="--loading">
@@ -16,12 +17,12 @@
         <h1 class="welcome">
           <div class="codeline">
             <span class="var">var </span>
-            <span class="name">meuPortifolio</span>
+            <span class="name">portifolio</span>
             <span class="key">{</span>
           </div>
           <span class="char"> <span class="letter">th</span> </span>
           <span class="char"> <span class="letter">tcc</span> </span>
-          <span class="char"> <span class="letter">projetos</span> </span>
+          <!-- <span class="char"> <span class="letter">projetos</span> </span> -->
           <span class="char"> <span class="letter">sobre</span> </span>
           <span class="char"> <span class="letter">bem vindo!</span> </span>
         </h1>
@@ -32,25 +33,34 @@
         <!--
           TO DO: Add svg logo on menu
         -->
-          <div id="logo" tabindex="0">
+          <nav id="logo">
               <span class="key">{</span>
-              <a href="/" class="link"> <span class="letter">th,</span> </a>
-              <a href="/tcc" class="link"> <span class="letter">tcc,</span> </a>
-              <a class="link"> <span class="letter">projetos,</span> </a>
-              <a class="link"> <span class="letter">sobre</span> </a>
+              <button class="btn th"> <span class="letter">th,</span> </button>
+              <button class="btn tcc"> <span class="letter">tcc,</span> </button>
+              <!-- <button class="btn projects"> <span class="letter">projetos,</span> </button> -->
+              <button class="btn about"> <span class="letter">sobre</span> </button>
               <span class="key">}</span>
-          </div>
-          <button id="close" class="close">X</button>
+          </nav>
+          <button id="close" class="close">Fechar</button>
       </header>
-      <main class="content">
+      <main class="main">
         <!--
           TO DO: Add content
         -->
         <div class="slider">
           <div id="slider_list" class="list">
-            <article data-url="tcc" id="item1" class="item">Exemplo 1</article>
-            <article data-url="proj1" id="item2" class="item">Exemplo 2</article>
-            <article data-url="proj2" id="item3" class="item">Exemplo 3</article>
+            <article data-url="tcc" id="item1" class="item">
+              <div class="content"></div>
+            </article>
+            <article data-url="proj1" id="item2" class="item">
+              <div class="content"></div>
+            </article>
+            <article data-url="proj2" id="item2" class="item">
+              <div class="content"></div>
+            </article>
+            <article data-url="proj3" id="item3" class="item">
+              <div class="content"></div>
+            </article>
           </div>
         </div>
       </main>
@@ -58,17 +68,17 @@
       <div class="controls">
         <div class="buttons">
           <div class="prev">
-            <button id="bt-prev" class="sliderbtn btnprev">prev</button>
+            <button id="bt-prev" class="btnslider btnprev btn"><span>prev</span></button>
           </div>
           <div class="next">
-            <button id="bt-next" class="sliderbtn btnnext">next</button>
+            <button id="bt-next" class="btnslider btnnext btn"><span>next</span></button>
           </div>
         </div>
       </div>
 
       <!-- TCC Content-->
       <div id="itemcontent_tcc" class="project tcc">
-        <div class="project-content">
+        <div class="content">
           <div class="title"><span></span></div>
           <div class="inner">
             <div class="wrap">
@@ -95,12 +105,93 @@
         </div>
       </div>
 
+      <!-- Project 1 Content -->
       <div id="itemcontent_proj1" class="project proj1">
-
+        <div class="content">
+          <div class="title"><span></span></div>
+          <div class="inner">
+            <div class="wrap">
+              <div class="detail">
+                <div class="detail__col">
+                  <div class="smalltext year">Personal project <br> Jan 2019</div>
+                </div>
+                <div class="detail__col">
+                  <div class="smalltext role"></div>
+                </div>
+                <div class="detail__col detail__col--large">
+                  <div class="smalltext excerpt"></div>
+                </div>
+              </div>
+              <div class="imageswrapper">
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Project 2 Content -->
       <div id="itemcontent_proj2" class="project proj2">
-
+        <div class="content">
+          <div class="title"><span></span></div>
+          <div class="inner">
+            <div class="wrap">
+              <div class="detail">
+                <div class="detail__col">
+                  <div class="smalltext year">Personal project <br> Jan 2019</div>
+                </div>
+                <div class="detail__col">
+                  <div class="smalltext role"></div>
+                </div>
+                <div class="detail__col detail__col--large">
+                  <div class="smalltext excerpt"></div>
+                </div>
+              </div>
+              <div class="imageswrapper">
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Project 3 Content -->
+      <div id="itemcontent_proj1" class="project proj1">
+        <div class="content">
+          <div class="title"><span></span></div>
+          <div class="inner">
+            <div class="wrap">
+              <div class="detail">
+                <div class="detail__col">
+                  <div class="smalltext year">Personal project <br> Jan 2019</div>
+                </div>
+                <div class="detail__col">
+                  <div class="smalltext role"></div>
+                </div>
+                <div class="detail__col detail__col--large">
+                  <div class="smalltext excerpt"></div>
+                </div>
+              </div>
+              <div class="imageswrapper">
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+                <div class="image"><img src="" alt=""></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="footer">
         footer
       </div>
@@ -108,6 +199,7 @@
     <script type="module" src="scripts/index.js"></script>
     <script type="module" src="scripts/utils.js"></script>
     <script type="module" src="scripts/router.js"></script>
+    <script type="module" src="scripts/observer.js"></script>
     
   </body>
 </html>

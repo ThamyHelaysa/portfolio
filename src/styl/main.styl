@@ -9,17 +9,10 @@
 * Variables
 */
 sm = 16px
-x  = 1s
-
---brightness = #eee
---highlight = #E1523C
---midtone = #f0f0f0
---shadow = 0
---darkness = #212121
---blue = #3c75a3
---pink = #ed265c
+sec  = 1.5s
 
 cubic = cubic-bezier(.75,-1.27,.3,2.3)
+
 
 /*
 * Animations
@@ -28,11 +21,11 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
 /* The typing effect */
 @keyframes typing {
   from { max-width: 0 }
-  to { max-width: 700px }
+  to { max-width: var(--w-animation) }
 }
 
 @keyframes typing-back {
-  from { max-width: 700px }
+  from { max-width: var(--w-animation) }
   to { max-width: 0 }
 }
 
@@ -50,7 +43,8 @@ html, body
   position relative
   height 100%
   min-height 100%!important
-  color #555
+  background var(--brightness)
+  color var(--darkness)
   font-family 'Poppins', sans-serif;
   line-height 1.5
   text-align center
@@ -58,22 +52,26 @@ html, body
 
 .loader
   position fixed
+  display flex
+  align-items center
+  justify-content center
   top 0
   right 0
   left 0
   bottom 0
   width 100%
   height 100%
-  background --brightness
+  background var(--brightness)
   transition transform 500ms ease
   transform translateY(100%);
-  z-index 15
+  z-index 16
   .content
     display flex
     align-items center
     justify-content center
   .--loading &
-    transform translateY(0%);
+    //transform translateY(0%);
+  
 
 .welcome
   position relative
@@ -81,7 +79,7 @@ html, body
   align-items center
   justify-content center
   padding-right 3vw
-  color --darkness
+  color var(--darkness)
   font-size 5vw
   font-family 'Nunito', sans-serif
   white-space nowrap 
@@ -89,13 +87,13 @@ html, body
     display block
     margin-right 3vw
   .var 
-    color --blue
+    color var(--blue)
   .name
     &::after
       display inline-block
       content '='
       margin 0 1vw 0 3vw
-      color --pink
+      color var(--pink)
       opacity 1
   .key
     opacity 1
@@ -106,15 +104,13 @@ html, body
     margin 0 auto
     letter-spacing .10em
     &:last-child
-      animation typing x 8.5s steps(8, end) forwards
+      animation typing sec 8.5s steps(8, end) forwards
   for i in 1 2 3 4
     .char:nth-of-type({i})
-      animation typing x (2 * x) * (i - 1) steps(8, end) forwards, typing-back x (2 * x) * (i - 1) + x steps(8, end) forwards
-    
-  
+      animation typing sec (2 * sec) * (i - 1) steps(20, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(20, end) forwards
   .letter
     display inline-block
-    color #E1523C
+    color var(--highlight)
   &::before
     position absolute
     content '}'
@@ -130,47 +126,56 @@ html, body
     height 100%
     border-right .15em solid orange; /* The typwriter cursor */
     animation blink-caret .75s step-end infinite;
+  .open-tcc &
+    display none
+    .char
+      animation none
 
 
 .wrapper 
   position relative
   display grid
   grid-gap sm
-  grid-template .3fr 2fr .3fr/1fr
+  grid-template 10vh 2fr 10vh/1fr
   height 100%
   padding sm
 
 .header
+  position fixed
   display flex
   align-items center
   justify-content space-between
-  margin -(sm)
+  width "calc(100% - %s * 2)" % sm 
   padding sm
   z-index 9
 
 #logo
+  display flex
+  align-items center
+  justify-content space-between
   font-size 1.5rem
   font-family 'Nunito', sans-serif
   font-weight bold
   letter-spacing .15em
   .key
-    color --darkness
+    color var(--darkness)
+    font-size 1.7rem
   .link
-    color --highlight
+    color var(--highlight)
 
 .close 
   opacity 0
   visibility hidden
   transition all 300ms 100ms ease
-  [class*="open-"] &
+  .open &
     opacity 1
     visibility visible
 
 .menu
   grid-row 1/2
 
-.content
-  position absolute
+.main
+  //position absolute
   grid-column 1/2
   grid-row 2/3
   top 0
@@ -180,16 +185,32 @@ html, body
   height 100%
   transition all 300ms ease
 
+.btn
+  min-height 50px
+  padding 5px
+  background none
+  border 0
+  box-shadow none
+  color var(--highlight)
+  &slider
+    font-size 1rem
+  #logo &
+    width 0
+    padding 0
+    overflow hidden
+  .open-tcc #logo .tcc
+    width 100%
+    padding 5px
+    overflow visible
 
 
 .slider 
-  position relative
-  width 100vw
+  //position relative
+  width 100%
   height 100%
-  margin 0 -16px
-  overflow hidden
+  //overflow hidden
   > .list 
-    position relative
+    //position relative
     display grid
     grid-gap sm
     grid-auto-flow column
@@ -203,17 +224,48 @@ html, body
       content ''
       width 0
   .item 
-    //position absolute
+    position relative
     display block
     justify-self center
     width 100%
     height 100%
     padding sm
     background #666
-    border 1px solid #000
     transition height 500ms 
+  for i in 1 2 3 4 5
+    .item:nth-last-child({i}) .content
+      z-index i
+  .content
+    position absolute
+    top 50%
+    left 50%
+    width 100vw
+    height 80vh
+    margin -40vh -50vw
+    background url(../media/teste-imagem.jpg) no-repeat 50%
+    background-size cover
+    transform scale(.8)
+    transition all .4s cubic
+    will-change transform
+  [data-url="proj1"] .content
+    background url(../media/dadaismo.png) no-repeat 50%
+    background-size cover
+  .open-tcc & [data-url="tcc"] .content
+    height 100vh
+    margin -50vh -50vw
+    transform scale(1)
+    z-index 8
+  .open-proj1 & [data-url="proj1"] .content
+    height 100vh
+    margin -50vh -50vw
+    transform scale(1)
+    z-index 8
 
 .controls
+  grid-column 1/2
+  grid-row 2/3
+  @media (max-width: 992px)
+    display none
   .prev, .next
     position absolute
     display flex
@@ -225,18 +277,19 @@ html, body
     opacity 1
     transition all 500ms ease
     visibility visible
-    [class*="open-"] &
+    z-index 15
+    .open &
       opacity 0
       visibility hidden
   .prev
     left auto
     right calc(100% - 50px)
-    [class*="open-"] &
+    .open &
       transform translateX(-100%)
   .next
     left calc(100% - 50px)
     right auto
-    [class*="open-"] &
+    .open &
       transform translateX(100%)
 
 
@@ -244,21 +297,24 @@ html, body
   position absolute
   left 0
   width 100vw
-  height 100%
-  background --darkness
+  height 4000px
+  //background var(--darkness)
+  padding-top 80vh
   opacity 0
   visibility hidden
   transform translateY(100%)
-  transition transform 500ms ease, opacity 500ms ease, visibility 500ms ease
+  transition all 1s ease
   z-index 8
   &.openArticle
     transform translateY(0%)
     opacity 1
     visibility visible
+  > .content
+    height 100%
+    background var(--brightness)
 
 
 
 .footer 
   grid-row 3/4
-  background cz
-  z-index 9
+  z-index 7

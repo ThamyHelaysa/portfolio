@@ -1,0 +1,49 @@
+:root {
+    --brightness: #eee;
+    --highlight: #D93425;
+    --midtone: #f0f0f0;
+    --shadow: 0;
+    --darkness: #121212;
+    --blue: #023059;
+    --pink: #D9043D;
+    --w-animation: 700px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --brightness: #121212;
+        --highlight: #D93425;
+        --midtone: #f0f0f0;
+        --shadow: 0;
+        --darkness: #eee;
+        --blue: #C4EAF2;
+    }
+}
+
+@media (max-width: 992px){
+    :root {
+        --w-animation: 300px
+    }
+}
+
+/* Maltesa Theme */
+/* Color Theme Swatches in Hex */
+.Maltesa-Identity-1-hex { color: #D9043D; }
+.Maltesa-Identity-2-hex { color: #F2055C; }
+.Maltesa-Identity-3-hex { color: #023059; }
+.Maltesa-Identity-4-hex { color: #C4EAF2; }
+.Maltesa-Identity-5-hex { color: #0D0D0D; }
+
+/* Color Theme Swatches in RGBA */
+.Maltesa-Identity-1-rgba { color: rgba(216, 4, 60, 1); }
+.Maltesa-Identity-2-rgba { color: rgba(242, 4, 91, 1); }
+.Maltesa-Identity-3-rgba { color: rgba(1, 48, 89, 1); }
+.Maltesa-Identity-4-rgba { color: rgba(196, 233, 242, 1); }
+.Maltesa-Identity-5-rgba { color: rgba(12, 12, 12, 1); }
+
+/* Color Theme Swatches in HSLA */
+.Maltesa-Identity-1-hsla { color: hsla(343, 96, 43, 1); }
+.Maltesa-Identity-2-hsla { color: hsla(337, 96, 48, 1); }
+.Maltesa-Identity-3-hsla { color: hsla(208, 96, 17, 1); }
+.Maltesa-Identity-4-hsla { color: hsla(191, 64, 85, 1); }
+.Maltesa-Identity-5-hsla { color: hsla(0, 0, 5, 1); }

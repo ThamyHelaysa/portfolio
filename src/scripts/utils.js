@@ -3,8 +3,8 @@ const rclass = /[\t\r\n\f]/g
 
 /**
  * 
- * @param {element} el Element to add class
- * @param {class} cls Class to be added
+ * @param {Object} el Element to add class
+ * @param {String} cls Class to be added
  */
 function addClass(el, cls){
   el.classList.add(`${cls}`)
@@ -12,8 +12,8 @@ function addClass(el, cls){
 
 /**
  * 
- * @param {element} el Element to remove class
- * @param {class} cls Class to be removed
+ * @param {Object} el Element to remove class
+ * @param {String} cls Class to be removed
  */
 function removeClass(el, cls){
   el.classList.remove(`${cls}`)
@@ -22,8 +22,8 @@ function removeClass(el, cls){
 
 /**
  * 
- * @param {element} el Element to search class
- * @param {class} selector Class to be searched
+ * @param {Object} el Element to search class
+ * @param {String} selector Class to be searched
  */
 function hasClass(el, selector) {
 
@@ -33,6 +33,9 @@ function hasClass(el, selector) {
 
   return false;
 }
+
+
+
 
 const Utils = {
   hasClass,

@@ -1,6 +1,6 @@
 import Utils from './utils.js'
+import Index from './index.js'
 
-const wrapper = document.querySelector(".wrapper");
 
 async function changeView(data) {
 
@@ -16,11 +16,16 @@ async function changeView(data) {
     case "/tcc":
       Utils.addClass(container, 'openArticle');
       break;
-    case "/produtos":
-      content.load("/src/produto/list.html");
+    case "/proj1":
+      Utils.addClass(container, 'openArticle');
+      Index.vars.slider.style.transform = "translateX(calc(-100% + 16px))"
       break;
-    case "/categorias/criar":
-      content.load("/src/categoria/form.html");
+    case "/proj2":
+      Utils.addClass(container, 'openArticle');
+      break;
+    case "/proj3":
+      Utils.addClass(container, 'openArticle');
+      //Index.vars.count = 4
       break;
   }
 }
@@ -41,12 +46,19 @@ function transitionTo(e, url) {
  * for adding or not the classes
  */
 document.addEventListener("DOMContentLoaded", (e) => {
+  const mainBody = Index.vars.mainBody;
+
   var URL = window.location.pathname
   var newUrl = URL.replace("/", "");
+
+  //Index.nextSlider();
+  
   if (URL != "/"){
-    Utils.addClass(wrapper, `open-${newUrl}`);
+    Utils.addClass(mainBody, `open`);
+    Utils.addClass(mainBody, `open-${newUrl}`);
+    mainBody.style.overflowY = "auto"
   }
-  changeView(window.location.pathname);
+  changeView(URL);
 });
 
 const Router = {

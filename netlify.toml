@@ -29,3 +29,5 @@
   # Sign each request with a value defined in an environment variable
 
   # signed = "API_SIGNATURE_TOKEN"
+
+  headers = {X-From = "Netlify"}

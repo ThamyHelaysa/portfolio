@@ -104,9 +104,6 @@ body::-webkit-resizer {
   margin: 0 auto;
   letter-spacing: 0.1em;
 }
-.welcome .char:last-child {
-  animation: typing 1.5s 8.5s steps(8, end) forwards;
-}
 .welcome .char:nth-of-type(1) {
   animation: typing 1.5s 0s steps(20, end) forwards, typing-back 1.5s 1.5s steps(20, end) forwards;
 }
@@ -118,6 +115,9 @@ body::-webkit-resizer {
 }
 .welcome .char:nth-of-type(4) {
   animation: typing 1.5s 9s steps(20, end) forwards, typing-back 1.5s 10.5s steps(20, end) forwards;
+}
+.welcome .char.bem-vindo {
+  animation: typing 1.5s 9s steps(20, end) forwards;
 }
 .welcome .letter {
   display: inline-block;
@@ -140,12 +140,15 @@ body::-webkit-resizer {
   border-right: 0.15em solid #ffa500; /* The typwriter cursor */
   animation: blink-caret 0.75s step-end infinite;
 }
+.open .welcome .char {
+  animation-name: typing;
+  animation-delay: 0s;
+}
 .open-tcc .welcome .char:not(.tcc) {
   animation: none;
 }
-.open-tcc .welcome .char.tcc {
-  animation-name: typing;
-  animation-delay: 0s;
+.open-proj1 .welcome .char:not(.projetos) {
+  animation: none;
 }
 .wrapper {
   position: relative;

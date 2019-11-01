@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
   } else {
     setTimeout(()=>{
       Utils.removeClass(bodyCon, '--loading');
-    }, 5000)
+    }, 3000)
   }
 
 

@@ -114,11 +114,11 @@ html, body
     overflow hidden 
     margin 0 auto
     letter-spacing .10em
-    &:last-child
-      animation typing sec 8.5s steps(8, end) forwards
   for i in 1 2 3 4
     .char:nth-of-type({i})
       animation typing sec (2 * sec) * (i - 1) steps(20, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(20, end) forwards
+  .char.bem-vindo
+    animation typing 1.5s 9s steps(20, end) forwards
   .letter
     display inline-block
     color var(--highlight)
@@ -137,13 +137,16 @@ html, body
     height 100%
     border-right .15em solid orange; /* The typwriter cursor */
     animation blink-caret .75s step-end infinite;
+  .open &
+    .char 
+      animation-name typing
+      animation-delay 0s
   .open-tcc & 
     .char:not(.tcc)
       animation none
-    .char.tcc
-      animation-name typing
-      animation-delay 0s
-
+  .open-proj1 &
+    .char:not(.projetos)
+      animation none
 
 .wrapper 
   position relative

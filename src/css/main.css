@@ -26,6 +26,25 @@ body {
   text-align: center;
   overflow: hidden;
 }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track-piece,
+body::-webkit-scrollbar-track-piece,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner,
+html::-webkit-resizer,
+body::-webkit-resizer {
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 .loader {
   position: fixed;
   display: flex;
@@ -46,6 +65,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.--loading .loader {
+  transform: translateY(0%);
 }
 .welcome {
   position: relative;
@@ -118,11 +140,12 @@ body {
   border-right: 0.15em solid #ffa500; /* The typwriter cursor */
   animation: blink-caret 0.75s step-end infinite;
 }
-.open-tcc .welcome {
-  display: none;
-}
-.open-tcc .welcome .char {
+.open-tcc .welcome .char:not(.tcc) {
   animation: none;
+}
+.open-tcc .welcome .char.tcc {
+  animation-name: typing;
+  animation-delay: 0s;
 }
 .wrapper {
   position: relative;

@@ -17,10 +17,17 @@ const slider      = document.getElementById("slider_list"),
 var projectContent  = document.querySelector(".project");
 
 document.addEventListener('DOMContentLoaded', (e) => {
+  const pathName = window.location.pathname
 
-  setTimeout(()=>{
-    Utils.removeClass(bodyCon, '--loading');
-  }, 11000)
+  if (pathName == "/"){
+    setTimeout(()=>{
+      Utils.removeClass(bodyCon, '--loading');
+    }, 11000)
+  } else {
+    setTimeout(()=>{
+      Utils.removeClass(bodyCon, '--loading');
+    }, 5000)
+  }
 
 
 })

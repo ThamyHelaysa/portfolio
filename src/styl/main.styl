@@ -49,6 +49,17 @@ html, body
   line-height 1.5
   text-align center
   overflow hidden
+  &::-webkit-scrollbar,
+  &::-webkit-scrollbar-button,
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track-piece,
+  &::-webkit-scrollbar-thumb,
+  &::-webkit-scrollbar-corner,
+  &::-webkit-resizer
+    width 0!important
+    height 0!important
+    margin 0!important
+    padding 0!important
 
 .loader
   position fixed
@@ -70,7 +81,7 @@ html, body
     align-items center
     justify-content center
   .--loading &
-    //transform translateY(0%);
+    transform translateY(0%);
   
 
 .welcome
@@ -126,10 +137,12 @@ html, body
     height 100%
     border-right .15em solid orange; /* The typwriter cursor */
     animation blink-caret .75s step-end infinite;
-  .open-tcc &
-    display none
-    .char
+  .open-tcc & 
+    .char:not(.tcc)
       animation none
+    .char.tcc
+      animation-name typing
+      animation-delay 0s
 
 
 .wrapper 

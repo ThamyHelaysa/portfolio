@@ -8,7 +8,7 @@
     --pink: #D9043D;
     --w-animation: 700px;
 }
-
+/*
 @media (prefers-color-scheme: dark) {
     :root {
         --brightness: #121212;
@@ -19,7 +19,7 @@
         --blue: #C4EAF2;
     }
 }
-
+*/
 @media (max-width: 992px){
     :root {
         --w-animation: 300px

@@ -2,6 +2,8 @@ self.addEventListener('install', function(e) {
  e.waitUntil(
    caches.open('airhorner').then(function(cache) {
      return cache.addAll([
+      '/proj1',
+      '/tcc',
       '/index.html',
       '/scripts/index.js',
       '/scripts/router.js',
@@ -9,7 +11,8 @@ self.addEventListener('install', function(e) {
       '/css/main.css',
       '/css/variables.css',
       '/media/dadaismo.png',
-      '/media/teste-imagem.jpg'
+      '/media/teste-imagem.jpg',
+      'https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap'
      ]);
    })
  );

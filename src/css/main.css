@@ -19,8 +19,8 @@ body {
   position: relative;
   height: 100%;
   min-height: 100% !important;
-  background: var(--brightness);
-  color: var(--darkness);
+  background: var(--darkness);
+  color: var(--brightness);
   font-family: 'Poppins', sans-serif;
   line-height: 1.5;
   text-align: center;
@@ -56,7 +56,7 @@ body::-webkit-resizer {
   bottom: 0;
   width: 100%;
   height: 100%;
-  background: var(--brightness);
+  background: var(--darkness);
   transition: transform 500ms ease;
   transform: translateY(100%);
   z-index: 16;
@@ -75,7 +75,7 @@ body::-webkit-resizer {
   align-items: center;
   justify-content: center;
   padding-right: 3vw;
-  color: var(--darkness);
+  color: var(--brightness);
   font-size: 5vw;
   font-family: 'Nunito', sans-serif;
   white-space: nowrap;
@@ -285,7 +285,7 @@ body::-webkit-resizer {
   will-change: transform;
 }
 .slider [data-url="proj1"] .content {
-  background: url("../media/dadaismo.png") no-repeat 50%;
+  background: url("../media/dadaismo.jpg") no-repeat 50%;
   background-size: cover;
 }
 .open-tcc .slider [data-url="tcc"] .content {

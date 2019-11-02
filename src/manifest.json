@@ -1,0 +1,15 @@
+{
+    "short_name": "TH Design",
+    "name": "T-Helaysa Design",
+    "icons": [
+      {
+        "src":"/media/logo-small.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "",
+    "background_color": "#121212",
+    "Theme_color": "#121212",
+    "display": "standalone"
+  }

@@ -163,7 +163,7 @@ html, body
     margin 0!important
     padding 0!important
 
-.svg-sprites, svg
+.svg-sprites
   position fixed
   top -9999px
   left -9999px
@@ -307,12 +307,13 @@ html, body
   transition all 300ms ease
 
 .btn
+  min-width 50px
   min-height 50px
   padding 5px
   background none
   border 0
   box-shadow none
-  color var(--highlight)
+  color var(--brightness)
   &slider
     font-size 1rem
   #logo &
@@ -405,6 +406,8 @@ html, body
     transition all 500ms ease
     visibility visible
     z-index 15
+    span
+      display none
     .open &
       opacity 0
       visibility hidden

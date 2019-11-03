@@ -1,6 +1,7 @@
 /*
 * Imports
 */
+// <div>Icons made by <a href="https://www.flaticon.com/authors/lyolya" title="Lyolya">Lyolya</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 //@import 'https://fonts.googleapis.com/css?family=Roboto:300,400,500';
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap');
 @import url('https://fonts.googleapis.com/css?family=Nunito:300&display=swap');
@@ -35,9 +36,59 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
   50% { border-color: orange; }
 }
 
+.none
+  display none!important
+
+.ico
+  width 1rem
+  height 1rem
+  fill var(--brightness)
 
 *
   -webkit-tap-highlight-color: rgba(0,0,0,0);
+
+*,
+*::before,
+*::after 
+  box-sizing: border-box
+
+
+ul[class],ol[class]
+  padding: 0
+
+
+body,h1,h2,h3,h4,p,ul[class],ol[class],li,figure,figcaption,blockquote,dl,dd
+  margin: 0
+
+
+body 
+  min-height: 100vh
+  scroll-behavior: smooth
+  text-rendering: optimizeSpeed
+  line-height: 1.5
+
+
+ul[class],ol[class]
+  list-style: none
+
+a:not([class])
+  text-decoration-skip-ink: auto
+
+img
+  max-width: 100%
+  display: block
+
+
+input,button,textarea,select 
+  font: inherit
+
+@media(prefers-reduced-motion:reduce) 
+  * 
+    animation-duration: .01ms !important
+    animation-iteration-count: 1 !important
+    transition-duration: .01ms !important
+    scroll-behavior: auto !important
+
 
 html, body 
   position relative
@@ -60,6 +111,11 @@ html, body
     height 0!important
     margin 0!important
     padding 0!important
+
+.svg-sprites
+  position fixed
+  top -9999px
+  left -9999px
 
 .loader
   position fixed
@@ -162,7 +218,7 @@ html, body
   align-items center
   justify-content space-between
   width "calc(100% - %s * 2)" % sm 
-  padding sm
+  padding 0 sm
   z-index 9
 
 #logo
@@ -327,7 +383,7 @@ html, body
     visibility visible
   > .content
     height 100%
-    background var(--brightness)
+    background var(--darkness)
 
 
 

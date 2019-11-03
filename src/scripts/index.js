@@ -54,20 +54,38 @@ function is992(){
 /*
 * Putting Listener Buttons
 */
-prevBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  prevSlider(e);
-})
-
 nextButton.addEventListener('click', (e) => {
+  var self = nextButton;
   e.stopPropagation();
   nextSlider(e);
-})
+  if (count === sliderItems){
+    Utils.addClass(self, 'none')
+    Utils.removeClass(prevBtn, 'none')
+  } else {
+    Utils.removeClass(prevBtn, 'none')
+  }
+});
+
+
+prevBtn.addEventListener('click', (e) => {
+  var self = prevBtn;
+  e.stopPropagation();
+  prevSlider(e);
+  console.log(count === sliderItems)
+  if (count === 1){
+    Utils.addClass(self, 'none')
+    Utils.removeClass(nextButton, 'none')
+  } else {
+    Utils.removeClass(nextButton, 'none')
+  }
+});
+
+
 
 closeBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   closeArticle(e);
-})
+});
 
 
 

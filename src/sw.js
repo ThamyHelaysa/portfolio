@@ -1,7 +1,8 @@
 self.addEventListener('install', function(e) {
- e.waitUntil(
-   caches.open('airhorner').then(function(cache) {
-     return cache.addAll([
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open('airhorner').then(function(cache) {
+      return cache.addAll([
       '/proj1',
       '/tcc',
       '/index.html',
@@ -13,23 +14,19 @@ self.addEventListener('install', function(e) {
       '/media/dadaismo.png',
       '/media/teste-imagem.jpg',
       'https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap'
-     ]);
-   })
- );
+      ]);
+    })
+  );
+});
+
+self.addEventListener('activate', event => {
+  console.log('Service worker activating...');
 });
 
 self.addEventListener('fetch', function(event) {
-
-  console.log(event.request.url);
-  
   event.respondWith(
-  
     caches.match(event.request).then(function(response) {
-    
       return response || fetch(event.request);
-    
     })
-  
   );
-  
 });

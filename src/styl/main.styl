@@ -36,35 +36,56 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
   50% { border-color: orange; }
 }
 
-@keyframes scale-in-center {
-  0% {
-    transform: scale(0.8);
-    height 80vh
-    margin -40vh -50vw
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    height: 100vh;
-    margin: -50vh -50vw;
-    opacity: 1;
-  }
-}
+// @keyframes swipe {
+//   0% {
+//     transform-origin: top left;
+//     transform: scaleY(0) rotate(-90deg);
+//     animation-timing-function: cubic-bezier(.48,.02,0,.99)
+//   }
 
-@keyframes scale-down-center {
-  0% {
-    transform: scale(1);
-    height: 100vh;
-    margin: -50vh -50vw;
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8);
-    height 80vh
-    margin -40vh -50vw
-    opacity: 1;
-  }
-}
+//   30% {
+//     transform-origin: top left;
+//     transform: scale(1) rotate(-90deg)
+//   }
+
+//   41% {
+//     transform-origin: bottom left;
+//     transform: scale(1) rotate(-90deg)
+//     animation-timing-function: cubic-bezier(.48,.02,0,.99)
+//   }
+
+//   to {
+//     transform-origin: bottom left;
+//     transform: scaleY(0) rotate(-90deg)
+//   }
+// }
+
+
+/**
+ * from: https://tympanus.net/codrops/2016/03/21/animated-animals-css-svg/
+ */
+// @keyframes squigglevision {
+//   0 {
+//     filter: url("#squiggly-0");
+//   }
+//   25% {
+//     filter: url("#squiggly-1");
+//   }
+//   50% {
+//     filter: url("#squiggly-2");
+//   }
+//   75% {
+//     filter: url("#squiggly-3");
+//   }
+//   100% {
+//     filter: url("#squiggly-4");
+//   }
+// }
+
+// @keyframes blobframe {
+//   from { clip-path: url(#blob1) }
+//   to { clip-path: url(#blob2) }
+// }
 
 .none
   display none!important
@@ -142,7 +163,7 @@ html, body
     margin 0!important
     padding 0!important
 
-.svg-sprites
+.svg-sprites, svg
   position fixed
   top -9999px
   left -9999px
@@ -330,10 +351,7 @@ html, body
     width 100%
     height 100%
     padding sm
-    overflow hidden
     transition all 500ms .4s
-    .open &
-      overflow visible
   for i in 1 2 3 4 5
     .item:nth-last-child({i}) .content
       z-index i
@@ -348,6 +366,14 @@ html, body
     background-size cover
     transform scale(.7)
     transition all .4s ease
+    &::before
+      position absolute
+      content ''
+      width 50%
+      height 100%
+      top 0
+      left 50%
+      filter grayscale(1)
     // will-change transform
     //animation: scale-down-center 1s cubic-bezier(0.680, -0.550, 0.265, 1.550) normal both;
   [data-url="proj1"] .content
@@ -358,6 +384,9 @@ html, body
   .open-proj1 & [data-url="proj1"] .content
     transform: scale(1);
 
+.squiggle {
+  animation: squigglevision 0.3s infinite;
+}
 
 .controls
   grid-column 1/2
@@ -419,19 +448,37 @@ html, body
   align-items center
   justify-content center
   grid-row 3/4
-  left 50%
-  bottom sm
+  width calc(100% - 32px)
+  left 0
+  bottom 0
   z-index 8
 
 .scroll-hint
-  position relative
-  height 70px
+  position: relative
+  display flex
+  align-items center
+  justify-content center
+  height 10vh
   color var(--brightness)
-  line-height 70px
-  letter-spacing .1em
+  letter-spacing .3em
+  opacity 1
   transition all .4s
+  visibility visible
   white-space nowrap
+  .open &
+    opacity 0
+    visibility hidden
+  // &::after
+  //   position: absolute
+  //   content: "";
+  //   left: -1px;
+  //   top: 0;
+  //   display: block;
+  //   width: 1px;
+  //   height: 100%;
+  //   background-color: #fff;
+  //   transform: scaleY(0) translateZ(0);
+  //   animation: swipe 3s infinite;
   > .label
-    padding-left sm
     font-size sm
     font-weight 700

@@ -34,13 +34,21 @@ function hasClass(el, selector) {
   return false;
 }
 
-
+function is992(){
+  var w = window.innerWidth
+  if (w < 992){
+    return true
+  } else {
+    return false
+  }
+}
 
 
 const Utils = {
   hasClass,
   removeClass,
-  addClass
+  addClass,
+  is992
 }
 
 

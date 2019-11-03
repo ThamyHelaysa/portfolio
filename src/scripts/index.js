@@ -11,6 +11,7 @@ const slider      = document.getElementById("slider_list"),
       wrapper     = document.querySelector(".wrapper"),
       mainBody    = document.querySelector("body"),
       scrollBody  = mainBody.scrollTop,
+      countItems  = document.querySelector(".scroll-hint"),
       gap         = 16;
 
 
@@ -40,15 +41,6 @@ document.addEventListener('DOMContentLoaded', (e) => {
  */
 var count = 1;
 
-
-function is992(){
-  var w = window.innerWidth
-  if (w < 992){
-    return true
-  } else {
-    return false
-  }
-}
 
 
 /*
@@ -99,6 +91,7 @@ function nextSlider(e){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
+      changeCounter()
     } 
   }
 }
@@ -115,8 +108,13 @@ function prevSlider(e){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
+      changeCounter()
     } 
   }
+}
+
+function changeCounter(){
+  countItems.innerHTML = `${count}/${sliderItems}`
 }
 
 /**
@@ -147,7 +145,6 @@ function startDrag(e){
   var touch = e.changedTouches ? e.changedTouches[0] : e;
   ts_x = touch.pageX;
   ts_y = touch.pageY;
-  console.log('oaidoiajdoi')
 }
 
 function endDrag(e){
@@ -195,6 +192,7 @@ sliderItem.forEach(function(el){
     Router.transitionTo(e, URL);
     Utils.addClass(mainBody, `open`);
     Utils.addClass(mainBody, `open-${URL}`);
+    el.style.overflow = "visible"
     mainBody.style.overflowY = "auto"
   })
 })
@@ -216,6 +214,9 @@ function closeArticle(e){
     Utils.removeClass(mainBody, `open-${URL}`);
     Utils.removeClass(projectContent, "openArticle");
     mainBody.style.overflowY = "hidden"
+    setTimeout(() => {
+      document.querySelector(`.item[data-url="${URL}"]`).style.overflow = "hidden"
+    }, 500);
     Router.transitionTo(e, "/")
   }
 

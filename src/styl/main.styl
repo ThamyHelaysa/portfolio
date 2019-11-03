@@ -36,6 +36,36 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
   50% { border-color: orange; }
 }
 
+@keyframes scale-in-center {
+  0% {
+    transform: scale(0.8);
+    height 80vh
+    margin -40vh -50vw
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    height: 100vh;
+    margin: -50vh -50vw;
+    opacity: 1;
+  }
+}
+
+@keyframes scale-down-center {
+  0% {
+    transform: scale(1);
+    height: 100vh;
+    margin: -50vh -50vw;
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    height 80vh
+    margin -40vh -50vw
+    opacity: 1;
+  }
+}
+
 .none
   display none!important
 
@@ -229,11 +259,9 @@ html, body
   font-family 'Nunito', sans-serif
   font-weight bold
   letter-spacing .15em
-  .key
-    color var(--darkness)
-    font-size 1.7rem
-  .link
-    color var(--highlight)
+  .ico
+    width 3rem
+    height 3rem
 
 .close 
   opacity 0
@@ -302,8 +330,10 @@ html, body
     width 100%
     height 100%
     padding sm
-    background #666
-    transition height 500ms 
+    overflow hidden
+    transition all 500ms .4s
+    .open &
+      overflow visible
   for i in 1 2 3 4 5
     .item:nth-last-child({i}) .content
       z-index i
@@ -312,26 +342,22 @@ html, body
     top 50%
     left 50%
     width 100vw
-    height 80vh
-    margin -40vh -50vw
+    height 100vh
+    margin -50vh -50vw
     background url(../media/teste-imagem.jpg) no-repeat 50%
     background-size cover
-    transform scale(.8)
-    transition all .4s cubic
-    will-change transform
+    transform scale(.7)
+    transition all .4s ease
+    // will-change transform
+    //animation: scale-down-center 1s cubic-bezier(0.680, -0.550, 0.265, 1.550) normal both;
   [data-url="proj1"] .content
     background url(../media/dadaismo.jpg) no-repeat 50%
     background-size cover
   .open-tcc & [data-url="tcc"] .content
-    height 100vh
-    margin -50vh -50vw
-    transform scale(1)
-    z-index 8
+    transform: scale(1);
   .open-proj1 & [data-url="proj1"] .content
-    height 100vh
-    margin -50vh -50vw
-    transform scale(1)
-    z-index 8
+    transform: scale(1);
+
 
 .controls
   grid-column 1/2
@@ -388,5 +414,24 @@ html, body
 
 
 .footer 
+  position fixed
+  display flex
+  align-items center
+  justify-content center
   grid-row 3/4
-  z-index 7
+  left 50%
+  bottom sm
+  z-index 8
+
+.scroll-hint
+  position relative
+  height 70px
+  color var(--brightness)
+  line-height 70px
+  letter-spacing .1em
+  transition all .4s
+  white-space nowrap
+  > .label
+    padding-left sm
+    font-size sm
+    font-weight 700

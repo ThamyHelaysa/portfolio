@@ -142,37 +142,43 @@ document.addEventListener('keydown', (e) => {
  */
 var ts_x = 0;
 var ts_y = 0;
-document.addEventListener('touchstart', function(e) {
-   //e.preventDefault();
-   var touch = e.changedTouches[0];
-   ts_x = touch.pageX;
-   ts_y = touch.pageY;
-}, false);
 
-document.addEventListener('touchend', function(e) {
-   //e.preventDefault();
-   var touch = e.changedTouches[0];
-   var td_x = touch.pageX - ts_x; // deslocamento na horizontal
-   var td_y = touch.pageY - ts_y; // deslocamento na vertical
-   // O movimento principal foi vertical ou horizontal?
-   if( Math.abs( td_x ) > Math.abs( td_y ) ) {
-      // é horizontal
-      if( td_x < 0 ) {
-         // é para esquerda
-         nextSlider();
-      } else {
-         // direita
-         prevSlider();
-      }
-   } else {
-      // é vertical
-      if( td_y < 0 ) {
-         // cima
-      } else {
-         // baixo
-      }
-   }
-}, false);
+function startDrag(e){
+  var touch = e.changedTouches ? e.changedTouches[0] : e;
+  ts_x = touch.pageX;
+  ts_y = touch.pageY;
+  console.log('oaidoiajdoi')
+}
+
+function endDrag(e){
+  var touch = e.changedTouches ? e.changedTouches[0] : e;
+  var td_x = touch.pageX - ts_x; // deslocamento na horizontal
+  var td_y = touch.pageY - ts_y; // deslocamento na vertical
+  // O movimento principal foi vertical ou horizontal?
+  if( Math.abs( td_x ) > Math.abs( td_y ) ) {
+    // é horizontal
+    if( td_x < 0 ) {
+        // é para esquerda
+        nextSlider();
+    } else {
+        // direita
+        prevSlider();
+    }
+  } else {
+    // é vertical
+    if( td_y < 0 ) {
+        // cima
+    } else {
+        // baixo
+    }
+  }
+}
+
+document.addEventListener('touchstart', startDrag, false);
+//document.addEventListener('mousedown', startDrag, false);
+
+document.addEventListener('touchend', endDrag, false);
+//document.addEventListener('mouseup', endDrag, false);
 
 
 /**

@@ -527,6 +527,22 @@ body::-webkit-resizer {
   margin: 5rem 0;
   padding: 0 2rem;
 }
+@media (max-width: 568px) {
+  .project .rivals {
+    grid-auto-flow: column;
+    grid-template-columns: 0;
+    grid-auto-columns: calc(100% - 16px * 2);
+    grid-template-rows: 1fr;
+    padding: 0;
+    overflow-x: scroll;
+    scroll-snap-type: x proximity;
+  }
+  .project .rivals::before,
+  .project .rivals::after {
+    content: '';
+    width: 0;
+  }
+}
 .project .rivals > .item {
   padding: 1rem;
   background: var(--purewhite);

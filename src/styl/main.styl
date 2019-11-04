@@ -453,7 +453,6 @@ html, body
   position absolute
   left 0
   width 100vw
-  height 4000px
   //background var(--darkness)
   padding-top 80vh
   opacity 0
@@ -512,6 +511,14 @@ html, body
     padding-top 20vh
   .detail
     margin-bottom 2rem
+  .rivals
+    display grid
+    grid-template-columns repeat(auto-fit, minmax(350px, 1fr))
+    grid-gap 1rem
+    margin 2rem 0
+    padding 0 2rem
+    > .item
+      background var(--midtone)
   
       
 

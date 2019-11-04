@@ -445,7 +445,6 @@ body::-webkit-resizer {
   position: absolute;
   left: 0;
   width: 100vw;
-  height: 4000px;
   padding-top: 80vh;
   opacity: 0;
   visibility: hidden;
@@ -520,6 +519,16 @@ body::-webkit-resizer {
 }
 .project .detail {
   margin-bottom: 2rem;
+}
+.project .rivals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-gap: 1rem;
+  margin: 2rem 0;
+  padding: 0 2rem;
+}
+.project .rivals > .item {
+  background: var(--midtone);
 }
 .footer {
   position: fixed;

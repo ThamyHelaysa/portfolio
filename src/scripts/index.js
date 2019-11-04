@@ -2,7 +2,7 @@ import Utils from './utils.js'
 import Router from './router.js'
 
 const slider      = document.getElementById("slider_list"),
-      sliderItem  = document.querySelectorAll(".item"),
+      sliderItem  = document.querySelectorAll("#slider_list .item"),
       sliderItems = sliderItem.length,
       prevBtn     = document.querySelector('.btnprev'),
       nextButton  = document.querySelector('.btnnext'),

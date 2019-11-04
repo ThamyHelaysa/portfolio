@@ -330,7 +330,9 @@ html, body
   //position relative
   width 100%
   height 100%
-  //overflow hidden
+  overflow hidden
+  .open &
+    overflow visible
   > .list 
     //position relative
     display grid
@@ -356,6 +358,24 @@ html, body
   for i in 1 2 3 4 5
     .item:nth-last-child({i}) .content
       z-index i
+  .title
+    position absolute
+    top 50%
+    left sm
+    color var(--darkness)
+    font-size calc(1.3rem + 4vw)
+    font-weight 900
+    transition all 300ms ease
+    text-transform uppercase
+    opacity 1
+    visibility visible
+    z-index 9
+    .open &
+      opacity 0
+      visibility hidden
+    .text
+      padding 5px 10px
+      background var(--brightness)
   .content
     position absolute
     top 50%
@@ -367,16 +387,20 @@ html, body
     background-size cover
     transform scale(.7)
     transition all .4s ease
-    &::before
-      position absolute
-      content ''
-      width 50%
-      height 100%
-      top 0
-      left 50%
-      filter grayscale(1)
+    // &::before
+    //   position absolute
+    //   content ''
+    //   width 50%
+    //   height 100%
+    //   top 0
+    //   left 50%
+    //   filter grayscale(1)
     // will-change transform
     //animation: scale-down-center 1s cubic-bezier(0.680, -0.550, 0.265, 1.550) normal both;
+  [data-url="tcc"] .content
+    &::before
+      background url(../media/teste-imagem.jpg) no-repeat 50%
+      background-size cover
   [data-url="proj1"] .content
     background url(../media/dadaismo.jpg) no-repeat 50%
     background-size cover
@@ -416,6 +440,8 @@ html, body
     right calc(100% - 50px)
     .open &
       transform translateX(-100%)
+    .ico
+      transform rotate(180deg)
   .next
     left calc(100% - 50px)
     right auto
@@ -441,7 +467,22 @@ html, body
     visibility visible
   > .content
     height 100%
+    padding 0 30px
     background var(--darkness)
+  .title
+    color var(--brightness)
+    &.--big
+      overflow hidden
+      position absolute
+      top 50vh
+      left 50vw
+      width 100%
+      text-align center
+      transform translate(-50%,-50%)
+      span
+        font-size calc(1.5rem + 5vw)
+        font-weight 900
+      
 
 
 
@@ -452,8 +493,8 @@ html, body
   justify-content center
   grid-row 3/4
   width calc(100% - 32px)
-  left 0
-  bottom 0
+  left sm
+  bottom sm
   z-index 8
 
 .scroll-hint

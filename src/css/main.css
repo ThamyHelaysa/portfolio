@@ -299,6 +299,10 @@ body::-webkit-resizer {
 .slider {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+.open .slider {
+  overflow: visible;
 }
 .slider > .list {
   display: grid;
@@ -340,6 +344,27 @@ body::-webkit-resizer {
 .slider .item:nth-last-child(5) .content {
   z-index: 5;
 }
+.slider .title {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  color: var(--darkness);
+  font-size: calc(1.3rem + 4vw);
+  font-weight: 900;
+  transition: all 300ms ease;
+  text-transform: uppercase;
+  opacity: 1;
+  visibility: visible;
+  z-index: 9;
+}
+.open .slider .title {
+  opacity: 0;
+  visibility: hidden;
+}
+.slider .title .text {
+  padding: 5px 10px;
+  background: var(--brightness);
+}
 .slider .content {
   position: absolute;
   top: 50%;
@@ -352,14 +377,9 @@ body::-webkit-resizer {
   transform: scale(0.7);
   transition: all 0.4s ease;
 }
-.slider .content::before {
-  position: absolute;
-  content: '';
-  width: 50%;
-  height: 100%;
-  top: 0;
-  left: 50%;
-  filter: grayscale(1);
+.slider [data-url="tcc"] .content::before {
+  background: url("../media/teste-imagem.jpg") no-repeat 50%;
+  background-size: cover;
 }
 .slider [data-url="proj1"] .content {
   background: url("../media/dadaismo.jpg") no-repeat 50%;
@@ -413,6 +433,9 @@ body::-webkit-resizer {
 .open .controls .prev {
   transform: translateX(-100%);
 }
+.controls .prev .ico {
+  transform: rotate(180deg);
+}
 .controls .next {
   left: calc(100% - 50px);
   right: auto;
@@ -439,7 +462,24 @@ body::-webkit-resizer {
 }
 .project > .content {
   height: 100%;
+  padding: 0 30px;
   background: var(--darkness);
+}
+.project .title {
+  color: var(--brightness);
+}
+.project .title.--big {
+  overflow: hidden;
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  width: 100%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+.project .title.--big span {
+  font-size: calc(1.5rem + 5vw);
+  font-weight: 900;
 }
 .footer {
   position: fixed;
@@ -448,8 +488,8 @@ body::-webkit-resizer {
   justify-content: center;
   grid-row: 3/4;
   width: calc(100% - 32px);
-  left: 0;
-  bottom: 0;
+  left: 16px;
+  bottom: 16px;
   z-index: 8;
 }
 .scroll-hint {

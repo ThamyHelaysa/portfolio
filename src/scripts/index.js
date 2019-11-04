@@ -63,7 +63,6 @@ prevBtn.addEventListener('click', (e) => {
   var self = prevBtn;
   e.stopPropagation();
   prevSlider(e);
-  console.log(count === sliderItems)
   if (count === 1){
     Utils.addClass(self, 'none')
     Utils.removeClass(nextButton, 'none')
@@ -142,13 +141,13 @@ var ts_x = 0;
 var ts_y = 0;
 
 function startDrag(e){
-  var touch = e.changedTouches ? e.changedTouches[0] : e;
+  var touch = e.changedTouches[0]
   ts_x = touch.pageX;
   ts_y = touch.pageY;
 }
 
 function endDrag(e){
-  var touch = e.changedTouches ? e.changedTouches[0] : e;
+  var touch = e.changedTouches[0]
   var td_x = touch.pageX - ts_x; // deslocamento na horizontal
   var td_y = touch.pageY - ts_y; // deslocamento na vertical
   // O movimento principal foi vertical ou horizontal?
@@ -171,11 +170,35 @@ function endDrag(e){
   }
 }
 
-document.addEventListener('touchstart', startDrag, false);
-//document.addEventListener('mousedown', startDrag, false);
+document.addEventListener('touchstart', function(e){
+  var touch = e.changedTouches[0]
+  ts_x = touch.pageX;
+  ts_y = touch.pageY;
+}, false);
 
-document.addEventListener('touchend', endDrag, false);
-//document.addEventListener('mouseup', endDrag, false);
+document.addEventListener('touchend', function(e){
+  var touch = e.changedTouches[0]
+  var td_x = touch.pageX - ts_x; // deslocamento na horizontal
+  var td_y = touch.pageY - ts_y; // deslocamento na vertical
+  // O movimento principal foi vertical ou horizontal?
+  if( Math.abs( td_x ) > Math.abs( td_y ) ) {
+    // é horizontal
+    if( td_x < 0 ) {
+        // é para esquerda
+        nextSlider();
+    } else {
+        // direita
+        prevSlider();
+    }
+  } else {
+    // é vertical
+    if( td_y < 0 ) {
+        // cima
+    } else {
+        // baixo
+    }
+  }
+}, false);
 
 
 /**
@@ -242,6 +265,7 @@ const Index = {
     mainBody,
     projectContent,
     scrollBody,
+    countItems,
     gap,
     count
   },

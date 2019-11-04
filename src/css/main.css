@@ -458,10 +458,19 @@ body::-webkit-resizer {
   opacity: 1;
   visibility: visible;
 }
+.project p,
+.project li,
+.project .text {
+  font-family: 'PT Serif', serif;
+}
 .project > .content {
   height: 100%;
   padding: 0 30px;
   background: var(--darkness);
+}
+.open-tcc .project > .content {
+  background: var(--brightness);
+  color: var(--darkness);
 }
 .project .title {
   color: var(--brightness);
@@ -479,6 +488,38 @@ body::-webkit-resizer {
 .project .title.--big span {
   font-size: calc(1.5rem + 5vw);
   font-weight: 900;
+}
+.project .title.--md {
+  display: block;
+  margin-bottom: 2rem;
+  color: var(--darkness);
+  text-align: left;
+  font-size: calc(1.5rem + 2vw);
+}
+.project .text {
+  text-align: justify;
+  font-size: calc(0.65rem + 0.5vw);
+}
+@media (max-width: 568px) {
+  .project .text {
+    font-size: 1rem;
+  }
+}
+.project .--bg {
+  display: inline-block;
+  padding: 0 5px;
+  background: var(--darkness);
+  color: var(--brightness);
+  font-family: 'Poppins';
+}
+.project .inner {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 20vh;
+}
+.project .detail {
+  margin-bottom: 2rem;
 }
 .footer {
   position: fixed;

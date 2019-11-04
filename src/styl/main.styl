@@ -465,10 +465,15 @@ html, body
     transform translateY(0%)
     opacity 1
     visibility visible
+  p, li, .text
+    font-family 'PT Serif', serif;
   > .content
     height 100%
     padding 0 30px
     background var(--darkness)
+    .open-tcc &
+      background var(--brightness)
+      color var(--darkness)
   .title
     color var(--brightness)
     &.--big
@@ -483,6 +488,31 @@ html, body
       span
         font-size calc(1.5rem + 5vw)
         font-weight 900
+    &.--md
+      display block
+      margin-bottom 2rem
+      color var(--darkness)
+      text-align left
+      font-size calc(1.5rem + 2vw)
+  .text
+    text-align justify
+    font-size calc(.65rem + .5vw)
+    @media (max-width 568px)
+      font-size 1rem
+  .--bg
+    display inline-block
+    padding 0 5px
+    background var(--darkness)
+    color var(--brightness)
+    font-family 'Poppins'
+  .inner
+    max-width 1200px
+    margin-left auto
+    margin-right auto
+    padding-top 20vh
+  .detail
+    margin-bottom 2rem
+  
       
 
 

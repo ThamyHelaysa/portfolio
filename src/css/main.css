@@ -530,8 +530,7 @@ body::-webkit-resizer {
 .project .rivals > .item {
   padding: 1rem;
   background: var(--purewhite);
-  border-radius: 10px;
-  box-shadow: 0 5px 15px 0 rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 0 1rem var(--darkness);
 }
 .project .rivals .img-box {
   display: flex;
@@ -550,7 +549,8 @@ body::-webkit-resizer {
 .project .more > .title {
   display: block;
   margin-bottom: 2rem;
-  color: var(--pink);
+  background: var(--darkness);
+  color: var(--brightness);
   font-size: 1.5rem;
   font-family: 'Poppins', sans-serif;
 }

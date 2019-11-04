@@ -113,7 +113,7 @@ function prevSlider(e){
 }
 
 function changeCounter(){
-  countItems.innerHTML = `${count}/${sliderItems}`
+  countItems.innerHTML = `<span class="label">${count}/${sliderItems}</span>`
 }
 
 /**

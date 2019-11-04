@@ -19,7 +19,7 @@ async function changeView(data) {
     case "/proj1":
       Utils.addClass(container, 'openArticle');
       Index.vars.slider.style.transform = "translateX(calc(-100% + 16px))"
-      Utils.vars.countItems.innerHTML = "2/2"
+      Index.vars.countItems.innerHTML = "<span class='label'>2/2<span>"
       break;
     case "/proj2":
       Utils.addClass(container, 'openArticle');

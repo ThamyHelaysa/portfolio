@@ -18,37 +18,21 @@ const slider      = document.getElementById("slider_list"),
 var projectContent  = document.querySelector(".project");
 
 document.addEventListener('DOMContentLoaded', (e) => {
-  const pathName = window.location.pathname
-
-  if (pathName == "/"){
-    setTimeout(()=>{
-      Utils.removeClass(bodyCon, '--loading');
-    }, 11000)
-  } else {
-    setTimeout(()=>{
-      Utils.removeClass(bodyCon, '--loading');
-    }, 3000)
-  }
-
-  var btn = document.querySelector(".ANIMAESSAPORRA")
-
-  btn.addEventListener("click", (e)=> {
-    var path = document.getElementById('blob1path');
-    var animate = document.createElementNS("http://www.w3.org/2000/svg","animate");
-    animate.setAttribute('attributeName', 'd');
-    animate.setAttribute('dur', '5s');
-    animate.setAttribute('fill', 'freeze');
-    animate.setAttribute('values', 'M12.379,1.035c1.445,0.842,2.759,1.968,3.013,3.341c0.254,1.373-0.552,2.989-1.128,4.399c-0.579,1.407-0.934,2.607-1.627,3.631c-0.696,1.024-1.738,1.875-3.031,2.592c-1.296,0.717-2.848,1.303-4.007,0.834c-1.162-0.466-1.935-1.983-2.861-3.255c-0.931-1.272-2.016-2.296-2.162-3.44C0.432,7.989,1.228,6.72,2.204,5.93c0.981-0.789,2.139-1.103,3.101-2.16c0.962-1.063,1.723-2.872,2.893-3.5S10.939,0.195,12.379,1.035z');
-    path.appendChild(animate);
-    animate.beginElement();
-  })
-
   
-
 
 })
 
+const pathName = window.location.pathname
 
+if (pathName == "/"){
+  setTimeout(()=>{
+    Utils.removeClass(bodyCon, '--loading');
+  }, 11000)
+} else {
+  setTimeout(()=>{
+    Utils.removeClass(bodyCon, '--loading');
+  }, 3000)
+}
 
 /**
  * Variable that handle the

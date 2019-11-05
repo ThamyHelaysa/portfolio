@@ -472,24 +472,27 @@ body::-webkit-resizer {
   color: var(--darkness);
 }
 .project .title {
+  display: block;
   color: var(--brightness);
 }
-.project .title.--big {
+.project .--highlight {
   overflow: hidden;
   position: absolute;
   top: 50vh;
   left: 50vw;
+  transform: translate(-50%, -50%);
+}
+.project .--big {
   width: 100%;
   text-align: center;
   text-transform: uppercase;
-  transform: translate(-50%, -50%);
+  opacity: 0.99;
 }
-.project .title.--big span {
+.project .--big span {
   font-size: calc(1.5rem + 5vw);
   font-weight: 900;
 }
-.project .title.--md {
-  display: block;
+.project .--md {
   margin-bottom: 2rem;
   color: var(--darkness);
   text-align: left;
@@ -498,6 +501,7 @@ body::-webkit-resizer {
 .project .text {
   text-align: justify;
   font-size: calc(0.65rem + 0.5vw);
+  line-height: 1.8rem;
 }
 @media (max-width: 568px) {
   .project .text {
@@ -511,6 +515,12 @@ body::-webkit-resizer {
   color: var(--brightness);
   font-family: 'Poppins';
 }
+.project .--line {
+  position: relative;
+  display: inline-block;
+  box-shadow: inset 0 -3px 0 0;
+  text-decoration: none;
+}
 .project .inner {
   max-width: 1200px;
   margin-left: auto;
@@ -519,6 +529,23 @@ body::-webkit-resizer {
 }
 .project .detail {
   margin-bottom: 2rem;
+}
+.project .the-project {
+  position: relative;
+  padding: 20vh 0;
+  background: var(--darkness);
+  color: var(--brightness);
+}
+.project .the-project::before {
+  position: absolute;
+  display: block;
+  content: '';
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  height: 100%;
+  background: var(--darkness);
+  transform: translateX(-50vw);
 }
 .project .rivals {
   display: grid;

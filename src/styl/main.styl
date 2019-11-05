@@ -163,6 +163,7 @@ html, body
     margin 0!important
     padding 0!important
 
+
 .svg-sprites
   position fixed
   top -9999px
@@ -262,6 +263,15 @@ html, body
   grid-template 10vh 2fr 10vh/1fr
   height 100%
   padding sm
+  &::after
+    position absolute
+    content ''
+    top 0
+    left 40%
+    width 100%
+    height 100%
+    background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo0NjRDREZGOTA2MTIxMUU2ODVDQTlEOUYwN0M2RUY2RiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo0NjRDREZGQTA2MTIxMUU2ODVDQTlEOUYwN0M2RUY2RiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjQ2NENERkY3MDYxMjExRTY4NUNBOUQ5RjA3QzZFRjZGIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjQ2NENERkY4MDYxMjExRTY4NUNBOUQ5RjA3QzZFRjZGIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+jvJLPAAAAEtJREFUeNpiOXXq1H8mJiYGY2NjRgYSwZkzZ/4zgRgiIiIM5ABRUVEGxv///zNQApgYKASjBowaMFwMOHv27P+HDx+SlaNA+gACDABx4BWkIEMBMQAAAABJRU5ErkJggg==") repeat
+    z-index 0
 
 .header
   position fixed
@@ -305,6 +315,7 @@ html, body
   bottom 0
   height 100%
   transition all 300ms ease
+  z-index 8
 
 .btn
   min-width 50px
@@ -370,6 +381,8 @@ html, body
     opacity 1
     visibility visible
     z-index 9
+    @media (max-width 568px)
+      left 0
     .open &
       opacity 0
       visibility hidden
@@ -534,58 +547,72 @@ html, body
       height 100%
       background var(--darkness)
       transform translateX(-50vw)
-  .rivals
-    display grid
-    grid-template-columns repeat(auto-fit, minmax(300px, 1fr))
-    grid-gap 20px
-    margin 5rem 0
-    padding 0 2rem
-    @media (max-width 568px)
-      grid-auto-flow column
-      grid-template-columns 0
-      grid-auto-columns calc(100% - 16px * 2)
-      grid-template-rows 1fr
-      padding 0
-      overflow-x scroll
-      scroll-snap-type x proximity
-      &::before, &::after
-        content ''
-        width 0
-    > .item
-      padding 1rem
-      background var(--purewhite)
-      box-shadow inset 0 0 0 1rem var(--darkness)
-    .img-box
-      display flex
-      align-items center
-      justify-content center
-      height 200px
-    .img
-      max-height 5rem
-      margin 10px auto
-  .more
-    min-height 200px
-    padding 1rem
-    > .title
-      display block
-      margin-bottom 2rem
-      background var(--darkness)
-      color var(--brightness)
-      font-size 1.5rem
-      font-family 'Poppins', sans-serif
-    > .sub
-      color var(--shadow)
-      font-size 10pt
-      
-#blob1
-  position absolute
-  left 0
-  // path
-  //   animation path1 2s infinite
 
-@keyframes path1{
-  to { d: path("M12.379,1.035c1.445,0.842,2.759,1.968,3.013,3.341c0.254,1.373-0.552,2.989-1.128,4.399c-0.579,1.407-0.934,2.607-1.627,3.631c-0.696,1.024-1.738,1.875-3.031,2.592c-1.296,0.717-2.848,1.303-4.007,0.834c-1.162-0.466-1.935-1.983-2.861-3.255c-0.931-1.272-2.016-2.296-2.162-3.44C0.432,7.989,1.228,6.72,2.204,5.93c0.981-0.789,2.139-1.103,3.101-2.16c0.962-1.063,1.723-2.872,2.893-3.5S10.939,0.195,12.379,1.035z") }
-}
+.rivals
+  display grid
+  grid-template-columns repeat(auto-fit, minmax(300px, 1fr))
+  grid-gap 20px
+  margin 5rem 0
+  padding 0 2rem
+  @media (max-width 568px)
+    grid-auto-flow column
+    grid-template-columns 0
+    grid-auto-columns calc(100% - 16px * 2)
+    grid-template-rows 1fr
+    padding 0
+    overflow-x scroll
+    scroll-snap-type x proximity
+    &::before, &::after
+      content ''
+      width 0
+  > .item
+    position relative
+    padding 1rem
+    background var(--purewhite)
+    border 5px dashed var(--darkness)
+    box-shadow 15px 15px 0 0 royalblue
+    &::before
+      position absolute
+      display block
+      content ''
+      top 0
+      left 0
+      width 100%
+      height 100%
+      background none
+      box-shadow inset 0 0 0 5px var(--darkness)
+      transform translate(5px, 5px)
+    > *
+      opacity .99
+  .img-box
+    display flex
+    align-items center
+    justify-content center
+    height 200px
+  .img
+    max-height 5rem
+    margin 10px auto
+.more
+  min-height 200px
+  padding 1rem
+  > .title
+    display block
+    margin-bottom 2rem
+    background var(--darkness)
+    color var(--brightness)
+    font-size 1.5rem
+    font-family 'Poppins', sans-serif
+  > .sub
+    color var(--shadow)
+    font-size 10pt
+    
+
+// path
+//   animation path1 2s infinite
+
+// @keyframes path1{
+// to { d: path("M12.379,1.035c1.445,0.842,2.759,1.968,3.013,3.341c0.254,1.373-0.552,2.989-1.128,4.399c-0.579,1.407-0.934,2.607-1.627,3.631c-0.696,1.024-1.738,1.875-3.031,2.592c-1.296,0.717-2.848,1.303-4.007,0.834c-1.162-0.466-1.935-1.983-2.861-3.255c-0.931-1.272-2.016-2.296-2.162-3.44C0.432,7.989,1.228,6.72,2.204,5.93c0.981-0.789,2.139-1.103,3.101-2.16c0.962-1.063,1.723-2.872,2.893-3.5S10.939,0.195,12.379,1.035z") }
+// }
       
 
 

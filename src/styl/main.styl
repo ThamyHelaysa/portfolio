@@ -3,8 +3,6 @@
 */
 // <div>Icons made by <a href="https://www.flaticon.com/authors/lyolya" title="Lyolya">Lyolya</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 //@import 'https://fonts.googleapis.com/css?family=Roboto:300,400,500';
-// @import url('https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap');
-// @import url('https://fonts.googleapis.com/css?family=Nunito:300&display=swap');
 
 /*
 * Variables
@@ -36,35 +34,11 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
   50% { border-color: orange; }
 }
 
-// @keyframes swipe {
-//   0% {
-//     transform-origin: top left;
-//     transform: scaleY(0) rotate(-90deg);
-//     animation-timing-function: cubic-bezier(.48,.02,0,.99)
-//   }
-
-//   30% {
-//     transform-origin: top left;
-//     transform: scale(1) rotate(-90deg)
-//   }
-
-//   41% {
-//     transform-origin: bottom left;
-//     transform: scale(1) rotate(-90deg)
-//     animation-timing-function: cubic-bezier(.48,.02,0,.99)
-//   }
-
-//   to {
-//     transform-origin: bottom left;
-//     transform: scaleY(0) rotate(-90deg)
-//   }
-// }
-
 
 /**
  * from: https://tympanus.net/codrops/2016/03/21/animated-animals-css-svg/
  */
-@keyframes squigglevision {
+@keyframes glitchvision {
   0 {
     filter: url("#squiggly-0");
   }
@@ -81,11 +55,6 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
     filter: url("#squiggly-4");
   }
 }
-
-// @keyframes blobframe {
-//   from { clip-path: url(#blob1) }
-//   to { clip-path: url(#blob2) }
-// }
 
 .none
   display none!important
@@ -419,10 +388,6 @@ html, body
   .open-proj1 & [data-url="proj1"] .content
     transform: scale(1);
 
-.squiggle {
-  animation: squigglevision 0.3s infinite;
-}
-
 .controls
   grid-column 1/2
   grid-row 2/3
@@ -528,10 +493,11 @@ html, body
     margin-left auto
     margin-right auto
     padding-top 20vh
-  .detail
+  .detail:not(:last-child)
     margin-bottom 2rem
   .the-project
     position relative
+    margin 20vh 0
     padding 20vh 0
     background var(--darkness)
     color var(--brightness)
@@ -613,18 +579,21 @@ html, body
   margin 20vh
   @media (max-width 992px)
     grid-template-columns repeat(auto-fit, minmax(200px, 1fr))
+  @media (max-width 568px)
+    margin 20vh 0
 
 
-
-.squiggle 
-  animation squigglevision 0.3s infinite
+.glitch 
+  animation glitchvision 0.3s infinite
   background var(--purewhite)
-  colors = #FFE900 #FCF6F5 #051C2C #00344F #42ADD5 #008ECC
+  colors = #051C2C #00344F #FFE900 #008ECC #42ADD5 #FCF6F5   
   for color, i in colors
     &:nth-child({i})
       animation-delay unit(i, "s")
     &:nth-child({i + 1}) circle
       fill color
+  &.--wbg
+    background none
 
 
 

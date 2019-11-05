@@ -200,7 +200,7 @@ html, body
   padding-right 3vw
   color var(--brightness)
   font-size 5vw
-  font-family 'Nunito', sans-serif
+  font-family 'Poppins', sans-serif
   white-space nowrap 
   .codeline
     display block
@@ -286,9 +286,6 @@ html, body
   display flex
   align-items center
   justify-content space-between
-  font-size 1.5rem
-  font-family 'Nunito', sans-serif
-  font-weight bold
   letter-spacing .15em
   .ico
     width 3rem
@@ -553,8 +550,9 @@ html, body
   display grid
   grid-template-columns repeat(auto-fit, minmax(300px, 1fr))
   grid-gap 30px
-  margin 5rem 0
   padding 0 2rem
+  .detail &
+    margin 5rem 0
   @media (max-width 568px)
     grid-auto-flow column
     grid-template-columns 0

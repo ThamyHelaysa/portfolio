@@ -8,10 +8,27 @@
     <meta name="description" content="Olá! Meu nome é Thamires Helaysa, e eu sou desenvolvedora front-end e designer.">
     <meta name="theme-color" content="#121212">
     <link rel="shortcut icon" type="image/x-icon" href="/media/favicon.ico">
-   <!-- <link rel="manifest" href="/manifest.json"> -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap">
-    <link href="https://fonts.googleapis.com/css?family=PT+Serif:400,400i,700,700i&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css">
+    <!-- <link rel="manifest" href="/manifest.json"> -->
+    <link href="https://fonts.googleapis.com/css?family=PT+Serif|Poppins:400,700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+          --brightness: #f0f0f0;
+          --highlight: #D93425;
+          --midtone: #eee;
+          --shadow: #00131c;
+          --darkness: #121212;
+          --blue: #023059;
+          --niceblue: royalblue;
+          --pink: #D9043D;
+          --purewhite: #FFFFFF;
+          --w-animation: 700px;
+      }
+      @media (max-width: 992px){
+          :root {
+              --w-animation: 300px
+          }
+      }
+    </style>
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body class="--loading">
@@ -211,7 +228,7 @@
                   <ul class="rivals">
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/moovit.png" alt="Logo Moovit" title="Moovit">
+                        <img class="img" src="./media/moovit.png" loading="lazy" alt="Logo Moovit" title="Moovit">
                       </div>
                       <div class="more">
                         <span class="title">Moovit</span>
@@ -224,7 +241,7 @@
                     </li>
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/citymapper.png" alt="Logo Citymapper" title="Citymapper">
+                        <img class="img" src="./media/citymapper.png" loading="lazy" alt="Logo Citymapper" title="Citymapper">
                       </div>
                       <div class="more">
                         <span class="title">Citymapper</span>
@@ -238,7 +255,7 @@
                     </li>
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/cittamobi.png" alt="Logo CittaMobi" title="CitaMobi">
+                        <img class="img" src="./media/cittamobi.png" loading="lazy" alt="Logo CittaMobi" title="CitaMobi">
                       </div>
                       <div class="more">
                         <span class="title">CittaMobi</span>
@@ -250,7 +267,7 @@
                     </li>
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/trafilogo.png" alt="Logo Trafi" title="Trafi">
+                        <img class="img" src="./media/trafilogo.png" loading="lazy" alt="Logo Trafi" title="Trafi">
                       </div>
                       <div class="more">
                         <span class="title">Trafi</span>
@@ -262,7 +279,7 @@
                     </li>
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/cadeobusao.png" alt="Logo Cadê o Ônibus?" title="Cadê o Ônibus?">
+                        <img class="img" src="./media/cadeobusao.png" loading="lazy" alt="Logo Cadê o Ônibus?" title="Cadê o Ônibus?">
                       </div>
                       <div class="more">
                         <span class="title">Cadê o Ônibus?</span>
@@ -274,7 +291,7 @@
                     </li>
                     <li class="item">
                       <div class="img-box">
-                        <img class="img" src="./media/hr-campinas.png" alt="Logo Hora do Ônibus" title="Hora do Ônibus">
+                        <img class="img" src="./media/hr-campinas.png" loading="lazy" alt="Logo Hora do Ônibus" title="Hora do Ônibus">
                       </div>
                       <div class="more">
                         <span class="title">Hora do Ônibus</span>
@@ -534,24 +551,6 @@
           <div class="title"><span></span></div>
           <div class="inner">
             <div class="wrap">
-              <div class="detail">
-                <div class="detail__col">
-                  <div class="smalltext year">Personal project <br> Jan 2019</div>
-                </div>
-                <div class="detail__col">
-                  <div class="smalltext role"></div>
-                </div>
-                <div class="detail__col detail__col--large">
-                  <div class="smalltext excerpt"></div>
-                </div>
-              </div>
-              <div class="imageswrapper">
-                <div class="image"><img src="" alt=""></div>
-                <div class="image"><img src="" alt=""></div>
-                <div class="image"><img src="" alt=""></div>
-                <div class="image"><img src="" alt=""></div>
-                <div class="image"><img src="" alt=""></div>
-              </div>
             </div>
           </div>
         </div>
@@ -564,17 +563,17 @@
       </div>
     </div>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('sw.js').then(function(registration) {
-            // Registration was successful
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, function(err) {
-            // registration failed :(
-            console.log('ServiceWorker registration failed: ', err);
-          });
-        });
-      }
+      // if ('serviceWorker' in navigator) {
+      //   window.addEventListener('load', function() {
+      //     navigator.serviceWorker.register('sw.js').then(function(registration) {
+      //       // Registration was successful
+      //       console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      //     }, function(err) {
+      //       // registration failed :(
+      //       console.log('ServiceWorker registration failed: ', err);
+      //     });
+      //   });
+      // }
     </script>
     <script type="module" src="scripts/index.js"></script>
     <script type="module" src="scripts/utils.js"></script>

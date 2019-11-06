@@ -541,6 +541,9 @@ body::-webkit-resizer {
 .project .detail:not(:last-child):not(.the-project) {
   margin-bottom: 2rem;
 }
+.project .detail.logos {
+  margin-top: -2rem;
+}
 .project .the-project {
   position: relative;
   margin: 20vh 0;
@@ -709,6 +712,60 @@ body::-webkit-resizer {
 }
 .tipos-images {
   margin: 20vh 0;
+}
+.logo-def {
+  position: relative;
+  margin: 20vh 0;
+  padding: 20vh 0;
+  background: var(--darkness);
+  color: var(--brightness);
+}
+.logo-def::before {
+  position: absolute;
+  display: block;
+  content: '';
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  height: 100%;
+  background: var(--darkness);
+  transform: translateX(-50vw);
+}
+.logo-wrapper {
+  grid-gap: 0;
+}
+.logo-wrapper .img-box {
+  justify-self: center;
+  max-width: 50vh;
+  padding: 20vh 0;
+  min-width: 100%;
+}
+.logo-wrapper .--dark {
+  position: relative;
+}
+.logo-wrapper .--dark .img {
+  position: relative;
+  z-index: 1;
+}
+.logo-wrapper .--dark::after {
+  position: absolute;
+  display: block;
+  content: '';
+  width: 60vw;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: var(--darkblue);
+  z-index: 0;
+}
+.logo-wrapper .img {
+  height: 500px;
+  margin: 0 auto;
+}
+@media (max-width: 375px) {
+  .logo-wrapper .img {
+    height: 300px;
+  }
 }
 .footer {
   position: fixed;

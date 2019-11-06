@@ -493,8 +493,11 @@ html, body
     margin-left auto
     margin-right auto
     padding-top 20vh
-  .detail:not(:last-child):not(.the-project)
-    margin-bottom 2rem
+  .detail
+    &:not(:last-child):not(.the-project)
+      margin-bottom 2rem
+    &.logos
+      margin-top -2rem
   .the-project
     position relative
     margin 20vh 0
@@ -613,6 +616,51 @@ html, body
 
 .tipos-images
   margin 20vh 0
+
+.logo-def
+  position: relative
+  margin 20vh 0
+  padding 20vh 0
+  background var(--darkness)
+  color var(--brightness)
+  &::before
+    position absolute
+    display block
+    content ''
+    top 0
+    left 50%
+    width 100vw
+    height 100%
+    background var(--darkness)
+    transform translateX(-50vw)
+
+.logo-wrapper
+  grid-gap 0
+  .img-box
+    justify-self center
+    max-width 50vh
+    padding 20vh 0
+    min-width 100%
+  .--dark
+    position relative
+    .img
+      position relative
+      z-index 1
+    &::after
+      position absolute
+      display block
+      content ''
+      width 60vw
+      height 100%
+      top 0
+      left 0
+      background var(--darkblue)
+      z-index 0
+  .img
+    height 500px
+    margin 0 auto
+    @media (max-width 375px)
+      height 300px
 
 .footer 
   position fixed

@@ -64,6 +64,8 @@ a:not([class]) {
 img {
   max-width: 100%;
   display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 input,
 button,
@@ -541,9 +543,6 @@ body::-webkit-resizer {
 .project .detail:not(:last-child):not(.the-project) {
   margin-bottom: 2rem;
 }
-.project .detail.logos {
-  margin-top: -2rem;
-}
 .project .the-project {
   position: relative;
   margin: 20vh 0;
@@ -747,25 +746,16 @@ body::-webkit-resizer {
   position: relative;
   z-index: 1;
 }
-.logo-wrapper .--dark::after {
-  position: absolute;
-  display: block;
-  content: '';
-  width: 60vw;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background: var(--darkblue);
-  z-index: 0;
+.logos {
+  margin-top: 20vh;
 }
-.logo-wrapper .img {
-  height: 500px;
-  margin: 0 auto;
+.logos .img {
+  max-height: 300px;
 }
-@media (max-width: 375px) {
-  .logo-wrapper .img {
-    height: 300px;
-  }
+.logos-land .item {
+  padding: 3rem;
+  border: 5px dashed var(--darkness);
+  box-shadow: 15px 15px 0 0 var(--pureyellow);
 }
 .footer {
   position: fixed;

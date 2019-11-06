@@ -493,7 +493,7 @@ html, body
     margin-left auto
     margin-right auto
     padding-top 20vh
-  .detail:not(:last-child)
+  .detail:not(:last-child):not(.the-project)
     margin-bottom 2rem
   .the-project
     position relative
@@ -595,7 +595,21 @@ html, body
   &.--wbg
     background none
 
+.colors
+  display inline-table
+  width 100%
+  margin 5rem 0
+  border-collapse collapse
 
+.grid-images 
+  display grid
+  grid-template-columns repeat(auto-fit, minmax(300px, 1fr))
+  grid-gap 30px
+  margin 20vh 0
+  > .img
+    width 100%
+    height 300px
+    object-fit cover
 
 .footer 
   position fixed

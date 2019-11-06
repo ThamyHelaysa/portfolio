@@ -538,7 +538,7 @@ body::-webkit-resizer {
   margin-right: auto;
   padding-top: 20vh;
 }
-.project .detail:not(:last-child) {
+.project .detail:not(:last-child):not(.the-project) {
   margin-bottom: 2rem;
 }
 .project .the-project {
@@ -690,6 +690,23 @@ body::-webkit-resizer {
 }
 .glitch.--wbg {
   background: none;
+}
+.colors {
+  display: inline-table;
+  width: 100%;
+  margin: 5rem 0;
+  border-collapse: collapse;
+}
+.grid-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-gap: 30px;
+  margin: 20vh 0;
+}
+.grid-images > .img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
 }
 .footer {
   position: fixed;

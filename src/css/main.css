@@ -663,7 +663,7 @@ body::-webkit-resizer {
   padding: 1rem;
 }
 .tipos-images .more {
-  min-height: none;
+  min-height: auto;
 }
 .more > .title {
   display: block;
@@ -788,7 +788,16 @@ body::-webkit-resizer {
   object-fit: cover;
 }
 .tipos-images .item {
-  border: 5px dashed;
+  padding: 16px;
+  border: 5px solid;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=");
+}
+.tipos-images .more,
+.tipos-images .img-box {
+  background: var(--purewhite);
+}
+.tipos-images .img-box {
+  padding: 16px;
 }
 .raffes-wrapper .item {
   display: flex;

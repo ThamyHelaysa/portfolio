@@ -598,7 +598,7 @@ html, body
   min-height 200px
   padding 1rem
   .tipos-images &
-    min-height none
+    min-height auto
   > .title
     display block
     margin-bottom 2rem
@@ -671,7 +671,13 @@ html, body
 
 .tipos-images
   .item
-    border 5px dashed
+    padding sm
+    border 5px solid
+    background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=")
+  .more, .img-box
+    background var(--purewhite)
+  .img-box
+    padding sm
 
 
 .raffes-wrapper

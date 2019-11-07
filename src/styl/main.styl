@@ -72,9 +72,20 @@ cubic = cubic-bezier(.75,-1.27,.3,2.3)
 *::after 
   box-sizing: border-box
 
-
-ul[class],ol[class]
+ul, ol
   padding: 0
+  list-style: none
+  &::-webkit-scrollbar,
+  &::-webkit-scrollbar-button,
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track-piece,
+  &::-webkit-scrollbar-thumb,
+  &::-webkit-scrollbar-corner,
+  &::-webkit-resizer
+    width 0!important
+    height 0!important
+    margin 0!important
+    padding 0!important
 
 
 body,h1,h2,h3,h4,p,ul[class],ol[class],li,figure,figcaption,blockquote,dl,dd
@@ -87,9 +98,6 @@ body
   text-rendering: optimizeSpeed
   line-height: 1.5
 
-
-ul[class],ol[class]
-  list-style: none
 
 a:not([class])
   text-decoration-skip-ink: auto
@@ -559,23 +567,25 @@ html, body
   padding 0 2rem
   .detail &
     margin 5rem 0
+    @media (max-width 568px)
+      margin 5rem -20px
+      padding 1rem
   @media (max-width 568px)
     grid-auto-flow column
-    grid-template-columns 0
-    grid-auto-columns calc(100% - 16px * 2)
+    grid-template-columns repeat(6, 100%)
+    //grid-auto-columns calc(100% - 16px * 2)
     grid-template-rows 1fr
     padding 0
     overflow-x scroll
-    scroll-snap-type x proximity
-    &::before, &::after
-      content ''
-      width 0
+    scroll-snap-type x mandatory
+    -webkit-overflow-scrolling touch
   > .item
     position relative
     padding 1rem
     background var(--purewhite)
     border 5px dashed var(--darkness)
     box-shadow 15px 15px 0 0 var(--niceblue)
+    scroll-snap-align start
     &::before
       position absolute
       display block
@@ -624,10 +634,13 @@ html, body
 
 .images-wrapper
   margin 20vh
-  @media (max-width 992px)
-    grid-template-columns repeat(auto-fit, minmax(200px, 1fr))
   @media (max-width 568px)
-    margin 20vh 0
+    .grid &
+      margin 20vh -1rem
+  @media (max-width 350px)
+    .grid &
+      grid-template-columns repeat(auto-fit, minmax(310px, 1fr))
+  
 
 
 .svg-box
@@ -646,6 +659,22 @@ html, body
     height 60%
     background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAK0lEQVQoU2NkIBIwEqmOgQ4KTUxMGkDOOXPmDJiGAQyriVaIy3N08AwuqwFUgwgL8NxuOAAAAABJRU5ErkJggg==")
 
+.info-color
+  position absolute
+  right 20px
+  bottom 20px
+  padding 10px
+  background var(--darkness)
+  color var(--purewhite)
+  font-size 14px
+  z-index 1
+  @media (max-width 568px)
+    right 0
+    bottom 0
+    font-size 12px
+  span
+    display block
+
 .glitch 
   position relative
   animation glitchvision 0.3s infinite
@@ -659,11 +688,6 @@ html, body
   &.--wbg
     background none
 
-.colors
-  display inline-table
-  width 100%
-  margin 5rem 0
-  border-collapse collapse
 
 .grid-images 
   margin 20vh 0

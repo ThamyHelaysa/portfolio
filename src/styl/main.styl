@@ -502,6 +502,10 @@ html, body
     font-weight 900
     text-align left
     line-height 7rem
+    @media (max-width 568px)
+      padding 5rem 0
+      font-size 2rem
+      line-height 4rem
     &::before
       position absolute
       display block
@@ -593,6 +597,8 @@ html, body
 .more
   min-height 200px
   padding 1rem
+  .tipos-images &
+    min-height none
   > .title
     display block
     margin-bottom 2rem
@@ -621,14 +627,31 @@ html, body
     margin 20vh 0
 
 
+.svg-box
+  position relative
+  borders = #FFE900 #F25D07 #2F00B3  #D51534 #3E2157 #212121
+  for border, i in borders
+    &:nth-child({i + 1})::before
+      border 5px solid border
+  &::before
+    position absolute
+    display block
+    content ''
+    top 0
+    left 0
+    width 50%
+    height 60%
+    background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAK0lEQVQoU2NkIBIwEqmOgQ4KTUxMGkDOOXPmDJiGAQyriVaIy3N08AwuqwFUgwgL8NxuOAAAAABJRU5ErkJggg==")
+
 .glitch 
+  position relative
   animation glitchvision 0.3s infinite
-  background var(--purewhite)
   colors = #051C2C #00344F #FFE900 #008ECC #42ADD5 #FCF6F5   
+  z-index 1
   for color, i in colors
-    &:nth-child({i})
+    .svg-box:nth-child({i}) &
       animation-delay unit(i, "s")
-    &:nth-child({i + 1}) circle
+    .svg-box:nth-child({i + 1}) & circle
       fill color
   &.--wbg
     background none
@@ -646,6 +669,11 @@ html, body
     height 400px
     object-fit cover
 
+.tipos-images
+  .item
+    border 5px dashed
+
+
 .raffes-wrapper
   .item
     display flex
@@ -655,8 +683,6 @@ html, body
     border 5px solid
     background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOklEQVQoU43MSwoAMAgD0eT+h7ZYaOlHo7N+DNHL2HAGgBWcyGcKbqTghTL4oQiG6IUpOqFEC5bI4QD8PAoKd9j4XwAAAABJRU5ErkJggg==")
   .img
-    width 100%
-    height 300px
     background var(--purewhite)
     object-fit cover
 

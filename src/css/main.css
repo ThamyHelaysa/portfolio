@@ -535,6 +535,10 @@ body::-webkit-resizer {
   color: var(--niceblue);
   text-decoration: none;
 }
+.project .--lthrough {
+  font-weight: 900;
+  text-decoration: line-through;
+}
 .project .--cit {
   position: relative;
   display: flex;

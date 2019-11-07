@@ -70,6 +70,10 @@ closeX = polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 1
   width 1rem
   height 1rem
   fill var(--brightness)
+  &.check
+    margin-right 10px
+    fill var(--greeny)
+
 
 *
   -webkit-tap-highlight-color: rgba(0,0,0,0);
@@ -95,7 +99,7 @@ ul, ol
     padding 0!important
 
 
-body,h1,h2,h3,h4,p,ul[class],ol[class],li,figure,figcaption,blockquote,dl,dd
+body,h1,h2,h3,h4,p,ul,ol,li,figure,figcaption,blockquote,dl,dd
   margin: 0
 
 
@@ -267,6 +271,8 @@ html, body
   width "calc(100% - %s * 2)" % sm 
   padding 0 sm
   z-index 9
+  @media (max-width 568px)
+    padding 0
 
 #logo
   display flex
@@ -278,12 +284,17 @@ html, body
     height 3rem
 
 .close 
+  padding 7px
+  color var(--darkness)
+  font-family 'Poppins', sans-serif
+  font-weight 900
   opacity 0
   visibility hidden
   transition all 300ms 100ms ease
   .open &
     opacity 1
     visibility visible
+    
 
 .menu
   grid-row 1/2
@@ -635,6 +646,8 @@ html, body
   display grid
   grid-template-columns repeat(auto-fit, minmax(310px, 1fr))
   grid-gap 30px
+  @media (max-width 475px)
+    grid-template-columns repeat(auto-fit, minmax(200px, 1fr))
   .content &
     margin 5rem 0
   
@@ -642,11 +655,8 @@ html, body
 .images-wrapper
   margin 20vh
   @media (max-width 568px)
-    .grid &
+    .grid&
       margin 20vh -1rem
-  @media (max-width 350px)
-    .grid &
-      grid-template-columns repeat(auto-fit, minmax(310px, 1fr))
   
 
 
@@ -701,6 +711,8 @@ html, body
   margin 20vh 0
   padding 30px
   background lightblue
+  @media (max-width 425px)
+    padding 30px 0
   &::before
     position absolute
     display block
@@ -730,6 +742,10 @@ html, body
     width 300px
     height 300px
     object-fit cover
+    @media (max-width 425px)
+      width 200px
+      height 200px
+
 
 .tipos-images
   .item
@@ -812,6 +828,17 @@ html, body
       padding 3rem
       border 5px dashed var(--darkness)
       box-shadow 15px 15px 0 0 var(--pureyellow)
+
+.utils, .meaning
+  margin 3rem 0
+  .item
+    display flex
+    align-items center
+    justify-content center
+    &:not(:last-child)
+      margin-bottom 1rem
+  .ico 
+    min-width 1rem
 
 .footer 
   position fixed

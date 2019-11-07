@@ -20,6 +20,10 @@
   height: 1rem;
   fill: var(--brightness);
 }
+.ico.check {
+  margin-right: 10px;
+  fill: var(--greeny);
+}
 * {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
@@ -58,8 +62,8 @@ h2,
 h3,
 h4,
 p,
-ul[class],
-ol[class],
+ul,
+ol,
 li,
 figure,
 figcaption,
@@ -265,6 +269,11 @@ body::-webkit-resizer {
   padding: 0 16px;
   z-index: 9;
 }
+@media (max-width: 568px) {
+  .header {
+    padding: 0;
+  }
+}
 #logo {
   display: flex;
   align-items: center;
@@ -276,6 +285,10 @@ body::-webkit-resizer {
   height: 3rem;
 }
 .close {
+  padding: 7px;
+  color: var(--darkness);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
   opacity: 0;
   visibility: hidden;
   transition: all 300ms 100ms ease;
@@ -704,6 +717,11 @@ body::-webkit-resizer {
   grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
   grid-gap: 30px;
 }
+@media (max-width: 475px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
 .content .grid {
   margin: 5rem 0;
 }
@@ -711,13 +729,8 @@ body::-webkit-resizer {
   margin: 20vh;
 }
 @media (max-width: 568px) {
-  .grid .images-wrapper {
+  .grid.images-wrapper {
     margin: 20vh -1rem;
-  }
-}
-@media (max-width: 350px) {
-  .grid .images-wrapper {
-    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
   }
 }
 .svg-box {
@@ -821,6 +834,11 @@ body::-webkit-resizer {
   padding: 30px;
   background: #add8e6;
 }
+@media (max-width: 425px) {
+  .grid-images {
+    padding: 30px 0;
+  }
+}
 .grid-images::before {
   position: absolute;
   display: block;
@@ -856,6 +874,12 @@ body::-webkit-resizer {
   width: 300px;
   height: 300px;
   object-fit: cover;
+}
+@media (max-width: 425px) {
+  .grid-images .img {
+    width: 200px;
+    height: 200px;
+  }
 }
 .tipos-images .item {
   padding: 16px;
@@ -948,6 +972,24 @@ body::-webkit-resizer {
   padding: 3rem;
   border: 5px dashed var(--darkness);
   box-shadow: 15px 15px 0 0 var(--pureyellow);
+}
+.utils,
+.meaning {
+  margin: 3rem 0;
+}
+.utils .item,
+.meaning .item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.utils .item:not(:last-child),
+.meaning .item:not(:last-child) {
+  margin-bottom: 1rem;
+}
+.utils .ico,
+.meaning .ico {
+  min-width: 1rem;
 }
 .footer {
   position: fixed;

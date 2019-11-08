@@ -286,6 +286,8 @@ body::-webkit-resizer {
 }
 .close {
   padding: 7px;
+  background: none;
+  border: 0;
   color: var(--darkness);
   font-family: 'Poppins', sans-serif;
   font-weight: 900;
@@ -505,7 +507,7 @@ body::-webkit-resizer {
 }
 .project > .content {
   height: 100%;
-  padding: 0 30px 5rem;
+  padding: 0 30px 0;
   background: var(--darkness);
 }
 .open-tcc .project > .content {
@@ -525,13 +527,13 @@ body::-webkit-resizer {
 }
 .project .--big {
   width: 100%;
-  background: var(--darkblue);
-  padding: 0 20px;
   text-align: center;
   text-transform: uppercase;
   opacity: 0.99;
 }
 .project .--big span {
+  padding: 0 20px;
+  background: var(--darkness);
   font-size: calc(1.5rem + 5vw);
   font-weight: 900;
 }
@@ -911,14 +913,16 @@ body::-webkit-resizer {
 .tipos-images {
   margin: 20vh 0;
 }
-.logo-def {
+.logo-def,
+.fim {
   position: relative;
   margin: 20vh 0;
   padding: 20vh 0;
   background: var(--darkness);
   color: var(--brightness);
 }
-.logo-def::before {
+.logo-def::before,
+.fim::before {
   position: absolute;
   display: block;
   content: '';
@@ -928,6 +932,9 @@ body::-webkit-resizer {
   height: 100%;
   background: var(--darkness);
   transform: translateX(-50vw);
+}
+.fim {
+  margin-bottom: 0 !important;
 }
 .logo-wrapper .img-box {
   position: relative;
@@ -993,6 +1000,10 @@ body::-webkit-resizer {
 .utils .ico,
 .meaning .ico {
   min-width: 1rem;
+}
+.telas .item {
+  padding: 1rem;
+  border: 5px solid;
 }
 .footer {
   position: fixed;

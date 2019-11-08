@@ -414,13 +414,13 @@ body::-webkit-resizer {
   width: 100vw;
   height: 100vh;
   margin: -50vh -50vw;
-  background: url("../media/teste-imagem.jpg") no-repeat 50%;
+  background: url("../media/optim-appmockuupportifolio.jpg") no-repeat 50%;
   background-size: cover;
   transform: scale(0.7);
   transition: all 0.4s ease;
 }
 .slider [data-url="tcc"] .content::before {
-  background: url("../media/teste-imagem.jpg") no-repeat 50%;
+  background: url("../media/optim-appmockuupportifolio.jpg") no-repeat 50%;
   background-size: cover;
 }
 .slider [data-url="proj1"] .content {
@@ -525,6 +525,8 @@ body::-webkit-resizer {
 }
 .project .--big {
   width: 100%;
+  background: var(--darkblue);
+  padding: 0 20px;
   text-align: center;
   text-transform: uppercase;
   opacity: 0.99;

@@ -4,12 +4,16 @@
  * https://medium.com/@mciastek/animate-on-scroll-with-intersection-observer-ea744cddb876
  */
 
-const SELECTOR = '.item';
+const SELECTOR = '.project';
 const ANIMATE_CLASS_NAME = 'animate';
 
 const animate = element => (
   element.classList.add(ANIMATE_CLASS_NAME)
 );
+
+const NOTanimate = element => (
+  element.classList.remove(ANIMATE_CLASS_NAME)
+)
 
 const isAnimated = element => (
   element.classList.contains(ANIMATE_CLASS_NAME)
@@ -22,10 +26,12 @@ const intersectionObserver = new IntersectionObserver((entries, observer) => {
     // animate it!
     if (entry.intersectionRatio > 0) {
       animate(entry.target);
+    } else {
+      NOTanimate(entry.target)
     }
     
     // remove observer after animation
-    observer.unobserve(entry.target);
+    //observer.unobserve(entry.target);
   });
 });
 

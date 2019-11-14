@@ -245,10 +245,15 @@ function closeArticle(e){
 
   // Check if body is on scroll
   if (document.body.scrollTop > 0){
-    document.body.scrollTop = 0
+    document.body.scrollTop = 0  
+    setTimeout(() => {
+      initClose();
+    }, 1000);
+  } else {
+    initClose();
   }
 
-  initClose();
+  
   
 }
 

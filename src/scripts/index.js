@@ -41,33 +41,32 @@ if (pathName == "/"){
 var count = 1;
 
 
+function changeButtons(){
+  if (count === 1){
+    Utils.addClass(prevBtn, 'off')
+    Utils.removeClass(nextButton, 'off')
+  } else if (count === sliderItems){
+    Utils.addClass(nextButton, 'off')
+    Utils.removeClass(prevBtn, 'off')
+  } else {
+    Utils.removeClass(prevBtn, 'off')
+    Utils.removeClass(nextButton, 'off')
+  }
+}
+
 
 /*
 * Putting Listener Buttons
 */
 nextButton.addEventListener('click', (e) => {
-  var self = nextButton;
   e.stopPropagation();
   nextSlider(e);
-  if (count === sliderItems){
-    Utils.addClass(self, 'off')
-    Utils.removeClass(prevBtn, 'off')
-  } else {
-    Utils.removeClass(prevBtn, 'off')
-  }
 });
 
 
 prevBtn.addEventListener('click', (e) => {
-  var self = prevBtn;
   e.stopPropagation();
   prevSlider(e);
-  if (count === 1){
-    Utils.addClass(self, 'off')
-    Utils.removeClass(nextButton, 'off')
-  } else {
-    Utils.removeClass(nextButton, 'off')
-  }
 });
 
 
@@ -89,6 +88,7 @@ function nextSlider(e){
     if (count < sliderItems){
       slider.style.transform = `translateX( calc( ${count} * -100% + (${gap * count}px) ) )`
       count++
+      changeButtons()
       changeCounter()
     } 
   }
@@ -106,6 +106,7 @@ function prevSlider(e){
     if (count != 1){
       count--
       slider.style.transform = `translateX( calc( (${count} - 1) * -100% + (${gap * (count - 1)}px) ) )`
+      changeButtons()
       changeCounter()
     } 
   }

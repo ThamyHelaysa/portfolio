@@ -50,10 +50,10 @@ nextButton.addEventListener('click', (e) => {
   e.stopPropagation();
   nextSlider(e);
   if (count === sliderItems){
-    Utils.addClass(self, 'none')
-    Utils.removeClass(prevBtn, 'none')
+    Utils.addClass(self, 'off')
+    Utils.removeClass(prevBtn, 'off')
   } else {
-    Utils.removeClass(prevBtn, 'none')
+    Utils.removeClass(prevBtn, 'off')
   }
 });
 
@@ -63,10 +63,10 @@ prevBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   prevSlider(e);
   if (count === 1){
-    Utils.addClass(self, 'none')
-    Utils.removeClass(nextButton, 'none')
+    Utils.addClass(self, 'off')
+    Utils.removeClass(nextButton, 'off')
   } else {
-    Utils.removeClass(nextButton, 'none')
+    Utils.removeClass(nextButton, 'off')
   }
 });
 

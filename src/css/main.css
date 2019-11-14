@@ -15,6 +15,9 @@
 .none {
   display: none !important;
 }
+.off {
+  opacity: 0.5;
+}
 .ico {
   width: 1rem;
   height: 1rem;
@@ -23,6 +26,10 @@
 .ico.check {
   margin-right: 10px;
   fill: var(--greeny);
+}
+.ico.i-arrow {
+  width: calc(1rem + 2vw);
+  height: calc(1rem + 2vw);
 }
 * {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
@@ -321,7 +328,11 @@ body::-webkit-resizer {
   color: var(--brightness);
 }
 .btnslider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1rem;
+  transition: all 300ms ease;
 }
 #logo .btn {
   width: 0;
@@ -424,7 +435,7 @@ body::-webkit-resizer {
   background-size: cover;
 }
 .slider [data-url="proj1"] .content {
-  background: url("../media/dadaismo.jpg") no-repeat 50%;
+  background: url("../media/dadaismo-copyright-notext.jpg") no-repeat 50%;
   background-size: cover;
 }
 .open-tcc .slider [data-url="tcc"] .content {
@@ -448,9 +459,10 @@ body::-webkit-resizer {
   display: flex;
   align-items: center;
   justify-content: center;
-  top: calc(50% - 25px);
+  top: auto;
+  bottom: 1rem;
   width: 50px;
-  height: 50px;
+  height: 10vh;
   opacity: 1;
   transition: all 500ms ease;
   visibility: visible;
@@ -467,7 +479,7 @@ body::-webkit-resizer {
 }
 .controls .prev {
   left: auto;
-  right: calc(100% - 50px);
+  right: 80%;
 }
 .open .controls .prev {
   transform: translateX(-100%);
@@ -476,7 +488,7 @@ body::-webkit-resizer {
   transform: rotate(180deg);
 }
 .controls .next {
-  left: calc(100% - 50px);
+  left: 80%;
   right: auto;
 }
 .open .controls .next {

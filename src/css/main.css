@@ -1049,6 +1049,21 @@ body::-webkit-resizer {
   font-size: calc(1rem + 2vw);
   font-weight: 700;
 }
+#manutencao {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: #151515;
+  font-size: 5vw;
+  z-index: 999;
+}
+#manutencao span {
+  display: block;
+  max-width: 80vw;
+}
 @-moz-keyframes typing {
   from {
     max-width: 0;

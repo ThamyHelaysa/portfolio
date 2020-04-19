@@ -16,8 +16,8 @@
           --brightness: #f0f0f0;
           --highlight: #D93425;
           --midtone: #949495;
-          --shadow: #202220;
-          --darkness: #121212;
+          --shadow: #202022;
+          --darkness: #151515;
           --blue: #023059;
           --darkblue: #030917;
           --niceblue: royalblue;
@@ -29,7 +29,7 @@
     </style>
     <link rel="stylesheet" href="css/main.css">
   </head>
-  <body class="--loading">
+  <body>
     <div id="manutencao">
       <span>Caaaaaalma calma que a versão 2 vem aí ;)</span>
     </div>
@@ -78,28 +78,9 @@
         </g>
       </symbol>
     </svg>
-    
-    <!-- <div class="loader">
-      <div class="content">
-        <h1 class="welcome">
-          <div class="codeline">
-            <span class="var">var </span>
-            <span class="name">portifolio</span>
-            <span class="key">{</span>
-          </div>
-          <span class="char th"> <span class="letter">th</span> </span>
-          <span class="char tcc"> <span class="letter">tcc</span> </span>
-          <span class="char projetos"> <span class="letter">projetos</span> </span>
-          <span class="char sobre"> <span class="letter">sobre</span> </span>
-          <span class="char bem-vindo"> <span class="letter">bem vindo!</span> </span>
-        </h1>
-      </div>
-    </div> -->
+
     <div class="wrapper">
-      <header class="header">
-        <!--
-          TO DO: Add svg logo on menu
-        -->
+      <!-- <header class="header">
           <nav id="logo">
             <a href="/">
               <svg class="ico"><use xlink:href="#i-logo"></use></svg>
@@ -107,47 +88,39 @@
           </nav>
           <button id="close" class="close">
             <svg class="ico i-close"><use xlink:href="#i-close"></use></svg>
-            <!-- <span>Fechar</span> -->
+            <span>Fechar</span>
           </button>
-      </header>
+      </header> -->
+
+      <aside class="more-info">
+        <h1 class="title --bg">Olá, eu sou Thamires Helaysa.</h1>
+      </aside>
+
       <main class="main">
         <!--
           TO DO: Add content
         -->
-        <div class="slider">
-          <div id="slider_list" class="list">
-            <article data-url="tcc" id="item1" class="item">
-              <div class="title">
-                <span class="text">Intellibus</span>
-              </div>
-              <div class="content"></div>
-            </article>
-            <article data-url="proj1" id="item2" class="item">
-              <div class="title">
-                <span class="text">Rodoviária ou Chapéu?</span>
-              </div>
-              <div class="content"></div>
-            </article>
-          </div>
+        <div class="projects">
+          <article data-url="tcc" id="item1" class="item">
+            <div class="title">
+              <span class="text">Intellibus</span>
+            </div>
+            <div class="content"></div>
+          </article>
+          <article data-url="proj1" id="item2" class="item">
+            <div class="title">
+              <span class="text">Rodoviária ou Chapéu?</span>
+            </div>
+            <div class="content"></div>
+          </article>
+          <article data-url="proj1" id="item2" class="item">
+            <div class="title">
+              <span class="text">Teste</span>
+            </div>
+            <div class="content"></div>
+          </article>
         </div>
       </main>
-
-      <div class="controls">
-        <div class="buttons">
-          <div class="prev">
-            <button id="bt-prev" class="btnslider btnprev btn off">
-              <svg class="ico i-arrow"><use xlink:href="#i-arrow"></use></svg>
-              <span>prev</span>
-            </button>
-          </div>
-          <div class="next">
-            <button id="bt-next" class="btnslider btnnext btn">
-              <svg class="ico i-arrow"><use xlink:href="#i-arrow"></use></svg>
-              <span>next</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- TCC Content-->
       <div id="itemcontent_tcc" class="project tcc">
@@ -861,25 +834,7 @@
         </div>
       </div>
 
-      <div class="footer">
-          <div class="scroll-hint">
-            <span class="label">1/2</span>
-          </div>
-      </div>
     </div>
-    <script>
-      // if ('serviceWorker' in navigator) {
-      //   window.addEventListener('load', function() {
-      //     navigator.serviceWorker.register('sw.js').then(function(registration) {
-      //       // Registration was successful
-      //       console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      //     }, function(err) {
-      //       // registration failed :(
-      //       console.log('ServiceWorker registration failed: ', err);
-      //     });
-      //   });
-      // }
-    </script>
     <script type="module" src="scripts/index.js"></script>
     <script type="module" src="scripts/utils.js"></script>
     <script type="module" src="scripts/router.js"></script>

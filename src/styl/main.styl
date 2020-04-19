@@ -69,6 +69,9 @@ closeX = polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 1
 .off
   opacity .5
 
+.flex
+  display flex
+
 .ico
   width 1rem
   height 1rem
@@ -86,7 +89,7 @@ closeX = polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 1
 
 
 *
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(32,34,32,.5);
 
 *,
 *::before,
@@ -150,7 +153,7 @@ html, body
   font-family 'Space Mono', monospace
   line-height 1.5
   text-align center
-  overflow hidden
+  // overflow hidden
   &::-webkit-scrollbar,
   &::-webkit-scrollbar-button,
   &::-webkit-scrollbar-track,
@@ -190,131 +193,30 @@ html, body
     justify-content center
   .--loading &
     transform translateY(0%);
-  
-
-.welcome
-  position relative
-  display flex
-  align-items center
-  justify-content center
-  padding-right 3vw
-  color var(--brightness)
-  font-size 5vw
-  font-family 'Poppins', sans-serif
-  white-space nowrap 
-  .codeline
-    display block
-    margin-right 3vw
-  .var 
-    color var(--blue)
-  .name
-    &::after
-      display inline-block
-      content '='
-      margin 0 1vw 0 3vw
-      color var(--pink)
-      opacity 1
-  .key
-    opacity 1
-  .char
-    display inline-block
-    max-width 0
-    overflow hidden 
-    margin 0 auto
-    letter-spacing .10em
-  for i in 1 2 3 4
-    .char:nth-of-type({i})
-      animation typing sec (2 * sec) * (i - 1) steps(20, end) forwards, typing-back sec (2 * sec) * (i - 1) + sec steps(20, end) forwards
-  .char.bem-vindo
-    animation typing 1.5s 9s steps(20, end) forwards
-  .letter
-    display inline-block
-    color var(--highlight)
-  &::before
-    position absolute
-    content '}'
-    top 50%
-    right -1vw
-    transform translateY(-50%)
-  &::after
-    position absolute
-    content ''
-    top 0
-    right 2vw
-    display inline-block
-    height 100%
-    border-right .15em solid orange; /* The typwriter cursor */
-    animation blink-caret .75s step-end infinite;
-  .open &
-    .char 
-      animation-name typing
-      animation-delay 0s
-  .open-tcc & 
-    .char:not(.tcc)
-      animation none
-  .open-proj1 &
-    .char:not(.projetos)
-      animation none
 
 .wrapper 
   position relative
   display grid
-  grid-gap sm
-  grid-template 10vh 2fr 10vh/1fr
+  grid-gap 5vh 5vw
+  grid-template auto/1fr 2fr
   height 100%
-  padding sm
+  padding 4vw
+  overflow hidden
   &::after
     position absolute
     content ''
     top 0
-    left 40%
+    left 65%
     width 100%
     height 100%
     background url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo0NjRDREZGOTA2MTIxMUU2ODVDQTlEOUYwN0M2RUY2RiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo0NjRDREZGQTA2MTIxMUU2ODVDQTlEOUYwN0M2RUY2RiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjQ2NENERkY3MDYxMjExRTY4NUNBOUQ5RjA3QzZFRjZGIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjQ2NENERkY4MDYxMjExRTY4NUNBOUQ5RjA3QzZFRjZGIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+jvJLPAAAAEtJREFUeNpiOXXq1H8mJiYGY2NjRgYSwZkzZ/4zgRgiIiIM5ABRUVEGxv///zNQApgYKASjBowaMFwMOHv27P+HDx+SlaNA+gACDABx4BWkIEMBMQAAAABJRU5ErkJggg==") repeat
+    opacity .5
     z-index 0
-
-.header
-  position fixed
-  display flex
-  align-items center
-  justify-content space-between
-  width "calc(100% - %s * 2)" % sm 
-  padding 0 sm
-  z-index 9
-  @media (max-width 568px)
-    padding 0
-
-#logo
-  display flex
-  align-items center
-  justify-content space-between
-  letter-spacing .15em
-  .ico
-    width 3rem
-    height 3rem
-
-.close 
-  padding 7px
-  background none
-  border 0
-  color var(--darkness)
-  font-family 'Poppins', sans-serif
-  font-weight 900
-  opacity 0
-  visibility hidden
-  transition all 300ms 100ms ease
-  .open &
-    opacity 1
-    visibility visible
     
-
-.menu
-  grid-row 1/2
 
 .main
   //position absolute
-  grid-column 1/2
-  grid-row 2/3
+  grid-column 2/3
   top 0
   left 0
   right 0
@@ -322,6 +224,11 @@ html, body
   height 100%
   transition all 300ms ease
   z-index 8
+
+.more-info
+  position sticky
+  grid-column 1/2
+  height 100%
 
 .btn
   min-width 50px
@@ -331,12 +238,6 @@ html, body
   border 0
   box-shadow none
   color var(--brightness)
-  &slider
-    display flex
-    align-items center
-    justify-content center
-    font-size 1rem
-    transition all 300ms ease
   #logo &
     width 0
     padding 0
@@ -347,45 +248,31 @@ html, body
     overflow visible
 
 
-.slider 
-  //position relative
+.projects 
   width 100%
   height 100%
-  overflow hidden
-  .open &
-    overflow visible
-  > .list 
-    //position relative
-    display grid
-    grid-gap sm
-    grid-auto-flow column
-    grid-template-columns 0
-    grid-auto-columns "calc(100% - %s * 2)" % sm // equals -> calc(80vw - 16px)
-    grid-template-rows 1fr
-    height 100%
-    transition transform 400ms cubic-bezier(.17,.87,.49,.99)
-    scroll-snap-type x proximity
-    &::before, &::after
-      content ''
-      width 0
+  padding-right sm
+  margin-right (- sm)
+  overflow auto
+  // > .list 
+  //   display block
+  //   transition transform 400ms cubic-bezier(.17,.87,.49,.99)
+  //   scroll-snap-type x proximity
   .item 
-    position relative
     display block
-    justify-self center
     width 100%
-    height 100%
+    height 50%
+    margin-bottom sm
     padding sm
+    background var(--shadow)
     transition all 500ms .4s
-  for i in 1 2 3 4 5
-    .item:nth-last-child({i}) .content
-      z-index i
+  // for i in 1 2 3 4 5
+  //   .item:nth-last-child({i}) .content
+  //     z-index i
   .title
-    position absolute
-    top 50%
     left sm
-    max-width 1000px
     color var(--darkness)
-    font-size calc(1.3rem + 4vw)
+    font-size 1vw
     font-weight 900
     transition all 300ms ease
     text-transform uppercase
@@ -393,98 +280,15 @@ html, body
     visibility visible
     overflow hidden
     z-index 9
-    @media (max-width 568px)
-      left 0
-    .open &
-      max-width 0
-      opacity 0
-      visibility hidden
     .text
       padding 5px 10px
       background var(--brightness)
-  .content
-    position absolute
-    top 50%
-    left 50%
-    width 100vw
-    height 100vh
-    margin -50vh -50vw
-    background url(../media/optim-appmockuupportifolio.jpg) no-repeat 50%
-    background-size cover
-    transform scale(.7)
-    transition all .4s ease
-    // &::before
-    //   position absolute
-    //   content ''
-    //   width 50%
-    //   height 100%
-    //   top 0
-    //   left 50%
-    //   filter grayscale(1)
-    // will-change transform
-    //animation: scale-down-center 1s cubic-bezier(0.680, -0.550, 0.265, 1.550) normal both;
-  [data-url="tcc"] .content
-    &::before
-      background url(../media/optim-appmockuupportifolio.jpg) no-repeat 50%
-      background-size cover
-  [data-url="proj1"] .content
-    background url(../media/dadaismo-copyright-notext.jpg) no-repeat 50%
-    background-size cover
-  .open-tcc & [data-url="tcc"] .content
-    transform: scale(1);
-  .open-proj1 & [data-url="proj1"] .content
-    transform: scale(1);
-
-.controls
-  grid-column 1/2
-  grid-row 2/3
-  .prev, .next
-    position absolute
-    display flex
-    align-items center
-    justify-content center
-    top auto
-    bottom 1rem
-    width 50px
-    height 10vh
-    opacity 1
-    transition all 500ms ease
-    visibility visible
-    z-index 15
-    span
-      display none
-    .open &
-      opacity 0
-      visibility hidden
-  .prev
-    left auto
-    right 80%
-    .open &
-      transform translateX(-100%)
-    .ico
-      transform rotate(180deg)
-  .next
-    left 80%
-    right auto
-    .open &
-      transform translateX(100%)
 
 
 .project
-  position absolute
-  left 0
-  width 100vw
+  display none
   //background var(--darkness)
-  padding-top 80vh
-  opacity 0
-  visibility hidden
-  transform translateY(100%)
   transition opacity 500ms 500ms ease, visibility 500ms 500ms ease
-  z-index 8
-  &.openArticle
-    transform translateY(0%)
-    opacity 1
-    visibility visible
   p, li, .text
     font-family 'PT Serif', serif;
   > .content
@@ -572,11 +376,6 @@ html, body
       background var(--pureyellow)
       border 1px solid var(--purewhite)
       color var(--darkness)
-  .inner
-    max-width 1200px
-    margin-left auto
-    margin-right auto
-    padding-top 20vh
   .detail
     &:not(:last-child):not(.the-project)
       margin-bottom 10vh
@@ -878,40 +677,6 @@ html, body
   left sm
   bottom sm
   z-index 8
-
-.scroll-hint
-  position: relative
-  display flex
-  align-items center
-  justify-content center
-  height 10vh
-  color var(--brightness)
-  letter-spacing .3em
-  opacity 1
-  transition all .4s
-  visibility visible
-  white-space nowrap
-  .open &
-    opacity 0
-    visibility hidden
-  // &::after
-  //   position: absolute
-  //   content: "";
-  //   left: -1px;
-  //   top: 0;
-  //   display: block;
-  //   width: 1px;
-  //   height: 100%;
-  //   background-color: #fff;
-  //   transform: scaleY(0) translateZ(0);
-  //   animation: swipe 3s infinite;
-  > .label
-    font-size calc(1rem + 2vw)
-    font-weight 700
-
-
-
-
 
 
 #manutencao

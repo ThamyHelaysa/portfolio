@@ -4,8 +4,8 @@ const COLORS = {
     terceary: "#C53559",
     brightness: "#F2F2F2",
     extra: "#D94343",
-    text: "#333333",
+    text: "#262626",
     border: "2px solid"
-}
+};
 
 export default COLORS;

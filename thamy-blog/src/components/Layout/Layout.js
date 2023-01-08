@@ -6,6 +6,7 @@ import Main from '../Main/Content';
 import Footer from '../Footer/Footer';
 import { TitleH1 } from '../Paragraphs/PageTitle';
 import { Paragraph } from '../Paragraphs/Paragraph';
+import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
 
 const PageWrapper = styled.div`
@@ -26,17 +27,19 @@ const PageSubtitle = styled.div`
 
 const Layout = ({ pageTitle, pageSub, children }) => {
   return (
-    <PageWrapper>
-      <NavigationWrapper />
-      <Main>
-          <PageTitleH1>{pageTitle}</PageTitleH1>
-          <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
-          <Paragraph>
-            {children}
-          </Paragraph>
-      </Main>
-      <Footer />
-    </PageWrapper>
+    <GlobalThemeProvider>
+      <PageWrapper>
+        <NavigationWrapper />
+        <Main>
+            <PageTitleH1>{pageTitle}</PageTitleH1>
+            <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
+            <Paragraph>
+              {children}
+            </Paragraph>
+        </Main>
+        <Footer />
+      </PageWrapper>
+    </GlobalThemeProvider>
   )
 }
 

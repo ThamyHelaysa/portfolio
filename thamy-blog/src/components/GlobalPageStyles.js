@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 
-import {COLORS} from "../constants/colors"
-import FONTS from '../constants/fonts'
 
 const Container = createGlobalStyle`
   *, *::before, *::after {
@@ -15,15 +13,16 @@ const Container = createGlobalStyle`
     height: 100%;
   }
   body {
-    background-color: ${COLORS.extra};
+    background-color: ${(props) => props.theme.colors.bodyColor};
     -webkit-background-size: 15px 15px;
     background-size: 15px 15px;
-    color: ${COLORS.text};
-    font-family: ${FONTS.paraGraphs.fontFamily};
+    color: ${(props) => props.theme.colors.text};
+    font-family: ${(props) => props.theme.fonts.paraGraphs.fontFamily};
     line-height: 1.5;
     scroll-behavior: smooth;
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
+    transition: background-color, color 250ms ease;
   }
   img, picture, video, canvas, svg {
     display: block;

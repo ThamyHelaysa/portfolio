@@ -14,8 +14,9 @@ const Container = styled.div`
 `
 
 const BorderedContainer = styled(Container)`
-  background-color: ${(props) => props.theme.colors.secondary};
+  background-color: ${(props) => props.theme.colors.bgColor};
   border: ${(props) => props.theme.colors.border};
+  transition: background-color, color 250ms ease;
 `
 
 const MaxWidthWrapper = ({children}) => {

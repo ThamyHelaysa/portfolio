@@ -10,6 +10,7 @@ import Footer from '../Footer/Footer';
 
 import { TitleH1, TitleH2 } from '../Paragraphs/PageTitle';
 import { StyledParagraph } from '../Paragraphs/Paragraph';
+import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
 
 const PageWrapper = styled.div`
@@ -180,71 +181,74 @@ const Layout = ({
   skillContent,
   children }) => {
   return (
-    <PageWrapper>
-      <NavigationWrapper />
-      <Main>
-          <Container>
-            <PageTitleH1 className='--vertical --big-font'>Hello!</PageTitleH1>
-            <PageTitleH1 className='--medium-font'>{pageTitle}</PageTitleH1>
-            <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
-            <Paragraph>
-              {greetings.content}
-            </Paragraph>
-            <StaticImage
-              className='--image-me'
-              src='../../images/curriculum/thamires-helaysa.jpg'
-              alt='Thamires Helaysa'
-              width={600}
-              height={720}/>
-            <ContainerTwoColumns className='--two-columns'>
-              <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
-              <ItensList>
-                {eduContent.content.map((item) => {
-                  return (
-                      <li key={`edu_content_${item.id}`}>
-                        <ItemTitle>{item.what} - {item.when}</ItemTitle>
-                        <p>{item.desc}</p>
-                      </li>
-                  )
-                })}
-              </ItensList>
-            </ContainerTwoColumns>
-            <ContainerTwoColumns className='--two-columns --second'>
-              <PageTitleH2 className='--small-t'>{expContent.title}</PageTitleH2>
-              <ItensList>
-                {expContent.content.map((item) => {
-                  return (
-                      <ListItem key={`exp_content_${item.id}`}>
-                        <ItemInfo>
-                          <ItemTitle>{item.as}</ItemTitle>
-                          <ItemTitle>{item.where}</ItemTitle>
-                          <ItemTitle>{item.when}</ItemTitle>
-                        </ItemInfo>
-                        <ItemContent>
-                          <p>{item.what}</p>
-                          <SkillEmphasis>{item.with}</SkillEmphasis>
-                        </ItemContent>
-                      </ListItem>
-                  )
-                })}
-              </ItensList>
-            </ContainerTwoColumns>
-            <ContainerTwoColumns className='--two-columns'>
-              <PageTitleH2 className='--small-t'>{skillContent.title}</PageTitleH2>
-              <ItensList className='--with-columns'>
-                {skillContent.content.map((item) => {
-                  return (
-                      <li key={`skill_content_${item.id}`}>
-                        <p>{item.skill}</p>
-                      </li>
-                  )
-                })}
-              </ItensList>
-            </ContainerTwoColumns>
-          </Container>
-      </Main>
-      <Footer />
-    </PageWrapper>
+    <GlobalThemeProvider>
+      {children}
+      <PageWrapper>
+        <NavigationWrapper />
+        <Main>
+            <Container>
+              <PageTitleH1 className='--vertical --big-font'>Hello!</PageTitleH1>
+              <PageTitleH1 className='--medium-font'>{pageTitle}</PageTitleH1>
+              <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
+              <Paragraph>
+                {greetings.content}
+              </Paragraph>
+              <StaticImage
+                className='--image-me'
+                src='../../images/curriculum/thamires-helaysa.jpg'
+                alt='Thamires Helaysa'
+                width={600}
+                height={720}/>
+              <ContainerTwoColumns className='--two-columns'>
+                <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
+                <ItensList>
+                  {eduContent.content.map((item) => {
+                    return (
+                        <li key={`edu_content_${item.id}`}>
+                          <ItemTitle>{item.what} - {item.when}</ItemTitle>
+                          <p>{item.desc}</p>
+                        </li>
+                    )
+                  })}
+                </ItensList>
+              </ContainerTwoColumns>
+              <ContainerTwoColumns className='--two-columns --second'>
+                <PageTitleH2 className='--small-t'>{expContent.title}</PageTitleH2>
+                <ItensList>
+                  {expContent.content.map((item) => {
+                    return (
+                        <ListItem key={`exp_content_${item.id}`}>
+                          <ItemInfo>
+                            <ItemTitle>{item.as}</ItemTitle>
+                            <ItemTitle>{item.where}</ItemTitle>
+                            <ItemTitle>{item.when}</ItemTitle>
+                          </ItemInfo>
+                          <ItemContent>
+                            <p>{item.what}</p>
+                            <SkillEmphasis>{item.with}</SkillEmphasis>
+                          </ItemContent>
+                        </ListItem>
+                    )
+                  })}
+                </ItensList>
+              </ContainerTwoColumns>
+              <ContainerTwoColumns className='--two-columns'>
+                <PageTitleH2 className='--small-t'>{skillContent.title}</PageTitleH2>
+                <ItensList className='--with-columns'>
+                  {skillContent.content.map((item) => {
+                    return (
+                        <li key={`skill_content_${item.id}`}>
+                          <p>{item.skill}</p>
+                        </li>
+                    )
+                  })}
+                </ItensList>
+              </ContainerTwoColumns>
+            </Container>
+        </Main>
+        <Footer />
+      </PageWrapper>
+    </GlobalThemeProvider>
   )
 }
 

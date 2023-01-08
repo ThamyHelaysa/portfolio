@@ -16,29 +16,19 @@ const Item = styled.li`
     padding: 0 1rem;
 `
 
-const ItemLabel = styled.span`
-    display: block;
-`
-
 const StyledLink = styled(Link)`
     color: inherit;
-`
-
-const StyledAnchor = styled.a`
-    color: inherit;
+    &:hover {
+        background-color: ${(props) => props.theme.colors.extra};
+    }
 `
 
 const NavigationList = () => {
     return (
         <List>
-            {itensOptions.map(({ id, label, content, isLink, path }) => (
+            {itensOptions.map(({ id, content, path }) => (
                 <Item key={id}>
-                    <ItemLabel>{label}</ItemLabel>
-                    {isLink
-                        ? <StyledLink to={path}>{content}</StyledLink>
-                        : <StyledAnchor href={path}>{content}</StyledAnchor>
-                    }
-
+                    <StyledLink to={path}>{content}</StyledLink>
                 </Item>
             ))}
         </List>

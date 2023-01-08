@@ -2,6 +2,7 @@ import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 
 import COLORS from "../constants/colors"
+import FONTS from '../constants/fonts'
 
 const Container = createGlobalStyle`
   *, *::before, *::after {
@@ -14,10 +15,11 @@ const Container = createGlobalStyle`
     height: 100%;
   }
   body {
-    background-color: ${COLORS.brightness};
+    background-color: ${COLORS.extra};
     -webkit-background-size: 15px 15px;
     background-size: 15px 15px;
     color: ${COLORS.text};
+    font-family: ${FONTS.paraGraphs.fontFamily};
     line-height: 1.5;
     scroll-behavior: smooth;
     text-rendering: optimizeSpeed;

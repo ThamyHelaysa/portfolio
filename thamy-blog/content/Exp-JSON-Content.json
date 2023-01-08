@@ -1,0 +1,37 @@
+{
+    "title": "experi-ence",
+    "content": [
+        {
+            "id": 1,
+            "where": "WEBJUMP",
+            "as": "Mid Frontend Magento",
+            "when": "2022 - current",
+            "what": "At the moment I'm responsible for maintain and discuss with the team better solutions for ecommerce. Daily participating in meetings with the client and supporting others teams and helping young developers.",
+            "with": "Git · JIRA · Scrum · phtml · LESS · XML · HTML · CSS · JavaScript · Docker"
+        },
+        {
+            "id": 2,
+            "where": "DIGITAL HUB",
+            "as": "Mid Frontend Developer",
+            "when": "2021 - 2022",
+            "what": "In DH I was responsible to maintain Magento 2 themes using PHTML, XML, HTML, CSS, Javascript and some JQuery. We used Kanban as our main task manager.",
+            "with": "Git · LESS · HTML5 · XML · CSS · JavaScript · JQuery · Docker"
+        },
+        {
+            "id": 3,
+            "where": "Bizcommerce",
+            "as": "Frontend Tech Lead",
+            "when": "2020 - 2021",
+            "what": "On the end of 2020 I was in charge of the Front-end team, helping my teammates, recruiting new ones, and being responsible for the conception and document the hole processes of a new projects besides developing it.",
+            "with": "Git · Snowpack · Micro Front-ends · Cypress.io · yarn · API REST · phtml · GraphQL · Scrum · npm · HTML5 · XML · CSS · JavaScript · Vue.js"
+        },
+        {
+            "id": 4,
+            "where": "Bizcommerce",
+            "as": "Frontend Web Developer",
+            "when": "2017 - 2020",
+            "what": "In Bizcommerce I manage to start as a junior Web Developer maintaining themes using HTML, CSS and mostly JQuery - at that time I didn't use to work with vanilla JS. With some time - about 1 and a half year - we migrate to Magento 2 and - not as a junior but mid-level dev - I was now responsible for making modules using vanilla JS and also some Vue.js in addition to making more robust themes for Magento 2.",
+            "with": "Git · Scrum · npm · Stylus CSS · HTML5 · CSS · JavaScript · Vue.js · JQuery"
+        }
+    ]
+}

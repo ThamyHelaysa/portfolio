@@ -6,8 +6,9 @@ import NavigationList from './List'
 
 const Nav = styled.nav`
   position: sticky;
-  top: .5rem;
+  top: 0;
   left: 0;
+  font-size: 1rem;
   z-index: 9;
 `
 

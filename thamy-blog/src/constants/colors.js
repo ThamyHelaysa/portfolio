@@ -11,12 +11,12 @@ const colorNames = {
 }
 
 const COLORS = {
-    primary: colorNames.red, // red
-    secondary: colorNames.pink, // pink
-    terceary: colorNames.gray, // gray
-    brightness: colorNames.snow, // almost white/snow
-    extra: colorNames.pinkShadow, // pink shadow
-    text: colorNames.black, // black
+    primary: colorNames.red,
+    secondary: colorNames.pink,
+    terceary: colorNames.gray,
+    brightness: colorNames.snow,
+    extra: colorNames.pinkShadow,
+    text: colorNames.black,
     border: "2px solid",
     bodyColor: colorNames.pinkShadow,
     bgColor: colorNames.pink,

@@ -30,7 +30,7 @@ const GlobalThemeProvider = ({children}) => {
             setSelectedTheme(name);
             setTheme(myThemes[name]);
         }
-    }), [theme]);
+    }), [theme,selectedTheme]);
 
     return (
         <GlobalThemeContext.Provider value={ThemeMemo}>

@@ -22,7 +22,8 @@ const Container = createGlobalStyle`
     scroll-behavior: smooth;
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
-    transition: background-color, color 250ms ease;
+    transition: color 350ms ease 0s, background 350ms ease 0s;
+    
   }
   img, picture, video, canvas, svg {
     display: block;

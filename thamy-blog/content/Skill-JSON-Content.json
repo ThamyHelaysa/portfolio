@@ -14,6 +14,7 @@
         { "skill": "Cooperation", "id": 11 },
         { "skill": "Good Communication", "id": 12 },
         { "skill": "Emotional Intelligence", "id": 13 },
-        { "skill": "Organized", "id": 14 }
+        { "skill": "Organized", "id": 14 },
+        { "skill": "Self-taught", "id": 15 }
     ]
 }

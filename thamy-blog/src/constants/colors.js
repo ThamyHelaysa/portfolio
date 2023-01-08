@@ -8,12 +8,14 @@ const COLORS = {
     border: "2px solid"
 };
 
-// primary: "#262626",
-//     secondary: "#595959",
-//     terceary: "#A6A6A6",
-//     brightness: "#D9D9D9",
-//     extra: "#D94343",
-//     text: "#0D0D0D",
-//     border: "2px solid"
+const DARKCOLORS = {
+    primary: "#262626",
+    secondary: "#595959",
+    terceary: "#A6A6A6",
+    brightness: "#D9D9D9",
+    extra: "#D94343",
+    text: "#0D0D0D",
+    border: "2px solid"
+}
 
-export default COLORS;
+export { COLORS, DARKCOLORS };

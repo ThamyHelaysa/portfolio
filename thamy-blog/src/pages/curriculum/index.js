@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { ThemeProvider } from 'styled-components'
+
+import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
 import GreetingsJSONData from "../../../content/Greetings-JSON-Content.json";
 import EduJSONData from "../../../content/Edu-JSON-Content.json";
@@ -12,10 +13,13 @@ import FONTS from '../../constants/fonts';
 import GridLayout from '../../components/Layout/GridLayout'
 import GlobalStyle from '../../components/GlobalPageStyles'
 import GlobalFontStyle from '../../components/GlobalFontStyles';
+import SwapTheme from '../../components/Button/ChangeTheme';
+
 
 const Curriculum = () => {
+    
     return (
-        <ThemeProvider theme={{ colors:COLORS, fonts:FONTS }}>
+        <GlobalThemeProvider>
             <GlobalFontStyle />
             <GlobalStyle />
             <GridLayout
@@ -27,10 +31,10 @@ const Curriculum = () => {
               expContent={ExpJSONData}
               skillContent={SkillJSONData}>
             </GridLayout>
-        </ThemeProvider>
+        </GlobalThemeProvider>
     )
 }
 
 export const Head = () => <title>About Me</title>
 
-export default Curriculum
+export default Curriculum;

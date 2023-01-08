@@ -15,7 +15,6 @@ import { StyledParagraph } from '../Paragraphs/Paragraph';
 const PageWrapper = styled.div`
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 100%;
   padding: .5rem 1rem;
 `
 

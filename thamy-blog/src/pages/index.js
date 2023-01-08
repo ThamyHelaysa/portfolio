@@ -3,6 +3,7 @@ import { ThemeProvider } from 'styled-components';
 
 import COLORS from "../constants/colors";
 import FONTS from '../constants/fonts';
+
 import Layout from '../components/Layout/Layout';
 import GlobalStyle from '../components/GlobalPageStyles';
 import GlobalFontStyle from '../components/GlobalFontStyles';

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 
-import COLORS from "../constants/colors"
+import {COLORS} from "../constants/colors"
 import FONTS from '../constants/fonts'
 
 const Container = createGlobalStyle`
@@ -39,11 +39,8 @@ const Container = createGlobalStyle`
   p, h1, h2, h3, h4, h5, h6 {
     overflow-wrap: break-word;
   }
-  #root, #__next {
+  #root, #__next, #___gatsby {
     isolation: isolate;
-  }
-  #___gatsby, #gatsby-focus-wrapper {
-    height: 100%;
   }
 `
 

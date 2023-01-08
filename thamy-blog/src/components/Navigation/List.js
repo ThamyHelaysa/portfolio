@@ -4,10 +4,12 @@ import styled from 'styled-components'
 
 import { itensOptions } from './List.helpers'
 
+import SwapTheme from '../Button/ChangeTheme';
+
 
 const List = styled.ul`
   display: flex;
-  justify-content: space-around;
+  gap: 0 3vw;
   padding: 1rem 0;
 `
 
@@ -31,6 +33,7 @@ const NavigationList = () => {
                     <StyledLink to={path}>{content}</StyledLink>
                 </Item>
             ))}
+            <SwapTheme></SwapTheme>
         </List>
     )
 }

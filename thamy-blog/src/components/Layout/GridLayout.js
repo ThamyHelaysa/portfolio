@@ -49,6 +49,7 @@ const PageTitleH1 = styled(TitleH1)`
     margin-top: 1rem;
     color: #c54551;
     font-size: 5rem!important;
+    text-shadow: none;
     &.--medium-font {
       font-size: 3rem!important;
     }

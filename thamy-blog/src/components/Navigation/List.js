@@ -4,11 +4,19 @@ import styled from 'styled-components'
 
 import { itensOptions } from './List.helpers'
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 
 const List = styled.ul`
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  gap: 0 3vw;
   padding: 1rem 0;
+
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    display: none;
+  }
+
 `
 
 const Item = styled.li`
@@ -16,29 +24,20 @@ const Item = styled.li`
     padding: 0 1rem;
 `
 
-const ItemLabel = styled.span`
-    display: block;
-`
-
 const StyledLink = styled(Link)`
     color: inherit;
-`
-
-const StyledAnchor = styled.a`
-    color: inherit;
+    letter-spacing: 2px;
+    &:hover {
+        background-color: ${(props) => props.theme.colors.bodyColor};
+    }
 `
 
 const NavigationList = () => {
     return (
         <List>
-            {itensOptions.map(({ id, label, content, isLink, path }) => (
+            {itensOptions.map(({ id, content, path }) => (
                 <Item key={id}>
-                    <ItemLabel>{label}</ItemLabel>
-                    {isLink
-                        ? <StyledLink to={path}>{content}</StyledLink>
-                        : <StyledAnchor href={path}>{content}</StyledAnchor>
-                    }
-
+                    <StyledLink to={path}>{content}</StyledLink>
                 </Item>
             ))}
         </List>

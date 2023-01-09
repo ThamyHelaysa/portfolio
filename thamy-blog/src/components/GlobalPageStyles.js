@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 
-import COLORS from "../constants/colors"
 
 const Container = createGlobalStyle`
   *, *::before, *::after {
@@ -14,14 +13,17 @@ const Container = createGlobalStyle`
     height: 100%;
   }
   body {
-    background-color: ${COLORS.brightness};
+    background-color: ${(props) => props.theme.colors.bodyColor};
     -webkit-background-size: 15px 15px;
     background-size: 15px 15px;
-    color: ${COLORS.text};
+    color: ${(props) => props.theme.colors.text};
+    font-family: ${(props) => props.theme.fonts.paraGraphs.fontFamily};
     line-height: 1.5;
     scroll-behavior: smooth;
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
+    transition: color 350ms ease 0s, background 350ms ease 0s;
+    
   }
   img, picture, video, canvas, svg {
     display: block;
@@ -37,11 +39,8 @@ const Container = createGlobalStyle`
   p, h1, h2, h3, h4, h5, h6 {
     overflow-wrap: break-word;
   }
-  #root, #__next {
+  #root, #__next, #___gatsby {
     isolation: isolate;
-  }
-  #___gatsby, #gatsby-focus-wrapper {
-    height: 100%;
   }
 `
 

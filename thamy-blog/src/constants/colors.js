@@ -1,7 +1,7 @@
 const colorNames = {
-    black: "#0D0D0D",
-    shadow: "#262626",
-    darkGray: "#333333",
+    black: "#0D0D0D", //#060930 #0D0D0D #311D3F
+    shadow: "#262626", // #333456 #262626 #522546
+    darkGray: "#333333", // #595B83 #333333 #88304E
     mediumGray: "#595959",
     gray: "#A6A6A6",
     snow: "#D9D9D9",

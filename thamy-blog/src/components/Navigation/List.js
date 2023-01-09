@@ -4,7 +4,7 @@ import styled from 'styled-components'
 
 import { itensOptions } from './List.helpers'
 
-import SwapTheme from '../Button/ChangeTheme';
+import BREAKPOINTS from '../../constants/breakpoints';
 
 
 const List = styled.ul`
@@ -12,6 +12,11 @@ const List = styled.ul`
   align-items: center;
   gap: 0 3vw;
   padding: 1rem 0;
+
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    display: none;
+  }
+
 `
 
 const Item = styled.li`
@@ -35,7 +40,6 @@ const NavigationList = () => {
                     <StyledLink to={path}>{content}</StyledLink>
                 </Item>
             ))}
-            <SwapTheme></SwapTheme>
         </List>
     )
 }

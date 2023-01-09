@@ -39,6 +39,19 @@ const PageTitleH1 = styled(TitleH1)`
       writing-mode: lr;
       transform: none;
     }
+    @media print and (orientation: landscape){
+      text-align: left;
+      writing-mode: lr;
+      transform: none;
+    }
+  }
+  @media print {
+    margin-top: 1rem;
+    color: #c54551;
+    font-size: 5rem!important;
+    &.--medium-font {
+      font-size: 3rem!important;
+    }
   }
 `
 
@@ -48,10 +61,24 @@ const PageTitleH2 = styled(TitleH2)`
   font-size: 3rem;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
+  @media print {
+    break-inside: avoid-page;
+    color: #c54551;
+    font-size: 2rem!important;
+    text-shadow: none;
+  }
+  @media print and (orientation: landscape){
+    height: 150px;
+    text-align: left;
+    writing-mode: lr;
+    transform: none;
+  }
   @media (max-width: ${BREAKPOINTS.tablet}){
     writing-mode: lr;
     transform: none;
   }
+  
+  
 `
 
 const PageSubtitle = styled(SubTitle)`
@@ -60,6 +87,9 @@ const PageSubtitle = styled(SubTitle)`
   grid-row: 2/3;
   top: -1rem;
   left: 0;
+  @media print {
+    display: none;
+  }
 `
 
 const Paragraph = styled(StyledParagraph)`
@@ -69,6 +99,9 @@ const Paragraph = styled(StyledParagraph)`
   line-height: 2;
   @media (max-width: ${BREAKPOINTS.laptop}){
     grid-column: 2/span 2;
+  }
+  @media print {
+    line-height: 1.8;
   }
 `
 
@@ -106,6 +139,14 @@ const Container = styled.div`
       display: none;
     }
   }
+
+  @media print {
+    display: block;
+    gap: 1rem;
+    &::after  {
+      display: none;
+    }
+  }
   
 
 `
@@ -127,6 +168,15 @@ const ContainerTwoColumns = styled.div`
     gap: 2rem;
   }
 
+  @media print {
+    display: block;
+    padding: 1rem 0;
+    border: 0;
+    & > .--small-t  {
+      height: 100px;
+    }
+  }
+
 `
 
 const ItensList = styled.ul`
@@ -141,6 +191,13 @@ const ItensList = styled.ul`
     line-height: 2;
     font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
   }
+  @media print {
+    line-height: 1.8;
+    &.--with-columns {
+      columns: auto;
+      column-count: 4;
+    }
+  }
 `
 
 const ListItem = styled.li`
@@ -148,6 +205,10 @@ const ListItem = styled.li`
   gap: 1rem;
   @media (max-width: ${BREAKPOINTS.mobile}){
     flex-flow: column;
+  }
+  @media print {
+    display: block;
+    break-inside: avoid-page;
   }
 `
 
@@ -159,6 +220,10 @@ const ItemTitle = styled.span`
 
 const ItemInfo = styled.div`
   flex: 0 1 25%;
+  @media print {
+    display: flex;
+    gap: 0 1rem;
+  }
 `
 
 const ItemContent = styled.div`
@@ -168,6 +233,9 @@ const ItemContent = styled.div`
 
 const SkillEmphasis = styled.p`
   font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
+  @media print {
+    font-size: .875rem;
+  }
 `
 
 const Layout = ({

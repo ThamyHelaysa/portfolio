@@ -10,12 +10,20 @@ const MaxWidthWrapper = styled.div`
   padding-left: 2rem;
   padding-right: 2rem;
   z-index: 1;
+  @media print {
+    max-width: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 `
 
 const MaxWidthBorderedWrapper = styled(MaxWidthWrapper)`
   background-color: ${(props) => props.theme.colors.bgColor};
   border: ${(props) => props.theme.colors.border};
   transition: background-color, color 250ms ease;
+  @media print {
+    border: 0;
+  }
 `
 
 export { MaxWidthWrapper, MaxWidthBorderedWrapper }

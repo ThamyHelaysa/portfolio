@@ -4,7 +4,9 @@ import styled from 'styled-components';
 import NavigationWrapper from '../Navigation/Header';
 import Main from '../Main/Content';
 import Footer from '../Footer/Footer';
+
 import { TitleH1 } from '../Paragraphs/PageTitle';
+import SubTitle from '../Paragraphs/SubTitle';
 import { Paragraph } from '../Paragraphs/Paragraph';
 import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
@@ -19,12 +21,6 @@ const PageTitleH1 = styled(TitleH1)`
   margin-top: 2rem;
 `
 
-const PageSubtitle = styled.div`
-  color: ${(props) => props.theme.colors.secondary};
-  font-family: ${(props) => props.theme.fonts.subTitle.fontFamily};
-  font-weight: ${(props) => props.theme.fonts.subTitle.fontWeight};
-`
-
 const Layout = ({ pageTitle, pageSub, children }) => {
   return (
     <GlobalThemeProvider>
@@ -32,7 +28,7 @@ const Layout = ({ pageTitle, pageSub, children }) => {
         <NavigationWrapper />
         <Main>
             <PageTitleH1>{pageTitle}</PageTitleH1>
-            <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
+            <SubTitle role="doc-subtitle">{pageSub}</SubTitle>
             <Paragraph>
               {children}
             </Paragraph>

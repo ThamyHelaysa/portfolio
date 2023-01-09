@@ -5,6 +5,9 @@ import { MaxWidthBorderedWrapper } from '../MaxWidthWrapper';
 
 const Wrapper = styled.footer`
   line-height: 2;
+  @media print {
+    display: none;
+  }
 `
 
 const Container = styled(MaxWidthBorderedWrapper)`

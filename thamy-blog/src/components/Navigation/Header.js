@@ -15,6 +15,10 @@ const Nav = styled.nav`
   font-size: 1rem;
   z-index: 9;
 
+  @media print {
+    display: none;
+  }
+
   & > .--container {
     display: flex;
     justify-content: space-between;

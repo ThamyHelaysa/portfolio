@@ -9,6 +9,7 @@ import Main from '../Main/Content';
 import Footer from '../Footer/Footer';
 
 import { TitleH1, TitleH2 } from '../Paragraphs/PageTitle';
+import SubTitle from '../Paragraphs/SubTitle';
 import { StyledParagraph } from '../Paragraphs/Paragraph';
 import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
@@ -53,15 +54,12 @@ const PageTitleH2 = styled(TitleH2)`
   }
 `
 
-const PageSubtitle = styled.div`
+const PageSubtitle = styled(SubTitle)`
   position: absolute;
   grid-column: 2/3;
   grid-row: 2/3;
   top: -1rem;
   left: 0;
-  color: ${(props) => props.theme.colors.text};
-  font-family: ${(props) => props.theme.fonts.subTitle.fontFamily};
-  font-weight: ${(props) => props.theme.fonts.subTitle.fontWeight};
 `
 
 const Paragraph = styled(StyledParagraph)`

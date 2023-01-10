@@ -1,0 +1,112 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header renders correctly 1`] = `
+<nav
+  className="sc-eDWCr hoWFot"
+>
+  <div
+    className="sc-bcXHqe sc-gswNZR dYUpGJ cAFJqf --container"
+  >
+    <ul
+      className="sc-iBYQkv hFMtBX"
+    >
+      <li
+        className="sc-ftTHYK cPVceh"
+      >
+        <a
+          className="sc-pyfCe ixqUuD"
+          href="/"
+        >
+          &lt;home/&gt;
+        </a>
+      </li>
+      <li
+        className="sc-ftTHYK cPVceh"
+      >
+        <a
+          className="sc-pyfCe ixqUuD"
+          href="/curriculum/"
+        >
+          &lt;curriculum vitæ/&gt;
+        </a>
+      </li>
+    </ul>
+    <button
+      className="sc-dkrFOg sc-hLBbgP efdHBU cBVrIj"
+      onClick={[Function]}
+      type="button"
+    >
+      <span
+        className="sc-eDvSVe kznTvp --on-open"
+      >
+        ⚌
+      </span>
+      <span
+        className="sc-eDvSVe kznTvp --on-close"
+      >
+        ✕
+      </span>
+    </button>
+    <div
+      className="sc-jrcTuL hNAQNd"
+    >
+      <ul
+        className="sc-kDvujY fdCNtm"
+      >
+        <li
+          className="sc-ipEyDJ dbCiQI"
+        >
+          <a
+            className="sc-csuSiG cdmCxT"
+            href="/"
+          >
+            &lt;home/&gt;
+          </a>
+        </li>
+        <li
+          className="sc-ipEyDJ dbCiQI"
+        >
+          <a
+            className="sc-csuSiG cdmCxT"
+            href="/curriculum/"
+          >
+            &lt;curriculum vitæ/&gt;
+          </a>
+        </li>
+      </ul>
+      <button
+        className="sc-dkrFOg sc-jSUZER efdHBU czHwXK --change-theme"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          className="sc-gKPRtg dpkEdu --ico-sun"
+        >
+          🌞
+        </span>
+        <span
+          className="sc-gKPRtg dpkEdu --ico-moon"
+        >
+          🌙
+        </span>
+      </button>
+    </div>
+    <button
+      className="sc-dkrFOg sc-jSUZER efdHBU czHwXK --inside-header"
+      onClick={[Function]}
+      type="button"
+    >
+      <span
+        className="sc-gKPRtg dpkEdu --ico-sun"
+      >
+        🌞
+      </span>
+      <span
+        className="sc-gKPRtg dpkEdu --ico-moon"
+      >
+        🌙
+      </span>
+    </button>
+  </div>
+</nav>
+`;

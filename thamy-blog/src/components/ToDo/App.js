@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 import Message from '../Message/Content';
+import Card from './Card';
 import Input from '../Form/Input';
 import Button from '../Button/DefaultButton';
 
@@ -32,11 +33,7 @@ const List = styled.ul`
     gap: .9rem;
 `
 
-const Item = styled.li`
-    padding: 1rem;
-    background-color: ${(props) => props.theme.colors.bgColor};
-    border: 2px solid ${(props) => props.theme.colors.terceary };
-`
+
 
 const Container = styled.div`
     display: flex;
@@ -78,7 +75,16 @@ const App = () => {
         setToDo(newToDo);
         localStorage.setItem("toDoList",JSON.stringify(newToDo));
         setInputText("");
-    }, [inputText, toDo])
+    }, [inputText, toDo]);
+
+    
+    const removeToDo = React.useCallback((index) => {
+        let newToDo = [...toDo];
+        newToDo.splice(index, 1);
+        setToDo(newToDo);
+        localStorage.setItem("toDoList",JSON.stringify(newToDo));
+    }, [toDo])
+
 
     return (
         <Container>
@@ -96,8 +102,8 @@ const App = () => {
             </Form>
             <div>
                 <List>
-                    {toDo.map(({ item, id }) => (
-                        <Item key={`item_${id}`}>{item}</Item>
+                    {toDo.map(({ item, id }, index) => (
+                        <Card key={`item_${id}`} onRemove={removeToDo} toDoItem={item} toDoIndex={index} />
                     ))}
                 </List>
             </div>

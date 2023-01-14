@@ -1,5 +1,52 @@
 import * as React from 'react';
+import styled from 'styled-components';
 
+import Message from '../Message/Content';
+import Input from '../Form/Input';
+import Button from '../Button/DefaultButton';
+
+const Form = styled.form`
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem 0;
+    & > .input-text {
+        flex: 1;
+        height: 60px;
+        border-color: ${(props) => props.theme.colors.terceary };
+    }
+`
+
+const AddButton = styled(Button)`
+    width: auto;
+    height: 60px;
+    margin-left: -115px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-color: ${(props) => props.theme.colors.terceary };
+`
+
+const List = styled.ul`
+    display: flex;
+    flex-flow: column;
+    gap: .9rem;
+`
+
+const Item = styled.li`
+    padding: 1rem;
+    background-color: ${(props) => props.theme.colors.bgColor};
+    border: 2px solid ${(props) => props.theme.colors.terceary };
+`
+
+const Container = styled.div`
+    display: flex;
+    flex-flow: column;
+    gap: 2rem 0;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background-color: ${(props) => props.theme.colors.bodyColor};
+    border: ${(props) => props.theme.colors.border};
+`
 
 const App = () => {
 
@@ -7,11 +54,21 @@ const App = () => {
 
     const [toDo, setToDo] = React.useState(toDoList);
     const [inputText, setInputText] = React.useState("");
+    const [inputError, setInputError] = React.useState("");
 
     const getText = React.useCallback((e) => {
         setInputText(e.target.value);
-        console.log("evento", e.target.value);
+        let inputValididty = e.target.validity;
+        if (inputValididty.valueMissing){
+            setInputError("No value? Beware, madness seek those who dont have nothing to do.");
+        } else {
+            setInputError("");
+        }
     }, [])
+
+    const blurInput = React.useCallback((e) => {
+        setInputError("");
+    }, []);
 
     const addToDo = React.useCallback((e) => {
         e.preventDefault();
@@ -24,25 +81,27 @@ const App = () => {
     }, [inputText, toDo])
 
     return (
-        <div>
-            <form onSubmit={addToDo}>
-                <input
+        <Container>
+            <Form onSubmit={addToDo}>
+                <Input
                     required
                     value={inputText}
                     onChange={getText}
+                    onBlur={blurInput}
+                    className="input-text"
                     type="text"
                     placeholder='I need to do...' />
-                    
-                <button type='submit'>Add ToDo</button>
-            </form>
+                <Message className="--error" msgText={inputError} />
+                <AddButton type='submit'>Add ToDo</AddButton>
+            </Form>
             <div>
-                <ul>
+                <List>
                     {toDo.map(({ item, id }) => (
-                        <li key={`item_${id}`}>{item}</li>
+                        <Item key={`item_${id}`}>{item}</Item>
                     ))}
-                </ul>
+                </List>
             </div>
-        </div>
+        </Container>
     )
 }
 

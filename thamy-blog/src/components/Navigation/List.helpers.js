@@ -6,6 +6,11 @@ export const itensOptions = [
     },
     {
         id: 2,
+        content: '<projects/>',
+        path: '/projects'
+    },
+    {
+        id: 3,
         content: '<curriculum vitæ/>',
         path: '/curriculum/'
     }

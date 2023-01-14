@@ -25,7 +25,7 @@ const PageTitleH1 = styled(TitleH1)`
   }
 `
 
-const Layout = ({ pageTitle, pageSub, children }) => {
+const Layout = ({ pageTitle, pageSub, introText, children }) => {
   return (
     <GlobalThemeProvider>
       <PageWrapper>
@@ -34,8 +34,9 @@ const Layout = ({ pageTitle, pageSub, children }) => {
             <PageTitleH1>{pageTitle}</PageTitleH1>
             <SubTitle role="doc-subtitle">{pageSub}</SubTitle>
             <Paragraph>
-              {children}
+              {introText}
             </Paragraph>
+            {children}
         </Main>
         <Footer />
       </PageWrapper>

@@ -6,9 +6,19 @@ import GlobalStyle from '../../components/GlobalPageStyles';
 import GlobalFontStyle from '../../components/GlobalFontStyles';
 
 import IntroJSONData from '../../../content/ProjIntro-JSON-Content.json'
+import CardsList from '../../components/Navigation/Cards';
 
 const projData = [
-    { name: "ToDo List", path: "/projects/todo", id: 1, desc: "An simple todo list made with React and Styled Components inside this site." }
+    {
+        name: "ToDo List",
+        path: "/projects/todo",
+        id: 1,
+        desc: "An simple todo list made with React and Styled Components inside this site.",
+        image: {
+            name: 'ToDo List Preview',
+            path: ''
+        }
+    }
 ]
 
 
@@ -17,17 +27,11 @@ const IndexPage = () => {
     <>
       <Layout
         pageTitle="Projects"
-        pageSub={""}
+        pageSub={"...and things"}
         introText={IntroJSONData.item}>
         <GlobalFontStyle />
         <GlobalStyle />
-        <ul>
-            {projData.map(({ name, path, id }) => (
-                <li key={`proj_${id}`}>
-                    <Link to={path}>{name}</Link>
-                </li>
-            ))}
-        </ul>
+        <CardsList dataList={projData}/>
       </Layout>
     </>
   )

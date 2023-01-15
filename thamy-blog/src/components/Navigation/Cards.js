@@ -5,11 +5,17 @@ import { Link } from 'gatsby';
 
 import { Paragraph } from '../Paragraphs/Paragraph';
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 
 const List = styled.ul`
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     margin-bottom: 3rem;
+    @media (max-width: ${BREAKPOINTS.tablet}){
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
 `
 
 const Item = styled.li`

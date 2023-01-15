@@ -10,11 +10,16 @@ import SubTitle from '../Paragraphs/SubTitle';
 import { Paragraph } from '../Paragraphs/Paragraph';
 import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 
 const PageWrapper = styled.div`
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: .5rem 1rem;
+  @media (max-width: ${BREAKPOINTS.mobile}){
+    padding: 0px;
+  }
 `
 
 const PageTitleH1 = styled(TitleH1)`

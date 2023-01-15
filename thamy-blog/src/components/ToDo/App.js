@@ -6,6 +6,8 @@ import Card from './Card';
 import Input from '../Form/Input';
 import Button from '../Button/DefaultButton';
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 const Form = styled.form`
     display: flex;
     align-items: center;
@@ -14,7 +16,11 @@ const Form = styled.form`
     & > .input-text {
         flex: 1;
         height: 60px;
+        padding-right: 130px;
         border-color: ${(props) => props.theme.colors.terceary };
+        @media (max-width: ${BREAKPOINTS.tablet}){
+            padding-right: 65px;
+        }
     }
 `
 
@@ -25,6 +31,19 @@ const AddButton = styled(Button)`
     padding-left: 1rem;
     padding-right: 1rem;
     border-color: ${(props) => props.theme.colors.terceary };
+    & > i {
+        display: none;
+        font-style: normal;
+    }
+    @media (max-width: ${BREAKPOINTS.tablet}){
+        margin-left: -56px;
+        & > span {
+            display: none;
+        }
+        & > i {
+            display: block;
+        }
+    }
 `
 
 const List = styled.ul`
@@ -32,8 +51,6 @@ const List = styled.ul`
     flex-flow: column;
     gap: .9rem;
 `
-
-
 
 const Container = styled.div`
     display: flex;
@@ -43,6 +60,12 @@ const Container = styled.div`
     padding: 2rem;
     background-color: ${(props) => props.theme.colors.bodyColor};
     border: ${(props) => props.theme.colors.border};
+    @media (max-width: ${BREAKPOINTS.tablet}){
+        gap: 1rem;
+        padding: 0;
+        background-color: transparent;
+        border: 0;
+    }
 `
 
 const App = () => {
@@ -70,10 +93,12 @@ const App = () => {
     const addToDo = React.useCallback((e) => {
         e.preventDefault();
 
+        let randomId = Math.floor(Math.random() * (999 - 99 + 1) + 99);
         let newToDo = [...toDo];
-        newToDo.push({ item: inputText, id: newToDo.length });
-        setToDo(newToDo);
-        localStorage.setItem("toDoList",JSON.stringify(newToDo));
+        newToDo.push({ item: inputText, id: randomId, done: false });
+
+        updateData(newToDo);
+
         setInputText("");
     }, [inputText, toDo]);
 
@@ -81,9 +106,22 @@ const App = () => {
     const removeToDo = React.useCallback((index) => {
         let newToDo = [...toDo];
         newToDo.splice(index, 1);
-        setToDo(newToDo);
-        localStorage.setItem("toDoList",JSON.stringify(newToDo));
-    }, [toDo])
+
+        updateData(newToDo);
+    }, [toDo]);
+
+    const doneToDo = React.useCallback((index, e) => {
+        let newToDo = [...toDo];
+        let newItem = { ...newToDo[index], done: e.target.checked };
+        newToDo.splice(index, 1, newItem);
+
+        updateData(newToDo);
+    }, [toDo]);
+
+    function updateData(newData){
+        setToDo(newData);
+        localStorage.setItem("toDoList",JSON.stringify(newData));
+    }
 
 
     return (
@@ -98,12 +136,21 @@ const App = () => {
                     type="text"
                     placeholder='I need to do...' />
                 <Message className="--error" msgText={inputError} />
-                <AddButton type='submit'>Add ToDo</AddButton>
+                <AddButton type='submit'>
+                    <span>Add ToDo</span>
+                    <i>&#x2795;</i>
+                </AddButton>
             </Form>
             <div>
                 <List>
-                    {toDo.map(({ item, id }, index) => (
-                        <Card key={`item_${id}`} onRemove={removeToDo} toDoItem={item} toDoIndex={index} />
+                    {toDo.map(({ item, id, done }, index) => (
+                        <Card
+                            key={`card_item_${id}`}
+                            onDoneToDo={doneToDo}
+                            doneValue={done}
+                            onRemove={removeToDo}
+                            toDoItem={item}
+                            toDoIndex={index} />
                     ))}
                 </List>
             </div>

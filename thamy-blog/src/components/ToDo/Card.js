@@ -21,27 +21,44 @@ const Item = styled.li`
     }
 `
 
-const ItemLabel = styled.span`
+const LabelContainer = styled.div`
+    opacity: 1;
+    transition: opacity 300ms ease 0s;
     .--checked > & {
-        text-decoration: line-through;
+        opacity: .5;
+    }
+`
+
+const ItemLabel = styled.span`
+    --thickness: .1em;
+    --strike: 0;
+    background: linear-gradient(90deg, transparent, currentColor 0) no-repeat 
+                right center / calc(var(--strike) * 100%) var(--thickness);
+    transition: background-size .4s ease;
+    font: 25px Arial;
+    padding: 0 .2em;
+    .--checked > .--container > & {
+        --strike: 1; /* "1" means "true" (show the strike line) */
+        background-position-x: left;
     }
 `
 
 const RemoveButton = styled(Button)`
-    width: auto;
     margin-left: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 300ms ease 0s;
+    .--container:hover > & {
+        opacity: 1;
+        visibility: visible;
+    }
     & > i {
+        display: block;
         font-style: normal;
     }
     @media (max-width: ${BREAKPOINTS.tablet}){
         padding-left: .5rem;
         padding-right: .5rem;
-        & > span {
-            display: none;
-        }
-        & > i {
-            display: block;
-        }
     }
 `
 
@@ -56,14 +73,15 @@ const Card = ({ toDoItem, toDoIndex, onRemove, onDoneToDo, doneValue }) => {
     }, [onDoneToDo, toDoIndex]);
 
     return (
-        <Item className={doneValue ? "--checked" : ""}>
+        <Item className={`${doneValue ? "--checked" : ""} --container`}>
             <InputCheckbox
                 checkID={toDoIndex}
                 checkValue={doneValue}
                 onCheck={checkDone}></InputCheckbox>
-            <ItemLabel>{toDoItem}</ItemLabel>
+            <LabelContainer className='--container'>
+                <ItemLabel>{toDoItem}</ItemLabel>
+            </LabelContainer>
             <RemoveButton onClick={removeToDo}>
-                <span>Remove</span>
                 <i>&#x274C;</i>
             </RemoveButton>
         </Item>

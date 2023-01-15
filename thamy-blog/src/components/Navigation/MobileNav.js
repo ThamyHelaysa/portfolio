@@ -10,12 +10,13 @@ const Wrapper = styled.div`
     position: fixed;
     display: flex;
     flex-flow: column;
-    align-items: center;
     justify-content: center;
+    gap: 2rem 0;
     top: 0;
     left: 0;
     height: 100vh;
     width: 100vw;
+    padding: 3rem;
     background: ${(props) => props.theme.colors.bodyColor};
     transform: translateX(-100%);
     transition: transform 350ms ease 0s;

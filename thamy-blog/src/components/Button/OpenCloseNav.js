@@ -25,23 +25,32 @@ const Icon = styled.span`
     width: 100%;
     height: 100%;
     font-size: 22px;
-    transform: scale(0);
-
-    &.--on-open {
-        padding-bottom: 6px;
-        transform: ${((props) => props.isOpenNav ? "scale(1)" : "scale(0)")};
+    transition: all 300ms ease 0s;
+    .--open-nav > & {
+        &.--open {
+            transform: scale(0);
+        }
+        &.--close {
+            transform: scale(1) rotate(90deg);
+        }
     }
-    &.--on-close {
-        transform: ${((props) => props.isOpenNav ? "scale(0)" : "scale(1)")} rotate(90deg);
+
+    &.--open {
+        padding-bottom: 6px;
+        transform: scale(1);
+    }
+    &.--close {
+        transform: scale(0) rotate(90deg);
     }
 
 `
 
-const OpenNavButton = (props, {isOpenNav}) => {
+const OpenNavButton = (props) => {
+    console.log(props.isOpenNav);
     return (
-        <OpenBtn {...props} type="button" className={isOpenNav ? "--open-nav" : ""}>
-            <Icon className='--on-open'>&#x268C;</Icon>
-            <Icon className='--on-close'>&#x2715;</Icon>
+        <OpenBtn {...props} type="button" className={props.isOpenNav ? "--open-nav" : ""}>
+            <Icon className='--open'>&#x268C;</Icon>
+            <Icon className='--close'>&#x2715;</Icon>
         </OpenBtn>
     )
 }

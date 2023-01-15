@@ -135,7 +135,7 @@ const Container = styled.div`
   }
   & > .--image-me {
     grid-row: span 2;
-    border: 1rem solid ${(props) => props.theme.colors.extra};
+    border: 1rem dashed ${(props) => props.theme.colors.darkness};
     @media (max-width: ${BREAKPOINTS.laptop}){
       display: none;
     }
@@ -173,6 +173,10 @@ const ContainerTwoColumns = styled.div`
     display: block;
     padding: 1rem 0;
     border: 0;
+    &.--first {
+      break-inside: avoid-page;
+      break-after: always;
+    }
     & > .--small-t  {
       height: 100px;
     }
@@ -239,6 +243,10 @@ const SkillEmphasis = styled.p`
   }
 `
 
+const ParagraphExp = styled(StyledParagraph)`
+  padding-top: 0;
+`
+
 const Layout = ({
   pageTitle,
   pageSub,
@@ -266,14 +274,14 @@ const Layout = ({
                 alt='Thamires Helaysa'
                 width={600}
                 height={720}/>
-              <ContainerTwoColumns className='--two-columns'>
+              <ContainerTwoColumns className='--two-columns --first'>
                 <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
                 <ItensList>
                   {eduContent.content.map((item) => {
                     return (
                         <li key={`edu_content_${item.id}`}>
                           <ItemTitle>{item.what} - {item.when}</ItemTitle>
-                          <p>{item.desc}</p>
+                          <ParagraphExp>{item.desc}</ParagraphExp>
                         </li>
                     )
                   })}
@@ -291,7 +299,7 @@ const Layout = ({
                             <ItemTitle>{item.when}</ItemTitle>
                           </ItemInfo>
                           <ItemContent>
-                            <p>{item.what}</p>
+                            <ParagraphExp>{item.what}</ParagraphExp>
                             <SkillEmphasis>{item.with}</SkillEmphasis>
                           </ItemContent>
                         </ListItem>

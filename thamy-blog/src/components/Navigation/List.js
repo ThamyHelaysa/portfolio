@@ -26,9 +26,12 @@ const Item = styled.li`
 
 const StyledLink = styled(Link)`
     color: inherit;
+    font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
     letter-spacing: 2px;
+    transition: all 250ms ease 0s;
     &:hover {
-        background-color: ${(props) => props.theme.colors.bodyColor};
+        background-color: ${(props) => props.theme.colors.extra};
+        color: ${(props) => props.theme.colors.brightness};
     }
 `
 

@@ -15,7 +15,7 @@ const projData = [
         desc: "An simple todo list made with React and Styled Components inside this site.",
         image: {
             name: 'ToDo List Preview',
-            path: ''
+            path: '../../images/ToDo_List.gif'
         }
     }
 ]

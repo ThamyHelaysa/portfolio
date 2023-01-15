@@ -11,7 +11,7 @@ const Item = styled.li`
     align-items: center;
     padding: 1rem;
     background-color: ${(props) => props.theme.colors.bgColor};
-    border: 2px solid ${(props) => props.theme.colors.terceary};
+    border: ${(props) => props.theme.colors.border};
     & > span {
         word-wrap: break-word;
         @media (max-width: ${BREAKPOINTS.mobile}){
@@ -35,7 +35,6 @@ const ItemLabel = styled.span`
     background: linear-gradient(90deg, transparent, currentColor 0) no-repeat 
                 right center / calc(var(--strike) * 100%) var(--thickness);
     transition: background-size .4s ease;
-    font: 25px Arial;
     padding: 0 .2em;
     .--checked > .--container > & {
         --strike: 1; /* "1" means "true" (show the strike line) */

@@ -46,7 +46,6 @@ const Icon = styled.span`
 `
 
 const OpenNavButton = (props) => {
-    console.log(props.isOpenNav);
     return (
         <OpenBtn {...props} type="button" className={props.isOpenNav ? "--open-nav" : ""}>
             <Icon className='--open'>&#x268C;</Icon>

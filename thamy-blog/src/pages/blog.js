@@ -16,18 +16,30 @@ const BlogPage = ({ data }) => {
       >
       <GlobalFontStyle />
       <GlobalStyle />
-      {data.allFile.nodes.map(node => (
-        <span key={node.name}>{node.name}</span>
+      {data.allMdx.nodes.map(node => (
+        <span key={node.id}>{node.excerpt}</span>
       ))}
     </Layout>
   )
 }
 
 export const query = graphql`
-  query blogPosts {
-    allFile(filter: {sourceInstanceName: {eq: "blog"}}) {
+  query {
+    allMdx(sort: {frontmatter: {date: DESC}}) {
       nodes {
-        name
+        frontmatter {
+          author
+          date(formatString: "D MMMM YYYY")
+          slug
+          title
+        }
+        id
+        excerpt
+        parent {
+          ... on File {
+            modifiedTime(formatString: "MMMM D, YYYY")
+          }
+        }
       }
     }
   }

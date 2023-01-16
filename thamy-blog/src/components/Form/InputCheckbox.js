@@ -13,7 +13,7 @@ const Input = styled.input`
     height: 0;
     appearance: none;
     &:checked + label {
-        background-color: ${(props) => props.theme.colors.primary};
+        background-color: ${(props) => props.theme.colors.extra};
     }
 `
 
@@ -22,6 +22,8 @@ const Label = styled.label`
     width: 40px;
     height: 40px;
     background-color: ${(props) => props.theme.colors.bodyColor};
+    border: ${(props) => props.theme.colors.border};
+    cursor: pointer;
 `
 
 const InputCheckbox = ({ onCheck, checkValue, checkID }) => {

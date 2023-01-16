@@ -21,6 +21,12 @@ const Copyright = styled.p`
 const Link = styled.a`
   padding: 0 5px;
   color: inherit;
+  font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
+  transition: all 250ms ease 0s;
+  &:hover {
+      background-color: ${(props) => props.theme.colors.extra};
+      color: ${(props) => props.theme.colors.brightness};
+  }
 `
 
 const Footer = () => {

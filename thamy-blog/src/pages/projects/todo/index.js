@@ -4,6 +4,7 @@ import Layout from '../../../components/Layout/Layout';
 import GlobalStyle from '../../../components/GlobalPageStyles';
 import GlobalFontStyle from '../../../components/GlobalFontStyles';
 import App from '../../../components/ToDo/App';
+import Seo from '../../../components/Seo';
 
 
 const IndexPage = () => {
@@ -21,6 +22,6 @@ const IndexPage = () => {
   )
 }
 
-export const Head = () => <title>ToDo List</title>
+export const Head = () => <Seo title="Todo"></Seo>
 
 export default IndexPage

@@ -17,7 +17,6 @@ const Form = styled.form`
         flex: 1;
         height: 60px;
         padding-right: 130px;
-        border-color: ${(props) => props.theme.colors.terceary };
         @media (max-width: ${BREAKPOINTS.tablet}){
             padding-right: 65px;
         }
@@ -30,7 +29,6 @@ const AddButton = styled(Button)`
     margin-left: -115px;
     padding-left: 1rem;
     padding-right: 1rem;
-    border-color: ${(props) => props.theme.colors.terceary };
     & > i {
         display: none;
         font-style: normal;
@@ -68,19 +66,48 @@ const Container = styled.div`
     }
 `
 
+const StatusBar = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: ${(props) => props.theme.colors.darkness};
+    color: ${(props) => props.theme.colors.brightness};
+`
+
+const LeftItens = styled.span`
+    font-weight: bold;
+`
+
+const EmptyTodo = styled.div`
+    padding: 2rem 1rem;
+    background-color: ${(props) => props.theme.colors.brightness};
+    border: ${(props) => props.theme.colors.border};
+    font-weight: ${(props) => props.theme.fonts.mediumTitle.fontWeight};
+    text-align: center;
+`
+
 const App = () => {
 
     const toDoList = JSON.parse(localStorage.getItem("toDoList")) || []
 
+    
     const [toDo, setToDo] = React.useState(toDoList);
     const [inputText, setInputText] = React.useState("");
     const [inputError, setInputError] = React.useState("");
+    const [toDoStatus, setTodoStatus] = React.useState([]);
+    
+    function initStatus(){
+        let initList = [...toDo];
+        let itensLeft = initList.filter((el) => !el.done);
+        setTodoStatus({left: itensLeft.length});
+    }
 
     const getText = React.useCallback((e) => {
         setInputText(e.target.value);
         let inputValididty = e.target.validity;
         if (inputValididty.valueMissing){
-            setInputError("No value? Beware, madness seek those who dont have nothing to do.");
+            setInputError("No todo? Beware, madness seek those who have nothing TO DO.");
         } else {
             setInputError("");
         }
@@ -123,6 +150,9 @@ const App = () => {
         localStorage.setItem("toDoList",JSON.stringify(newData));
     }
 
+    React.useEffect(() => {
+        initStatus();
+    }, [toDo]);
 
     return (
         <Container>
@@ -153,6 +183,16 @@ const App = () => {
                             toDoIndex={index} />
                     ))}
                 </List>
+                {toDo.length ? (
+                    <StatusBar>
+                        <LeftItens>
+                            {toDoStatus.left}
+                            {toDoStatus.left > 1 ? " Itens left" : " Item left"}
+                        </LeftItens>
+                    </StatusBar>
+                ) : (
+                    <EmptyTodo>Has your existential emptiness taken over the material realm?</EmptyTodo>
+                )}
             </div>
         </Container>
     )

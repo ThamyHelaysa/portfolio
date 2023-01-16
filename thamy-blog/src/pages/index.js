@@ -5,6 +5,7 @@ import GlobalStyle from '../components/GlobalPageStyles';
 import GlobalFontStyle from '../components/GlobalFontStyles';
 
 import IntroJSONData from '../../content/Intro-JSON-Content.json';
+import Seo from '../components/Seo';
 
 const IndexPage = () => {
   return (
@@ -20,6 +21,6 @@ const IndexPage = () => {
   )
 }
 
-export const Head = () => <title>Home Page</title>
+export const Head = () => <Seo title="Home"></Seo>
 
 export default IndexPage

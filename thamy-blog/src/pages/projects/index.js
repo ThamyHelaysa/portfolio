@@ -10,8 +10,8 @@ import CardsList from '../../components/Navigation/Cards';
 
 const projData = [
   {
-    name: "ToDo List",
-    path: "/projects/todo",
+    title: "ToDo List",
+    slug: "/projects/todo",
     id: 1,
     desc: "An simple todo list made with React and Styled Components inside this site.",
     image: {
@@ -31,7 +31,7 @@ const IndexPage = () => {
         introText={IntroJSONData.item}>
         <GlobalFontStyle />
         <GlobalStyle />
-        <CardsList dataList={projData}/>
+        {/* <CardsList dataList={projData}/> */}
       </Layout>
     </>
   )

@@ -36,16 +36,17 @@ const StyledParagraph = styled(Paragraph)`
 const CardsList = ({ dataList }) => {
     return (
         <List>
-            {dataList.map(({name, path, id, desc, image}) => (
-                <Item key={id}>
-                    <StyledLink to={path}>
+            {dataList.map((item,index) => (
+                <Item key={item.id}>
+                    <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
                         {/* <GatsbyImage
                             className='--proj-img'
                             image={getImage(image.path)}
                             alt={image.name}/> */}
                         <div>
-                            <strong>{name}</strong>
-                            <StyledParagraph>{desc}</StyledParagraph>
+                            {item.id}
+                            <strong>{item.frontmatter.title}</strong>
+                            <StyledParagraph>{item.frontmatter.desc}</StyledParagraph>
                         </div>
                     </StyledLink>
                 </Item>

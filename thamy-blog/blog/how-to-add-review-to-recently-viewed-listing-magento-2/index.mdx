@@ -1,0 +1,221 @@
+---
+title: "How to add review to recently viewed listing Magento 2"
+date: "2023-01-16"
+author: "Thamires H."
+slug: "how-to-add-review-to-recently-viewed-listing-magento-2"
+desc: "Did you notice that the default recently viewed magento 2 listing just have a few components? Here I show you how you can add the review off a product and more."
+---
+
+
+# Como acrescentar avaliações na listagem de últimos produtos vistos
+
+Esse guia vai explicar direitinho como incluir na listagem de produtos no widget de últimos vistos (padrão do M2) o componente de avaliações.
+
+## 📔 Instruções
+
+Comece criando os seguintes arquivos no seu tema/módulo:
+
+1. *[Magento_Catalog/web/template/product/list/listing.html](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/template/product/list/listing.html)*  (opcional)
+2. *[Magento_Catalog/web/js/product/list/listing.js](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/js/product/list/listing.js)* (opcional)
+3. *[Magento_Catalog/ui_component/widget_recently_viewed.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/frontend/ui_component/widget_recently_viewed.xml)*
+
+## 📄 listing.html
+
+O primeiro arquivo contém o template da listagem dos produtos, você pode modificar o container se precisar como adicionar novas áreas ou atributos.
+
+```
+<div if="hasData()"
+     class="block" css="additionalClasses">
+    <div class="block-title">
+        <strong role="heading"
+                aria-level="2"
+                text="label"></strong>
+    </div>
+    <div class="block-content">
+        <div css="'products-' + displayMode">
+            <ol class="product-items">
+                <li class="product-item" repeat="foreach: filteredRows, item: '$row'">
+                    <div class="product-item-info">
+                        <fastForEach args="data: getRegion('general-area'), as: '$col'" >
+                            <render args="$col.getBody()"></render>
+                        </fastForEach>
+
+                        <div class="product-item-details">
+                            <fastForEach args="data: getRegion('details-area'), as: '$col'" >
+                                <render args="$col.getBody()"></render>
+                            </fastForEach>
+                                .
+                                .
+                                .
+                        </div>
+                    </div>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+```
+
+## 📄 listing.js
+
+O segundo arquivo é responsável por inicializar os dados em cada linha - no caso as rows representam cada item da listagem, no caso o produto.
+
+```
+define([
+    'ko',
+    'underscore',
+    'Magento_Ui/js/grid/listing'
+], function (ko, _, Listing) {
+    'use strict';
+
+    return Listing.extend({
+        defaults: {
+            additionalClasses: '',
+            filteredRows: {},
+            limit: 5,
+            listens: {
+                elems: 'filterRowsFromCache',
+                '${ $.provider }:data.items': 'filterRowsFromServer'
+            }
+        },
+
+        /** @inheritdoc */
+        initialize: function () {
+            this._super();
+            this.filteredRows = ko.observable();
+            this.initProductsLimit();
+            this.hideLoader();
+        }
+                        .
+                        .
+                        .
+    });
+});
+```
+
+Os arquivos *`listing.js`* e *`listing.html`* não são obrigatórios para esse guia mas foram incluídos para futuros estudos.
+
+## 📄 widget_recently_viewed.xml
+
+Nesse arquivo vamos começar a incluir o código para os ratings aparecerem. Assim que tiver a cópia do arquivo não precisa mante-lo inteiro, precisamos somente da declaração de *`columns`* pois vamos incluir uma nova:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <columns name="widget_columns"
+            component="Magento_Catalog/js/product/list/listing"
+            template="Magento_Catalog/product/list/listing">
+        <column
+            name="review"
+            component="Magento_Catalog/js/product/summary"
+            displayArea="details-area" sortOrder="3">
+            <settings>
+                <label translate="true">Review</label>
+                <bodyTmpl>Magento_Catalog/product/summary</bodyTmpl>
+            </settings>
+        </column>
+    </columns>
+</listing>
+
+```
+
+1. Informe os atributos da `column`: *`name`, `component`, `displayArea` e `sortOrder`;*
+2. Na tag `<settings>` inclua um `<label>` e o template `<bodyTmpl>`
+
+## 📄 summary.js
+
+Crie o arquivo *`summary.js`*  em *Magento_Catalog/web/js/product*
+
+```
+ define([
+    'Magento_Ui/js/grid/columns/column',
+    'Magento_Catalog/js/product/list/column-status-validator'
+], function (Column, columnStatusValidator, escaper) {
+    'use strict';
+
+    return Column.extend({
+        .
+        .
+        .
+    });
+});
+
+```
+
+Inclua uma função que receba o produto e retorne o atributo de review, aqui eu retorno o *`extension_attributes.review_html*` ele já trás o template de review baseado no *[summary_short.phtml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/view/frontend/templates/helper/summary_short.phtml).*
+
+```
+
+ getRatingsItem: function (item) {
+    return item.extension_attributes.review_html
+ }
+
+```
+
+Para verificar outros atributos disponíveis, veja o item *“`product_data_storage`“* que fica disponível no `localStorage`.
+
+## 📄 summary.html
+
+Agora podemos chamar nossa função para renderizar o resultado:
+
+```
+<div
+    class="product-summary"
+    html="getRatingsItem($row())">
+</div>
+
+```
+
+E pronto! Você deve esperar uma listagem com as avaliações de produtos.
+
+Lembrando que ela aparece mesmo se o produto não tiver avaliações, para remover basta usar um pouco de `CSS`:
+
+```
+.product-reviews-summary.empty {
+    .block-viewed-products-grid & {
+        display: none;
+    }
+}
+```
+
+
+## ✨ Bônus
+
+Que tal adicionar um carrossel na listagem dos produtos? Para usar o `slick-slider` por exemplo, basta adicionar no *`listing.js`* sua função de inicialização:
+
+```
+
+  /**
+    * Init Slick Slider to listing
+    */
+  prodRecentlyViewedInit: function(){
+      jQuery('.block-viewed-products-grid .product-items').slick({
+          dots: true,
+          infinite: false,
+          speed: 300,
+          slidesToShow: 5,
+          slidesToScroll: 1,
+          arrows: true,
+          responsive: [
+              {
+                  breakpoint: 767,
+                  settings: {
+                      slidesToScroll: 3,
+                      slidesToShow: 3
+                  }
+              },
+              {
+                  breakpoint: 639,
+                  settings: {
+                      arrows: false,
+                      slidesToScroll: 2,
+                      slidesToShow: 2
+                  }
+              },
+          ]
+      });
+  }
+```
+
+E chamá-la no *`afterRender`* em uma `div` no final do template de *`listing.html`*.

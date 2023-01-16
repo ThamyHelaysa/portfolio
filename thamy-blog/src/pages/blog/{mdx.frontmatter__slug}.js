@@ -11,8 +11,7 @@ const IndexPage = ({ data, children }) => {
   return (
     <>
       <Layout
-        pageTitle={data.mdx.frontmatter.title}
-        pageSub={"Im just a girl and..."}>
+        pageTitle={data.mdx.frontmatter.title}>
         <GlobalFontStyle />
         <GlobalStyle />
         {children}

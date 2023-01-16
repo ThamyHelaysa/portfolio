@@ -17,9 +17,6 @@ const BlogPage = ({ data }) => {
       >
       <GlobalFontStyle />
       <GlobalStyle />
-      {/* {data.allMdx.nodes.map(node => (
-        <span key={node.id}>{node.excerpt}</span>
-      ))} */}
       <CardsList dataList={data.allMdx.nodes} />
     </Layout>
   )

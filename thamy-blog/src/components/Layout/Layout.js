@@ -1,5 +1,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
+import { useStaticQuery, graphql } from 'gatsby';
 
 import NavigationWrapper from '../Navigation/Header';
 import Main from '../Main/Content';
@@ -31,6 +32,17 @@ const PageTitleH1 = styled(TitleH1)`
 `
 
 const Layout = ({ pageTitle, pageSub, introText, children }) => {
+
+  const data = useStaticQuery(graphql`
+    query {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `)
+
   return (
     <GlobalThemeProvider>
       <PageWrapper>

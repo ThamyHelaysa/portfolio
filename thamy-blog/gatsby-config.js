@@ -4,10 +4,17 @@
 module.exports = {
   siteMetadata: {
     title: `thamy-blog`,
-    siteUrl: `https://www.yourdomain.tld`
+    siteUrl: `https://www.yourdomain.tld`,
+    description: "My new portfolio"
   },
   plugins: [
-    "gatsby-plugin-mdx",
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        path: `${__dirname}/src/images`,
+        name: 'images',
+      }
+    },
     {
       resolve: 'gatsby-source-filesystem',
       options: {
@@ -16,7 +23,18 @@ module.exports = {
       },
       __key: "pages"
     },
+    {
+      resolve: 'gatsby-source-filesystem',
+      options: {
+        name: 'blog',
+        path: `${__dirname}/blog`
+      }
+    },
+    "gatsby-plugin-mdx",
     `gatsby-plugin-styled-components`,
+    `gatsby-plugin-image`,
+    `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
@@ -35,8 +53,5 @@ module.exports = {
         ],
       },
     },
-    `gatsby-plugin-image`,
-    `gatsby-plugin-sharp`,
-    `gatsby-transformer-sharp`, 
   ],
 };

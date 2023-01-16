@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styled from "styled-components";
-import { StaticImage, GatsbyImage } from "gatsby-plugin-image"
+// import { StaticImage, GatsbyImage, getImage } from "gatsby-plugin-image"
 import { Link } from 'gatsby';
 
 import { Paragraph } from '../Paragraphs/Paragraph';
@@ -39,12 +39,10 @@ const CardsList = ({ dataList }) => {
             {dataList.map(({name, path, id, desc, image}) => (
                 <Item key={id}>
                     <StyledLink to={path}>
-                        <img
+                        {/* <GatsbyImage
                             className='--proj-img'
-                            src={image.path}
-                            alt={image.name}
-                            width={300}
-                            height={300}/>
+                            image={getImage(image.path)}
+                            alt={image.name}/> */}
                         <div>
                             <strong>{name}</strong>
                             <StyledParagraph>{desc}</StyledParagraph>
@@ -55,5 +53,6 @@ const CardsList = ({ dataList }) => {
         </List>
     )
 }
+
 
 export default CardsList

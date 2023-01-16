@@ -13,5 +13,10 @@ export const itensOptions = [
         id: 3,
         content: '<curriculum vitæ/>',
         path: '/curriculum/'
+    },
+    {
+        id: 4,
+        content: '<blog/>',
+        path: '/blog'
     }
 ]

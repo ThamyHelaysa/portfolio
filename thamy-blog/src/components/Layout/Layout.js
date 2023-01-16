@@ -32,17 +32,6 @@ const PageTitleH1 = styled(TitleH1)`
 `
 
 const Layout = ({ pageTitle, pageSub, introText, children }) => {
-
-  const data = useStaticQuery(graphql`
-    query {
-      site {
-        siteMetadata {
-          title
-        }
-      }
-    }
-  `)
-
   return (
     <GlobalThemeProvider>
       <PageWrapper>

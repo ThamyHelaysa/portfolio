@@ -1,0 +1,68 @@
+import * as React from 'react';
+import styled from 'styled-components';
+
+import NavigationWrapper from '../Navigation/Header';
+import Main from '../Main/Content';
+import Footer from '../Footer/Footer';
+
+import { BlogTitleH1 } from '../Paragraphs/BlogTitle';
+import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
+import SubTitle from '../Paragraphs/SubTitle';
+import TimeToRead from '../Paragraphs/TimeToRead';
+
+import BREAKPOINTS from '../../constants/breakpoints';
+
+
+const PageWrapper = styled.div`
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: .5rem 1rem;
+  @media (max-width: ${BREAKPOINTS.mobile}){
+    padding: 0px;
+  }
+`
+
+const InfoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0 10px;
+  margin-bottom: 3rem;
+`
+
+const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, children }) => {
+
+  const [timeToRead, setTimeToRead] = React.useState(0);
+
+  function initTime(){
+    let count = contentBody.match(/\w+/g).length;
+    let time = Math.ceil(count / 250);
+
+    setTimeToRead(time);
+
+  }
+
+  React.useEffect(() => {
+    initTime();
+  }, [timeToRead])
+  
+  return (
+    <GlobalThemeProvider>
+      <PageWrapper>
+        <NavigationWrapper />
+        <Main>
+            <BlogTitleH1>{pageTitle}</BlogTitleH1>
+            <InfoContainer>
+              <SubTitle>{publishData}</SubTitle>
+              •
+              <TimeToRead>{timeToRead}</TimeToRead>
+            </InfoContainer>
+            {children}
+        </Main>
+        <Footer />
+      </PageWrapper>
+    </GlobalThemeProvider>
+  )
+}
+
+export default BlogLayout

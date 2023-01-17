@@ -5,11 +5,10 @@ const MaxWidthWrapper = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  max-width: 1300px;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding: 2rem 4rem;
   z-index: 1;
   @media (max-width: ${BREAKPOINTS.mobile}){
     padding-left: 1rem;

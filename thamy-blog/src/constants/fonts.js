@@ -2,14 +2,19 @@ const FONTS = {
     bigTitle: {
         fontFamily: "Bodoni",
         fontWeight: "bold",
-        fontSize: "20vmin",
+        fontSize: "4rem",
         source: "/fonts/Bodoni-11-Bold.ttf",
         forMat: "truetype"
     },
     mediumTitle: {
         fontFamily: "Bodoni",
         fontWeight: "bold",
-        fontSize: "8vmin",
+        fontSize: "2.5rem",
+    },
+    smallTitle : {
+        fontFamily: "Bodoni",
+        fontWeight: "bold",
+        fontSize: "1.5rem",
     },
     subTitle: {
         fontFamily: "'Courier New',Courier,monospace",

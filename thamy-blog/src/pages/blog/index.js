@@ -6,6 +6,7 @@ import Layout from '../../components/Layout/Layout';
 import GlobalStyle from '../../components/GlobalPageStyles';
 import GlobalFontStyle from '../../components/GlobalFontStyles';
 import Seo from '../../components/Seo';
+import CardsList from '../../components/Navigation/Cards';
 
 
 const BlogPage = ({ data }) => {
@@ -16,9 +17,7 @@ const BlogPage = ({ data }) => {
       >
       <GlobalFontStyle />
       <GlobalStyle />
-      {data.allMdx.nodes.map(node => (
-        <span key={node.id}>{node.excerpt}</span>
-      ))}
+      <CardsList dataList={data.allMdx.nodes} />
     </Layout>
   )
 }
@@ -32,6 +31,7 @@ export const query = graphql`
           date(formatString: "D MMMM YYYY")
           slug
           title
+          desc
         }
         id
         excerpt

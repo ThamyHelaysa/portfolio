@@ -57,9 +57,16 @@ const COLORS = {
     bodyColor: colorNames.white,
     bgColor: colorNames.white,
 
-    titleColor: colorNames.white,
+    titleColor: colorNames.red,
+    titleBg: "transparent",
     titleShadowGlow: colorNames.lavander,
-    titleShadowGlowWhite: colorNames.lavander
+    titleShadowGlowWhite: colorNames.lavander,
+
+    quoteBg: colorNames.pink300,
+    quoteColor: colorNames.pink900,
+
+    preCodeBg: colorNames.lavander,
+    preCodeColor: colorNames.pink900
 };
 
 const DARKCOLORS = {
@@ -68,19 +75,26 @@ const DARKCOLORS = {
     terceary: colorNames.mediumGray,
 
     brightness: colorNames.blue500,
-    darkness: colorNames.white,
+    darkness: colorNames.blue200,
 
     extra: colorNames.red,
-    text: colorNames.white,
+    text: colorNames.blue200,
     
     border: `2px solid ${colorNames.blue400}`,
 
-    bodyColor: colorNames.blue500,
-    bgColor: colorNames.blue500,
+    bodyColor: colorNames.blue700,
+    bgColor: colorNames.blue700,
 
     titleColor: colorNames.red,
+    titleBg: "transparent",
     titleShadowGlow: colorNames.pink700,
-    titleShadowGlowWhite: colorNames.fullWhite
+    titleShadowGlowWhite: colorNames.fullWhite,
+
+    quoteBg: colorNames.blue500,
+    quoteColor: colorNames.blue50,
+
+    preCodeBg: colorNames.blue900,
+    preCodeColor: colorNames.blue300
 }
 
 

@@ -1,28 +1,38 @@
 ---
-title: "How to add review to recently viewed listing Magento 2"
+title: "How to add ratings to recently viewed listing Magento 2"
 date: "2023-01-16"
 author: "Thamires H."
 slug: "how-to-add-review-to-recently-viewed-listing-magento-2"
 desc: "Did you notice that the default recently viewed magento 2 listing just have a few components? Here I show you how you can add the review off a product and more."
+type: "post"
 ---
 
+import PreCode from '../../src/components/Paragraphs/PreCode'
 
-# Como acrescentar avaliações na listagem de últimos produtos vistos
 
-Esse guia vai explicar direitinho como incluir na listagem de produtos no widget de últimos vistos (padrão do M2) o componente de avaliações.
+So the designer have finally done the product page design, there is nothing wrong with it or impossible to implement. The photo carroussel is on the left taking the most portion of the first section, on the right the info is displayed with the normal attributes of the product besides the most important ones. Just below the two are the description section and the reviews form.
 
-## 📔 Instruções
+You take your time to realize just one thing: the recently viewed listing have one more attribute showing, the reviews. Just like all the other product listing from the site design just below the name of the product there is the ratings (the nice little stars). But if you're here you notice that the default attributes displayed in the listing are just the image, name, price, add to cart button, add to compare button and learn more link.
 
-Comece criando os seguintes arquivos no seu tema/módulo:
+To add the ratings you will have to change a few files and add anothers. The files are all available in the Catalog module.
 
-1. *[Magento_Catalog/web/template/product/list/listing.html](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/template/product/list/listing.html)*  (opcional)
-2. *[Magento_Catalog/web/js/product/list/listing.js](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/js/product/list/listing.js)* (opcional)
-3. *[Magento_Catalog/ui_component/widget_recently_viewed.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/frontend/ui_component/widget_recently_viewed.xml)*
+
+## 📔 First steps
+
+Start by adding the required files to your custom theme, with the path being: `app/design/frontend/<vendor>/<theme>/Magento_Catalog`.
+
+1. [Magento_Catalog/web/template/product/list/listing.html](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/template/product/list/listing.html)  (opcional)
+2. [Magento_Catalog/web/js/product/list/listing.js](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/js/product/list/listing.js) (opcional)
+3. [Magento_Catalog/ui_component/widget_recently_viewed.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/frontend/ui_component/widget_recently_viewed.xml)
+
+> **Note:** The files marked as optional are not required for the ratings to appear in the listing, but you can change them as needed.
 
 ## 📄 listing.html
 
-O primeiro arquivo contém o template da listagem dos produtos, você pode modificar o container se precisar como adicionar novas áreas ou atributos.
+The first one has the template for the products listing itself, you can add more containers (like a `div`), another areas (with the getRegion)  or new attributes. Some files were "cuted" for brevity, but you can see the original in the provided link.
 
+
+<PreCode>
 ```
 <div if="hasData()"
      class="block" css="additionalClasses">
@@ -55,11 +65,15 @@ O primeiro arquivo contém o template da listagem dos produtos, você pode modif
     </div>
 </div>
 ```
+</PreCode>
+
 
 ## 📄 listing.js
 
-O segundo arquivo é responsável por inicializar os dados em cada linha - no caso as rows representam cada item da listagem, no caso o produto.
+The second file is responsible for initialize the data in each row - in this case each row represents every product item.
 
+
+<PreCode>
 ```
 define([
     'ko',
@@ -92,13 +106,14 @@ define([
     });
 });
 ```
-
-Os arquivos *`listing.js`* e *`listing.html`* não são obrigatórios para esse guia mas foram incluídos para futuros estudos.
+</PreCode>
 
 ## 📄 widget_recently_viewed.xml
 
-Nesse arquivo vamos começar a incluir o código para os ratings aparecerem. Assim que tiver a cópia do arquivo não precisa mante-lo inteiro, precisamos somente da declaração de *`columns`* pois vamos incluir uma nova:
+You will need this file. In here we will insert a new column, wich is a new info about the product, that will make the ratings show on the product card. You dont need to copy the hole file, just add the code below with the new `<columns>` declaration.
 
+
+<PreCode>
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -117,16 +132,18 @@ Nesse arquivo vamos começar a incluir o código para os ratings aparecerem. Ass
         </column>
     </columns>
 </listing>
-
 ```
+</PreCode>
 
-1. Informe os atributos da `column`: *`name`, `component`, `displayArea` e `sortOrder`;*
-2. Na tag `<settings>` inclua um `<label>` e o template `<bodyTmpl>`
+Declare the `<column>` attributes: `name`, `component`, `displayArea` and `sortOrder`. Here you are setting the ratings by telling its name (watever you choose just dont forget it), witch js to use (component), where to add the new column (displayArea) and its position (sortOrder).
+
+In the `<settings>` you will need to set its label (the name that will appear in the admin settings) and wich html template to use (bodyTmpl).
 
 ## 📄 summary.js
 
-Crie o arquivo *`summary.js`*  em *Magento_Catalog/web/js/product*
+Create a file called *`summary.js`* in *Magento_Catalog/web/js/product*
 
+<PreCode>
 ```
  define([
     'Magento_Ui/js/grid/columns/column',
@@ -135,42 +152,94 @@ Crie o arquivo *`summary.js`*  em *Magento_Catalog/web/js/product*
     'use strict';
 
     return Column.extend({
-        .
-        .
-        .
+        /**
+         * Depends on this option, "Ratings" can be shown or hide. Depends on  backend configuration.
+         *
+         * @returns {Boolean}
+         */
+        isAllowed: function () {
+            return columnStatusValidator.isValid(this.source(), 'reviews', 'show_attributes');
+        },
     });
 });
-
 ```
+</PreCode>
 
-Inclua uma função que receba o produto e retorne o atributo de review, aqui eu retorno o *`extension_attributes.review_html*` ele já trás o template de review baseado no *[summary_short.phtml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/view/frontend/templates/helper/summary_short.phtml).*
+> **Note:** The isAllowed function is validating the admin config (included in the `widget_recently_viewed.xml`) to show or not the ratings.
 
+Add a new function called getRatingsItem that takes as a parameter the product and returns the `extension_attributes.review_html` of it. The base template is the *[summary_short.phtml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/view/frontend/templates/helper/summary_short.phtml).*
+
+
+<PreCode>
 ```
-
  getRatingsItem: function (item) {
     return item.extension_attributes.review_html
  }
-
 ```
+</PreCode>
 
-Para verificar outros atributos disponíveis, veja o item *“`product_data_storage`“* que fica disponível no `localStorage`.
+The final result:
+
+<PreCode>
+```
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+ define([
+    'Magento_Ui/js/grid/columns/column',
+    'Magento_Catalog/js/product/list/column-status-validator',
+    'escaper'
+], function (Column, columnStatusValidator, escaper) {
+    'use strict';
+
+    return Column.extend({
+        /**
+         * Depends on this option, "Learn More" link can be shown or hide. Depends on  backend configuration
+         *
+         * @returns {Boolean}
+         */
+        isAllowed: function () {
+            return columnStatusValidator.isValid(this.source(), 'reviews', 'show_attributes');
+        },
+
+        /**
+         * With this function the reviews is returned based on default attributes
+         * 
+         * @param {Object} item row item
+         * @returns template string
+         */
+        getRatingsItem: function (item) {
+            return item.extension_attributes.review_html 
+        }
+    });
+});
+```
+</PreCode>
+
+You may be thinking *"Where did this extension_attributes an review_html are comming from?"*. The review_html attribute is added by the Review Module in [extension_attributes.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/etc/extension_attributes.xml). The `extension_attributes` are used to extend functionality and often use more complex data types than custom attributes.
+
+There is an item on `localStorage` that shows the attributes used, you can check it out *`product_data_storage`* for more info.
+
 
 ## 📄 summary.html
 
-Agora podemos chamar nossa função para renderizar o resultado:
+Now we can add an template and pass on our new function, create a new `.html` file in `Magento_Catalog/web/template/product` called `summary.html` and add the code below like this:
 
+<PreCode>
 ```
-<div
+<div if="isAllowed()"
     class="product-summary"
     html="getRatingsItem($row())">
 </div>
-
 ```
+</PreCode>
 
-E pronto! Você deve esperar uma listagem com as avaliações de produtos.
+Thats it! You now have the ratings apearing on the product card on the Recently Viewed Widget.
 
-Lembrando que ela aparece mesmo se o produto não tiver avaliações, para remover basta usar um pouco de `CSS`:
+If the product don't have any reviews, the ratings will still apear. You can make then "invisible" by adding a bit of `CSS`:
 
+<PreCode>
 ```
 .product-reviews-summary.empty {
     .block-viewed-products-grid & {
@@ -178,14 +247,16 @@ Lembrando que ela aparece mesmo se o produto não tiver avaliações, para remov
     }
 }
 ```
+</PreCode>
 
 
-## ✨ Bônus
+## ✨ Bonus - How to add Slick Slider to recently viewed widget 
 
-Que tal adicionar um carrossel na listagem dos produtos? Para usar o `slick-slider` por exemplo, basta adicionar no *`listing.js`* sua função de inicialização:
+How about adding a bit of motion to the listing? To use `slick-slider` you just need to edit *`listing.js`* and set the initialize function:
 
+
+<PreCode>
 ```
-
   /**
     * Init Slick Slider to listing
     */
@@ -217,5 +288,33 @@ Que tal adicionar um carrossel na listagem dos produtos? Para usar o `slick-slid
       });
   }
 ```
+</PreCode>
 
-E chamá-la no *`afterRender`* em uma `div` no final do template de *`listing.html`*.
+After that you need to pass it to the *`afterRender`* of a `div` in the end of the *`listing.html`* file.
+
+<PreCode>
+```
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<div if="hasData()"
+     class="block" css="additionalClasses">
+    <div class="block-title grid-title">
+        <p role="heading"
+            aria-level="2"
+            text="label"></p>
+    </div>
+    <div class="block-content">
+              .
+              .
+              .
+    </div>
+    <div class="afterRenderInit"
+         data-bind="afterRender: prodRecentlyViewedInit"></div>
+</div>
+```
+</PreCode>
+

@@ -12,7 +12,7 @@ import BREAKPOINTS from '../../constants/breakpoints';
 const List = styled.div`
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
     margin-bottom: 3rem;
     @media (max-width: ${BREAKPOINTS.tablet}){
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -46,19 +46,29 @@ const StyledParagraph = styled(Paragraph)`
     padding-top: 0;
 `
 
+const ImageCard = styled.div`
+    margin-bottom: 1rem;
+`
+
 const CardsList = ({ dataList }) => {
     return (
         <List>
             {dataList.map((item,index) => (
                 <Item key={item.id} className="--item">
                     <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
-                        {/* <GatsbyImage
-                            className='--proj-img'
-                            image={getImage(image.path)}
-                            alt={image.name}/> */}
+                        {item.image ? (
+                            <ImageCard>
+                                <img
+                                    className='--proj-img'
+                                    src={item.image.path}
+                                    alt={item.name}/>
+                            </ImageCard>
+                        ) : (
+                            ""
+                        )}
                         <div>
-                            <TitleH3>{item.frontmatter.title}</TitleH3>
-                            <StyledParagraph>{item.frontmatter.desc}</StyledParagraph>
+                            <TitleH3>{ item.frontmatter ? item.frontmatter.title : item.title }</TitleH3>
+                            <StyledParagraph>{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
                         </div>
                     </StyledLink>
                 </Item>

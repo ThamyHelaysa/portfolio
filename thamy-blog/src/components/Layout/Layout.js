@@ -26,7 +26,7 @@ const PageTitleH1 = styled(TitleH1)`
   margin-top: 2rem;
   @media print {
     margin-top: 1rem;
-    font-size: 5rem!important;
+    /* font-size: 5rem!important; */
   }
 `
 

@@ -191,7 +191,7 @@ const ItensList = styled.ul`
   line-height: 2;
   &.--with-columns {
     display: block;
-    columns: 250px;
+    columns: 200px;
     column-gap: 1rem;
     line-height: 2;
     font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};

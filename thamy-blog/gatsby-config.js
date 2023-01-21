@@ -43,6 +43,14 @@ module.exports = {
     `gatsby-plugin-sharp`,
     `gatsby-transformer-sharp`,
     {
+      resolve: 'gatsby-plugin-react-svg',
+      options: {
+        rule: {
+          include: /\.inline\.svg$/
+        }
+      }
+    },
+    {
       resolve: `gatsby-plugin-manifest`,
       options: {
         icon: `./src/images/android-chrome-512x512.png`,

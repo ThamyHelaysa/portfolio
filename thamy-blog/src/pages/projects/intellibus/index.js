@@ -6,7 +6,6 @@ import GlobalStyle from '../../../components/GlobalPageStyles';
 import GlobalFontStyle from '../../../components/GlobalFontStyles';
 import Seo from '../../../components/Seo';
 
-import { TitleH3 } from '../../../components/Paragraphs/PageTitle';
 import { Paragraph } from '../../../components/Paragraphs/Paragraph';
 import { BlogTitleH1, BlogTitleH3 } from '../../../components/Paragraphs/BlogTitle';
 import IntellibusContent from '../content/intellibus.mdx'

@@ -14,7 +14,7 @@ const Anchor = styled.a`
 
 const LinkDefault = ({href, children}) => {
   return (
-    <Anchor href={href}>{children}</Anchor>
+    <Anchor href={href} target="_blank" rel="noopener noreferrer">{children}</Anchor>
   )
 }
 

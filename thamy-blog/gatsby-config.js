@@ -16,6 +16,20 @@ module.exports = {
       }
     },
     {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        path: `${__dirname}/src/images/portifolio`,
+        name: "images-portifolio"
+      }
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        path: `${__dirname}/src/images/portifolio/typography`,
+        name: "images-typography"
+      }
+    },
+    {
       resolve: 'gatsby-source-filesystem',
       options: {
         "name": "pages",

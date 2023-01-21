@@ -66,7 +66,9 @@ const COLORS = {
     quoteColor: colorNames.pink900,
 
     preCodeBg: colorNames.lavander,
-    preCodeColor: colorNames.pink900
+    preCodeColor: colorNames.pink900,
+
+    imageFilter: "invert(0)"
 };
 
 const DARKCOLORS = {
@@ -94,7 +96,9 @@ const DARKCOLORS = {
     quoteColor: colorNames.blue50,
 
     preCodeBg: colorNames.blue900,
-    preCodeColor: colorNames.blue300
+    preCodeColor: colorNames.blue300,
+
+    imageFilter: "invert(1)"
 }
 
 

@@ -40,7 +40,7 @@ const Container = createGlobalStyle`
     overflow-wrap: break-word;
   }
   hr {
-    border: 1px solid;
+    border: 1px solid ${(props) => props.theme.colors.hrColor};
   }
   #root, #__next, #___gatsby {
     isolation: isolate;

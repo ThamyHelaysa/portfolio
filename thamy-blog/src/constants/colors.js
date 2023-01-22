@@ -10,7 +10,7 @@ const colorNames = {
     pinkShadow: "#D9ADB5",
 
     lavander: "#cfb6e3",
-    yellow: "#f69c55",
+    yellow: "#FFE900",
     peach: "#f47d84",
     lightPink: "#f276c8",
     neonPink: "#ef4e79",
@@ -53,6 +53,7 @@ const COLORS = {
     text: colorNames.blue500,
 
     border: "2px solid",
+    hrColor: colorNames.text,
 
     bodyColor: colorNames.white,
     bgColor: colorNames.white,
@@ -67,6 +68,13 @@ const COLORS = {
 
     preCodeBg: colorNames.lavander,
     preCodeColor: colorNames.pink900,
+
+    emphaticPProject: colorNames.yellow,
+    emphaticPProjectColor: colorNames.blue500,
+    emphaticPProjectBg: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACtJREFUKFNjZCASMBKpjoEOChl51P+DnPP/y00U2zCsJlohLs/RwTO4rAYAVfMICzh1upIAAAAASUVORK5CYII=)",
+    emphaticPProjectBg2: colorNames.white,
+    emphaticPProjectBorder: colorNames.white,
+    emphaticPProjectBorder2: colorNames.blue500,
 
     imageFilter: "invert(0)"
 };
@@ -83,6 +91,7 @@ const DARKCOLORS = {
     text: colorNames.blue200,
     
     border: `2px solid ${colorNames.blue400}`,
+    hrColor: colorNames.blue400,
 
     bodyColor: colorNames.blue700,
     bgColor: colorNames.blue700,
@@ -97,6 +106,13 @@ const DARKCOLORS = {
 
     preCodeBg: colorNames.blue900,
     preCodeColor: colorNames.blue300,
+
+    emphaticPProject: colorNames.yellow,
+    emphaticPProjectColor: colorNames.blue500,
+    emphaticPProjectBg: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACtJREFUKFNjZCASMBKpjoEOCn1DM/6DnLN59QwU2zCsJlohLs/RwTO4rAYAY1MIC6709vYAAAAASUVORK5CYII=)",
+    emphaticPProjectBg2: colorNames.fullWhite,
+    emphaticPProjectBorder: colorNames.blue700,
+    emphaticPProjectBorder2: colorNames.blue400,
 
     imageFilter: "invert(1)"
 }

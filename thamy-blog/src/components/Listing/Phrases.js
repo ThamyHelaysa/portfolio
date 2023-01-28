@@ -1,14 +1,19 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 import { TitleH3 } from '../Paragraphs/PageTitle';
 
 
 const Container = styled.div`
   max-width: 40vw;
-  margin: 3rem 0 3rem auto;
+  margin: 3rem auto;
   padding: 3rem 2.5rem;
   background-color: ${(props) => props.theme.colors.preCodeBg};
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    max-width: 100%;
+  }
   
 `
 
@@ -17,6 +22,9 @@ const Title = styled(TitleH3)`
   padding: 0 8px;
   background-color: ${(props) => props.theme.colors.emphaticPProject};
   color: ${(props) => props.theme.colors.emphaticPProjectColor};
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    margin-left: 0;
+  }
 `
 
 const Translate = styled.p`
@@ -26,6 +34,9 @@ const Translate = styled.p`
 const Description = styled.p`
   color: ${(props) => props.theme.colors.preCodeColor};
   font-size: .75rem;
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    font-size: inherit;
+  }
 `
 
 const Phrases = ({ dataPhrases, className }) => {
@@ -38,7 +49,6 @@ const Phrases = ({ dataPhrases, className }) => {
 
     function initPhrase(){
       let newIndex = clamp(Math.ceil(Math.random() * (dataPhrases.length - 1)),0,(dataPhrases.length - 1));
-      console.log(dataPhrases[newIndex].node)
       setPhrase(dataPhrases[newIndex].node);
     }
 

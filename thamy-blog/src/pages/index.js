@@ -1,4 +1,5 @@
 import * as React from 'react';
+import styled from 'styled-components';
 import { graphql } from 'gatsby';
 
 import Layout from '../components/Layout/Layout';
@@ -8,6 +9,8 @@ import GlobalFontStyle from '../components/GlobalFontStyles';
 import IntroJSONData from '../../content/Intro-JSON-Content.json';
 import Seo from '../components/Seo';
 import Phrases from '../components/Listing/Phrases';
+import TextCarrossel from '../components/Style/TextCarrossel';
+
 
 const IndexPage = ({ data }) => {
   const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
@@ -17,7 +20,8 @@ const IndexPage = ({ data }) => {
         pageTitle="Hello there!"
         pageSub={"Im just a girl and..."}
         introText={IntroJSONData.item}
-        dataPhrases={latin_phrases}>
+        dataPhrases={latin_phrases}
+        pageName="Home">
         <GlobalFontStyle />
         <GlobalStyle />
         <Phrases dataPhrases={latin_phrases}></Phrases>

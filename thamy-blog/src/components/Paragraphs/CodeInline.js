@@ -8,7 +8,7 @@ const Block = styled.code`
     background-color: ${(props) => props.theme.colors.preCodeBg};
     color: ${(props) => props.theme.colors.preCodeColor};
     letter-spacing: -0.5px;
-    word-break: break-all;
+    word-break: break-word;
 
 `
 

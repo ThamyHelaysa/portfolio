@@ -53,7 +53,6 @@ const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, dataPh
         <NavigationWrapper />
         <Main>
           <MaxWidthWrapper>
-          </MaxWidthWrapper>
             <BlogTitleH1>{pageTitle}</BlogTitleH1>
             <InfoContainer>
               <SubTitle>{publishData}</SubTitle>
@@ -61,6 +60,7 @@ const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, dataPh
               <TimeToRead>{timeToRead}</TimeToRead>
             </InfoContainer>
             {children}
+          </MaxWidthWrapper>
         </Main>
         <Footer footerPhrases={dataPhrases}/>
       </PageWrapper>

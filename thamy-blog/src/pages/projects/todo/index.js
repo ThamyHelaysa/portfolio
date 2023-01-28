@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { graphql } from 'gatsby';
 
 import Layout from '../../../components/Layout/Layout';
 import GlobalStyle from '../../../components/GlobalPageStyles';
@@ -7,13 +8,15 @@ import App from '../../../components/ToDo/App';
 import Seo from '../../../components/Seo';
 
 
-const IndexPage = () => {
+const IndexPage = ({data}) => {
+  const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
   return (
     <>
       <Layout
         pageTitle="ToDo List"
         pageSub={"Give it a try! Start making your own..."}
-        introText={""}>
+        introText={""}
+        dataPhrases={latin_phrases}>
         <GlobalFontStyle />
         <GlobalStyle />
         <App></App>
@@ -21,6 +24,20 @@ const IndexPage = () => {
     </>
   )
 }
+export const query = graphql`
+  query {
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
+        }
+      }
+    }
+  }
+`
 
 export const Head = () => <Seo title="Todo"></Seo>
 

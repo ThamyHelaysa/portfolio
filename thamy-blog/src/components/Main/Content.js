@@ -1,20 +1,26 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
-import { MaxWidthBorderedWrapper } from '../MaxWidthWrapper';
+import { Wrapper } from '../DefaultWrapper';
 
-const Wrapper = styled.main`
-  margin-top: -2px;
-  margin-bottom: -2px;
+const Container = styled.main`
+  margin-top: -4px;
+  margin-bottom: -4px;
+  background-color: ${(props) => props.theme.colors.bgColor};
+  border: ${(props) => props.theme.colors.border};
+  transition: background-color, color 250ms ease;
+  @media print {
+    border: 0;
+  }
 `
 
 const Main = ({ children }) => {
   return (
-    <Wrapper>
-      <MaxWidthBorderedWrapper>
+    <Container>
+      <Wrapper>
         {children}
-      </MaxWidthBorderedWrapper>
-    </Wrapper>
+      </Wrapper>
+    </Container>
   )
 }
 

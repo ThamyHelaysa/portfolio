@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { graphql } from 'gatsby';
 
 import GreetingsJSONData from "../../../content/Greetings-JSON-Content.json";
 import EduJSONData from "../../../content/Edu-JSON-Content.json";
@@ -10,8 +11,8 @@ import GlobalStyle from '../../components/GlobalPageStyles'
 import GlobalFontStyle from '../../components/GlobalFontStyles';
 
 
-const Curriculum = () => {
-    
+const Curriculum = ({data}) => {
+    const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
     return (
         <>
             <GridLayout
@@ -21,13 +22,28 @@ const Curriculum = () => {
               greetings={GreetingsJSONData}
               eduContent={EduJSONData}
               expContent={ExpJSONData}
-              skillContent={SkillJSONData}>
+              skillContent={SkillJSONData}
+              dataPhrases={latin_phrases}>
                 <GlobalFontStyle />
                 <GlobalStyle />
             </GridLayout>
         </>
     )
 }
+export const query = graphql`
+  query {
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
+        }
+      }
+    }
+  }
+`
 
 export const Head = () => <title>About Me</title>
 

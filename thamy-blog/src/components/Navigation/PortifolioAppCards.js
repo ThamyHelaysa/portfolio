@@ -5,7 +5,7 @@ import { graphql, useStaticQuery } from 'gatsby';
 
 const List = styled.ul`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
 `
 
@@ -13,15 +13,27 @@ const Item = styled.li`
   padding: 1rem;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=");
   border: ${(props) => props.theme.colors.border};
+  &.--item_0 {
+    grid-column: span 3;
+  }
+  &.--item_0, 
+  &.--item_1 {
+    & > .--image {
+        background-color: ${(props) => props.theme.colors.emphaticPProjectBg2};
+    }
+  }
   & > .--image {
-    filter: ${(props) => props.theme.colors.imageFilter};
+    background-color: ${(props) => props.theme.colors.bgColor};
   }
 `
 
-const PortifolioTypographyCards = () => {
+const PortifolioAppCards = () => {
     const data = useStaticQuery(graphql`
       query {
-        allFile(filter: {relativeDirectory: {eq: "portifolio/typography"}}) {
+        allFile(
+          filter: {relativeDirectory: {eq: "portifolio"}}
+          sort: {name: ASC}
+        ) {
             nodes {
             childImageSharp {
                 gatsbyImageData
@@ -35,10 +47,10 @@ const PortifolioTypographyCards = () => {
     return (
         <List>
           {data.allFile.nodes.map((item, i) => (
-            <Item key={item.childImageSharp.id}>
+            <Item key={item.childImageSharp.id} className={`--item_${i}`}>
               <GatsbyImage
                   className='--image'
-                  alt={item.name}
+                  alt={item.name.replaceAll("-", " ")}
                   image={item.childImageSharp.gatsbyImageData}/>
             </Item>
           ))}
@@ -46,4 +58,4 @@ const PortifolioTypographyCards = () => {
     )
 }
 
-export default PortifolioTypographyCards;
+export default PortifolioAppCards;

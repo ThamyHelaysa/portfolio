@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { graphql } from 'gatsby';
 
 import Layout from '../../components/Layout/Layout';
 import GlobalStyle from '../../components/GlobalPageStyles';
@@ -34,13 +35,15 @@ const projData = [
 ]
 
 
-const IndexPage = () => {
+const IndexPage = ({data}) => {
+  const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
   return (
     <>
       <Layout
         pageTitle="Projects"
         pageSub={"...and things"}
-        introText={IntroJSONData.item}>
+        introText={IntroJSONData.item}
+        dataPhrases={latin_phrases}>
         <GlobalFontStyle />
         <GlobalStyle />
         <CardsList dataList={projData}/>
@@ -48,6 +51,20 @@ const IndexPage = () => {
     </>
   )
 }
+export const query = graphql`
+  query {
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
+        }
+      }
+    }
+  }
+`
 
 export const Head = () => <Seo title="Projects"></Seo>
 

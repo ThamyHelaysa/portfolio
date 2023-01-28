@@ -11,22 +11,26 @@ import LinkDefault from '../../components/Navigation/LinkDefault';
 import BlockQuote from '../../components/Paragraphs/BlockQuote';
 import { Paragraph } from '../../components/Paragraphs/Paragraph';
 import { BlogTitleH3 } from '../../components/Paragraphs/BlogTitle';
+import Code from '../../components/Paragraphs/CodeInline';
 
 const components = {
   p: Paragraph,
   a: LinkDefault,
   h2: BlogTitleH3,
-  blockquote: BlockQuote
+  blockquote: BlockQuote,
+  code: Code,
 }
 
 const IndexPage = ({ data, children }) => {
+  const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
   return (
     <MDXProvider components={components}>
       <BlogLayout
         pageTitle={data.mdx.frontmatter.title}
         publishData={data.mdx.frontmatter.date}
         tableContents={data.mdx.tableOfContents}
-        contentBody={data.mdx.body}>
+        contentBody={data.mdx.body}
+        dataPhrases={latin_phrases}>
         <GlobalFontStyle />
         <GlobalStyle />
         {children}
@@ -45,9 +49,19 @@ export const query = graphql`
       tableOfContents
       body
     }
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
+        }
+      }
+    }
   }
 `
 
-export const Head = () => <Seo title="super cool"></Seo>
+export const Head = ({data}) => <Seo title={data.mdx.frontmatter.title}></Seo>
 
 export default IndexPage

@@ -10,10 +10,12 @@ import CardsList from '../../components/Navigation/Cards';
 
 
 const BlogPage = ({ data }) => {
+  const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
   return (
     <Layout
       pageTitle="Blog"
       pageSub={"here are (maybe) usefull things..."}
+      dataPhrases={latin_phrases}
       >
       <GlobalFontStyle />
       <GlobalStyle />
@@ -42,6 +44,16 @@ export const query = graphql`
           ... on File {
             modifiedTime(formatString: "MMMM D, YYYY")
           }
+        }
+      }
+    }
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
         }
       }
     }

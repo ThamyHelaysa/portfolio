@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
-import { MaxWidthBorderedWrapper } from '../MaxWidthWrapper';
+import { BorderedWrapper } from '../DefaultWrapper';
 
 import OpenNavButton from '../Button/OpenCloseNav'
 import SwapTheme from '../Button/ChangeTheme';
@@ -38,12 +38,12 @@ const NavigationWrapper = () => {
 
   return (
     <Nav>
-      <MaxWidthBorderedWrapper className='--container'>
+      <BorderedWrapper className='--container'>
         <NavigationList />
         <OpenNavButton isOpenNav={isMobileOpen} onClick={openList} />
         <MobileNav isOpen={isMobileOpen} />
         <SwapTheme className="--inside-header" />
-      </MaxWidthBorderedWrapper>
+      </BorderedWrapper>
     </Nav>
   )
 }

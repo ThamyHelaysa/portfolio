@@ -254,6 +254,7 @@ const Layout = ({
   eduContent,
   expContent,
   skillContent,
+  dataPhrases,
   children }) => {
   return (
     <GlobalThemeProvider>
@@ -321,7 +322,7 @@ const Layout = ({
               </ContainerTwoColumns>
             </Container>
         </Main>
-        <Footer />
+        <Footer footerPhrases={dataPhrases} />
       </PageWrapper>
     </GlobalThemeProvider>
   )

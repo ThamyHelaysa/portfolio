@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import NavigationWrapper from '../Navigation/Header';
 import Main from '../Main/Content';
+import { MaxWidthWrapper } from '../MaxWidthWrapper';
 import Footer from '../Footer/Footer';
 
 import { BlogTitleH1 } from '../Paragraphs/BlogTitle';
@@ -30,7 +31,7 @@ const InfoContainer = styled.div`
   margin-bottom: 3rem;
 `
 
-const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, children }) => {
+const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, dataPhrases, children }) => {
 
   const [timeToRead, setTimeToRead] = React.useState(0);
 
@@ -51,6 +52,8 @@ const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, childr
       <PageWrapper>
         <NavigationWrapper />
         <Main>
+          <MaxWidthWrapper>
+          </MaxWidthWrapper>
             <BlogTitleH1>{pageTitle}</BlogTitleH1>
             <InfoContainer>
               <SubTitle>{publishData}</SubTitle>
@@ -59,7 +62,7 @@ const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, childr
             </InfoContainer>
             {children}
         </Main>
-        <Footer />
+        <Footer footerPhrases={dataPhrases}/>
       </PageWrapper>
     </GlobalThemeProvider>
   )

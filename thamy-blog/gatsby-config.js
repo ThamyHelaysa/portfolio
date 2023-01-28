@@ -51,6 +51,26 @@ module.exports = {
         path: `${__dirname}/src/pages/projects/content`
       }
     },
+    {
+      resolve: 'gatsby-source-mongodb',
+      options: {
+          dbName: 'portfolio',
+          collection: 'latin_phrases',
+          server: {
+              address: 'ac-u2aonht-shard-00-01.dqustge.mongodb.net',
+              port: 27017
+          },
+          auth: {
+              user: 'default',
+              password: 'LPO1HvEWC9WW0uQZ'
+          },
+          extraParams: {
+              ssl: true,
+              authSource: 'admin',
+              retryWrites: true
+          }
+      }
+    },
     "gatsby-plugin-mdx",
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-image`,

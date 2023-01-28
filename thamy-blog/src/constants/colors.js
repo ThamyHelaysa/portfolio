@@ -52,7 +52,7 @@ const COLORS = {
     extra: colorNames.red,
     text: colorNames.blue500,
 
-    border: "2px solid",
+    border: "4px solid",
     hrColor: colorNames.text,
 
     bodyColor: colorNames.white,
@@ -90,7 +90,7 @@ const DARKCOLORS = {
     extra: colorNames.red,
     text: colorNames.blue200,
     
-    border: `2px solid ${colorNames.blue400}`,
+    border: `4px solid ${colorNames.blue400}`,
     hrColor: colorNames.blue400,
 
     bodyColor: colorNames.blue700,

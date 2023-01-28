@@ -26,11 +26,10 @@ const PageTitleH1 = styled(TitleH1)`
   margin-top: 2rem;
   @media print {
     margin-top: 1rem;
-    /* font-size: 5rem!important; */
   }
 `
 
-const Layout = ({ pageTitle, pageSub, introText, children }) => {
+const Layout = ({ pageTitle, pageSub, introText, dataPhrases, children }) => {
   return (
     <GlobalThemeProvider>
       <PageWrapper>
@@ -43,7 +42,7 @@ const Layout = ({ pageTitle, pageSub, introText, children }) => {
             </Paragraph>
             {children}
         </Main>
-        <Footer />
+        <Footer footerPhrases={dataPhrases} />
       </PageWrapper>
     </GlobalThemeProvider>
   )

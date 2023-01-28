@@ -6,6 +6,7 @@ const Anchor = styled.a`
   color: inherit;
   font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
   transition: all 250ms ease 0s;
+  word-break: break-all;
   &:hover {
     background-color: ${(props) => props.theme.colors.extra};
     color: ${(props) => props.theme.colors.brightness};

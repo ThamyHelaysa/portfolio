@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { graphql } from 'gatsby';
 import { MDXProvider } from '@mdx-js/react';
 
 import Layout from '../../../components/Layout/Layout';
@@ -20,13 +21,15 @@ const components = {
   blockquote: BlockQuote
 }
 
-const IndexPage = () => {
+const IndexPage = ({data}) => {
+  const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
   return (
     <MDXProvider components={components}>
       <Layout
         pageTitle="Intellibus App"
         pageSub={"An app design for my term paper..."}
-        introText={""}>
+        introText={""}
+        dataPhrases={latin_phrases}>
         <GlobalFontStyle />
         <GlobalStyle />
         <IntellibusContent></IntellibusContent>
@@ -34,6 +37,20 @@ const IndexPage = () => {
     </MDXProvider>
   )
 }
+export const query = graphql`
+  query {
+    allMongodbPortfolioLatinPhrases {
+      edges {
+        node {
+          id
+          phrase
+          translate
+          description
+        }
+      }
+    }
+  }
+`
 
 export const Head = () => <Seo title="Todo"></Seo>
 

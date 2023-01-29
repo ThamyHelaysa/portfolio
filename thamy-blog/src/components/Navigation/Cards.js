@@ -51,7 +51,6 @@ const ImageCard = styled.div`
 `
 
 const CardsList = ({ dataList }) => {
-    console.log(dataList)
     return (
         <List>
             {dataList.map((item,index) => (

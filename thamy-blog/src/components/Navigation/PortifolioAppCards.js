@@ -10,6 +10,8 @@ const List = styled.ul`
 `
 
 const Item = styled.li`
+  display: flex;
+  align-items: center;
   padding: 1rem;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=");
   border: ${(props) => props.theme.colors.border};
@@ -19,11 +21,16 @@ const Item = styled.li`
   &.--item_0, 
   &.--item_1 {
     & > .--image {
-        background-color: ${(props) => props.theme.colors.emphaticPProjectBg2};
+      background-color: ${(props) => props.theme.colors.emphaticPProjectBg2};
     }
   }
   & > .--image {
     background-color: ${(props) => props.theme.colors.bgColor};
+  }
+  &:nth-child(3){
+    &, & > .--image{
+      background-color: #030917;
+    } 
   }
 `
 

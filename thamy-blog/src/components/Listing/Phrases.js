@@ -46,16 +46,16 @@ const Phrases = ({ dataPhrases, className }) => {
     const clamp = (val, min = 0, max = 1) => {
       return Math.max(min, Math.min(max, val));
     };
-
-    function initPhrase(){
+    
+    const initPhrase = React.useCallback(() => {
       let newIndex = clamp(Math.ceil(Math.random() * (dataPhrases.length - 1)),0,(dataPhrases.length - 1));
       setPhrase(dataPhrases[newIndex].node);
-    }
+    },[dataPhrases])
 
 
     React.useEffect(() => {
       initPhrase();
-    }, [phrase])
+    }, [phrase, initPhrase])
 
     return (
         <Container className={className}>

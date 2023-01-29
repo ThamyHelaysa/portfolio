@@ -7,7 +7,7 @@ const Content = styled.p`
     display: flex;
     flex-flow: row wrap;
     margin: 5rem auto;
-    padding: 5rem;
+    padding: 7rem 0;
     font-size: 5rem;
     font-weight: bold;
     text-align: left;
@@ -18,11 +18,14 @@ const Content = styled.p`
         display: block;
         content: '';
         top: 0;
-        left: calc(-4rem + -2px);
-        width: calc(100% + 8rem + 4px);
+        left: 50%;
+        width: calc(100vw - 32px);
         height: 100%;
         background: ${(props) => props.theme.colors.emphaticPProjectBg};
-        box-shadow: inset 0 0 0 2px ${(props) => props.theme.colors.emphaticPProjectBorder2}, inset 0 0 0 10px ${(props) => props.theme.colors.emphaticPProjectBorder};
+        background-color: ${(props) => props.theme.colors.emphaticPProjectBorder};
+        border: ${(props) => props.theme.colors.border};
+        box-shadow: inset 0 0 0 10px ${(props) => props.theme.colors.emphaticPProjectBorder};
+        transform: translateX(-50%);
     }
 
 `

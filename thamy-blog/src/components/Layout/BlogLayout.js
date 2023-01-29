@@ -35,17 +35,15 @@ const BlogLayout = ({ pageTitle, publishData, tableContents, contentBody, dataPh
 
   const [timeToRead, setTimeToRead] = React.useState(0);
 
-  function initTime(){
+  const initTime = React.useCallback(() => {
     let count = contentBody.match(/\w+/g).length;
     let time = Math.ceil(count / 250);
-
     setTimeToRead(time);
-
-  }
+  },[contentBody])
 
   React.useEffect(() => {
     initTime();
-  }, [timeToRead])
+  }, [timeToRead, initTime])
   
   return (
     <GlobalThemeProvider>

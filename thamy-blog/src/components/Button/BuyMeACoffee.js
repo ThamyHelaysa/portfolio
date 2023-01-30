@@ -4,8 +4,7 @@ import { StaticImage } from "gatsby-plugin-image";
 
 
 const Link = styled.a`
-    display: flex;
-    justify-content: center;
+    display: inline-block;
 `
 
 const BuyMeACoffee = () => {

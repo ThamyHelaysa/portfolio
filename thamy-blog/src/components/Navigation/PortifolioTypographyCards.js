@@ -14,7 +14,7 @@ const Item = styled.li`
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=");
   border: ${(props) => props.theme.colors.border};
   & > .--image {
-    filter: ${(props) => props.theme.colors.imageFilter};
+    background-color: ${(props) => props.theme.colors.bgColor};
   }
 `
 

@@ -13,7 +13,9 @@ const Item = styled.li`
   padding: 1rem;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAMklEQVQoU2NkQIAGBgYGEMYKGElRiM0UDDGSTITZTrQbsXkCrhnZarIU4vUMWSZieBAAwlIJi7gntsYAAAAASUVORK5CYII=");
   border: ${(props) => props.theme.colors.border};
-
+  & > .--image {
+    background-color: ${(props) => props.theme.colors.bgColor};
+  }
 `
 
 const PortifolioSketchCards = () => {

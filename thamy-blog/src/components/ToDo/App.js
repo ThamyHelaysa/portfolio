@@ -97,11 +97,11 @@ const App = () => {
     const [inputError, setInputError] = React.useState("");
     const [toDoStatus, setTodoStatus] = React.useState([]);
     
-    function initStatus(){
+    const initStatus = React.useCallback(() => {
         let initList = [...toDo];
         let itensLeft = initList.filter((el) => !el.done);
         setTodoStatus({left: itensLeft.length});
-    }
+    }, [toDo])
 
     const getText = React.useCallback((e) => {
         setInputText(e.target.value);
@@ -152,7 +152,7 @@ const App = () => {
 
     React.useEffect(() => {
         initStatus();
-    }, [toDo]);
+    }, [toDo, initStatus]);
 
     return (
         <Container>

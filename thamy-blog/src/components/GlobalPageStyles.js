@@ -13,6 +13,9 @@ const Container = createGlobalStyle`
     height: 100%;
   }
   body {
+    padding-right: 1rem;
+    margin-right: -2rem;
+    overflow-x: hidden;
     background-color: ${(props) => props.theme.colors.bodyColor};
     -webkit-background-size: 15px 15px;
     background-size: 15px 15px;
@@ -23,7 +26,6 @@ const Container = createGlobalStyle`
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
     transition: color 350ms ease 0s, background 350ms ease 0s;
-    
   }
   img, picture, video, canvas, svg {
     display: block;
@@ -44,6 +46,15 @@ const Container = createGlobalStyle`
   }
   #root, #__next, #___gatsby {
     isolation: isolate;
+  }
+  ::-webkit-scrollbar {
+    width: 1rem;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: ${(props) => props.theme.colors.bodyColor};
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: ${(props) => props.theme.colors.text};
   }
 `
 

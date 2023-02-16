@@ -28,6 +28,11 @@ const List = styled.div`
         }
     }
 
+    &.--flex {
+        display: flex;
+        flex-flow: column;
+    }
+
 `
 
 const Item = styled.article`
@@ -50,10 +55,14 @@ const ImageCard = styled.div`
     margin-bottom: 1rem;
 `
 
-const CardsList = ({ dataList }) => {
-    console.log(dataList)
+const LastPublishedLink = styled.div`
+    background-color: ${({theme}) => theme.colors.yellow};
+    font-weight: bold;
+`
+
+const CardsList = ({ dataList, lastPublished }) => {
     return (
-        <List>
+        <List className={`${lastPublished && "--flex"}`}>
             {dataList.map((item,index) => (
                 <Item key={item.id} className="--item">
                     <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
@@ -71,6 +80,10 @@ const CardsList = ({ dataList }) => {
                             <TitleH3>{ item.frontmatter ? item.frontmatter.title : item.title }</TitleH3>
                             <StyledParagraph>{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
                         </div>
+                        {lastPublished &&
+                            <LastPublishedLink className='--last-pub-link'>
+                                Read more
+                            </LastPublishedLink>}
                     </StyledLink>
                 </Item>
             ))}

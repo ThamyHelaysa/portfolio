@@ -3,20 +3,24 @@ title: "Error cannot connect mongodb inside gatsby project"
 date: "2023-01-28"
 author: "Thamires H."
 slug: "cannot-connect-mongodb-atlas-inside-gatsby"
-desc: "Are you trying to add MongoDB connection to your gatsby project and there is an error that is preventing you from do it? Don't worry I had the same issue and here is the resolution"
+desc: "Are you trying to add MongoDB connection to your gatsby project and there is an error that is preventing you from do it? Don't worry I had the same issue and here is the resolution."
 type: "post"
 ---
 
 import PreCode from '../../src/components/Paragraphs/PreCode'
 import TheSpanInYellow from '../../src/components/Paragraphs/TheSpanInYellow.js'
 
-If you were excited to add you MongoDB databases in gatsby projects and was following this [Build a Modern Blog with Gatsby and MongoDB](https://www.mongodb.com/developer/languages/javascript/gatsby-modern-blog/#connecting-mongodb-and-gatsbyjs) tutorial you maybe got and error (like I did).
+If you were excited to add you MongoDB databases in gatsby projects and was following this [Build a Modern Blog with Gatsby and MongoDB](https://www.mongodb.com/developer/languages/javascript/gatsby-modern-blog/#connecting-mongodb-and-gatsbyjs) tutorial you maybe got and error (like I did). Here I will show you how I manage to make it work with some configuration on the MongoDB Atlas admin.
+
+## The error
 
 The error shows up when you run `gatsby develop`, after seting up the `gatsby-config.js`, in the `source and transform node` the log stops for an moment and there is:
 
 ![Gatsby Error](../../src/images/error-mongo-db.png)
 
 The error says: `warn MongoServerSelectionError: getaddrinfo ENOTFOUND main-shard-00-01-zxsxp.mongodb.net` and on the bottom of the log error there is and Gatsby message: `warn The gatsby-source-mongodb plugin has generated no Gatsby nodes. Do you need it? This could also suggest the plugin is misconfigured.` Leaving aside the mockery: "Do you need it?" - yes gatsby I need it, he tells us that *MAYBE* there is a misconfiguration going on.
+
+## Adding some configuration
 
 After some digging I manage to work around this issue. For that I had to look into the MongoDB Atlas admin and change some things. First I needed to add access to an default user, under the **Security** tab in **Database Access**:
 
@@ -36,6 +40,8 @@ Under **Deployment** tab in **Database** you have a special tab called **Overvie
 
 So I thought *"Maybe I can use this in the server address"*. And so I did. Changed to the primary one, added the authentication user and password that I created and **It worked!!** 🎉
 
+## Final gataby config
+
 My final `gatsby-config.js` file it's like below, you can now change with your MongoDB configurations and hopefully it will work too!
 
 <PreCode>
@@ -48,12 +54,14 @@ plugins: [
             dbName: 'portfolio',
             collection: 'latin_phrases',
             server: {
-                address: 'ac-u2aonht-shard-00-01.dqustge.mongodb.net',
+                // Here you change with YOUR address
+                address: 'my-code-shard-00-01.dqustge.mongodb.net',
                 port: 27017
             },
             auth: {
+                // YOUR user, I used an default one, get creative xD
                 user: 'default',
-                password: 'LPO1HvEWC9WW0uQZ'
+                password: 'MYPASSWORD'
             },
             extraParams: {
                 ssl: true,

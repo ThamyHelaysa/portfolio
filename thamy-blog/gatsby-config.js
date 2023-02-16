@@ -87,7 +87,14 @@ module.exports = {
     },
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-image`,
-    `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        defaults: {
+          backgroundColor: `transparent`
+        }
+      }
+    },
     `gatsby-transformer-sharp`,
     {
       resolve: 'gatsby-plugin-react-svg',

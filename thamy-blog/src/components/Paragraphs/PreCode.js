@@ -58,21 +58,23 @@ const PreCode = ({children}) => {
     
     const copyToClipboard = React.useCallback(() => {
 
-        navigator.clipboard.writeText(children.props.children.props.children).then(function() {
+        if (typeof navigator !== 'undefined') {
+            navigator.clipboard.writeText(children.props.children.props.children).then(function() {
                 setCopyed(true);
                 setTimeout(() => {
                     setCopyed(false);
                 }, 2500);
             }, function(err) {
                 console.error('Async: Could not copy text: ', err);
-        });
+            });
+        }
 
     }, [children]);
 
     return (
         <Pre>
             {children}
-            {!!navigator.clipboard && <CopyButton className={copyed && "--copy"} onClick={copyToClipboard}>
+            {(typeof navigator !== 'undefined' && !!navigator.clipboard) && <CopyButton className={copyed && "--copy"} onClick={copyToClipboard}>
                 <Icon className='--ico-copy'>📋</Icon>
                 <Icon className='--ico-success'>✔️</Icon>
             </CopyButton>}

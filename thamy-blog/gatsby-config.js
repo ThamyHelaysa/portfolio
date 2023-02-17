@@ -57,7 +57,7 @@ module.exports = {
           dbName: 'portfolio',
           collection: 'latin_phrases',
           server: {
-              address: 'ac-u2aonht-shard-00-01.dqustge.mongodb.net',
+              address: 'ac-u2aonht-shard-00-02.dqustge.mongodb.net',
               port: 27017
           },
           auth: {

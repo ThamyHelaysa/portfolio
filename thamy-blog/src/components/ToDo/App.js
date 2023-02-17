@@ -89,7 +89,7 @@ const EmptyTodo = styled.div`
 
 const App = () => {
 
-    const toDoList = JSON.parse(localStorage.getItem("toDoList")) || []
+    const toDoList = JSON.parse(typeof window !== 'undefined' && window.localStorage.getItem("toDoList")) || []
 
     
     const [toDo, setToDo] = React.useState(toDoList);
@@ -147,7 +147,7 @@ const App = () => {
 
     function updateData(newData){
         setToDo(newData);
-        localStorage.setItem("toDoList",JSON.stringify(newData));
+        typeof window !== 'undefined' && window.localStorage.setItem("toDoList",JSON.stringify(newData));
     }
 
     React.useEffect(() => {

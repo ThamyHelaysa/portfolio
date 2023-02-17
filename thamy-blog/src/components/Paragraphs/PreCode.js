@@ -54,23 +54,20 @@ const Icon = styled.span`
 `
 
 const PreCode = ({children}) => {
-    const [codeContent, setCodeContent] = React.useState("");
     const [copyed, setCopyed] = React.useState(false);
     
     const copyToClipboard = React.useCallback(() => {
-        setCodeContent(children.props.children.props.children);
 
         navigator.clipboard.writeText(children.props.children.props.children).then(function() {
-            console.log('Async: Copying to clipboard was successful!');
-            setCopyed(true);
-            setTimeout(() => {
-                setCopyed(false);
-            }, 2500);
+                setCopyed(true);
+                setTimeout(() => {
+                    setCopyed(false);
+                }, 2500);
             }, function(err) {
-            console.error('Async: Could not copy text: ', err);
+                console.error('Async: Could not copy text: ', err);
         });
 
-    }, [children, codeContent]);
+    }, [children]);
 
     return (
         <Pre>

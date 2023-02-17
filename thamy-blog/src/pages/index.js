@@ -1,5 +1,4 @@
 import * as React from 'react';
-import styled from 'styled-components';
 import { graphql } from 'gatsby';
 
 import Layout from '../components/Layout/Layout';
@@ -8,9 +7,7 @@ import GlobalFontStyle from '../components/GlobalFontStyles';
 
 import IntroJSONData from '../../content/Intro-JSON-Content.json';
 import Seo from '../components/Seo';
-import { TitleH2 } from '../components/Paragraphs/PageTitle';
 import Phrases from '../components/Listing/Phrases';
-import CardsList from '../components/Navigation/Cards';
 import LastPublished from '../components/Listing/LastPublished';
 
 
@@ -41,6 +38,7 @@ export const query = graphql`
     allMdx(
       sort: {frontmatter: {date: DESC}}
       filter: {frontmatter: {type: {ne: "project"}}}
+      limit: 5
     ) {
       nodes {
         frontmatter {

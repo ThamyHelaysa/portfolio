@@ -1,0 +1,39 @@
+{
+  "name": "thamy-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "thamy-blog",
+  "author": "Thamires H",
+  "keywords": [
+    "gatsby"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
+  },
+  "dependencies": {
+    "@mdx-js/react": "^2.2.1",
+    "babel-plugin-styled-components": "^2.0.7",
+    "gatsby": "^5.3.3",
+    "gatsby-cli": "^5.6.0",
+    "gatsby-plugin-image": "^3.3.2",
+    "gatsby-plugin-manifest": "^5.3.1",
+    "gatsby-plugin-mdx": "^5.4.0",
+    "gatsby-plugin-react-svg": "^3.3.0",
+    "gatsby-plugin-sharp": "^5.3.2",
+    "gatsby-plugin-styled-components": "^6.3.0",
+    "gatsby-remark-images": "^7.5.0",
+    "gatsby-source-filesystem": "^5.4.0",
+    "gatsby-source-mongodb": "^5.5.0",
+    "gatsby-transformer-sharp": "^5.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.6"
+  },
+  "devDependencies": {
+    "eslint-plugin-mdx": "^2.0.5"
+  }
+}

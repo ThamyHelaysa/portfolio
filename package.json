@@ -1,17 +1,6 @@
 {
-  "name": "portifolio",
-  "version": "1.0.0",
-  "description": "Portifolio da Thamy",
-  "main": "index.html",
-  "author": "Thamires H",
-  "license": "UNLICENSED",
-  "private": true,
-  "dependencies": {
-    "express": "^4.17.1",
-    "stylus": "^0.54.7"
-  },
-  "scripts": {
-    "css": "stylus ./src/styl/main.styl -o ./src/css",
-    "stylus": "stylus -w ./src/styl/main.styl -o ./src/css"
+  "devDependencies": {
+    "@commitlint/cli": "^17.3.0",
+    "@commitlint/config-conventional": "^17.3.0"
   }
 }

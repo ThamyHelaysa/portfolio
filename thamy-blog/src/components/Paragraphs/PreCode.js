@@ -30,6 +30,10 @@ const CopyButton = styled(Button)`
     top: 0;
     right: 0;
     z-index: 2;
+    @media (max-width: ${BREAKPOINTS.tablet}){
+        left: 0;
+        right: auto;
+    }
     &.--copy > .--ico-copy {
         transform: scale(0);
     }

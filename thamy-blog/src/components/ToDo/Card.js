@@ -55,10 +55,6 @@ const RemoveButton = styled(Button)`
         display: block;
         font-style: normal;
     }
-    @media (max-width: ${BREAKPOINTS.tablet}){
-        padding-left: .5rem;
-        padding-right: .5rem;
-    }
 `
 
 const Card = ({ toDoItem, toDoIndex, onRemove, onDoneToDo, doneValue }) => {

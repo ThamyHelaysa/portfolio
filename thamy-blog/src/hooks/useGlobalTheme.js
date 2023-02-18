@@ -16,7 +16,7 @@ const myThemes = {
 }
 
 const GlobalThemeProvider = ({children}) => {
-    const localTheme = typeof window !== 'undefined' && window.localStorage.getItem("Theme") || "default";
+    const localTheme = (typeof window !== 'undefined' && window.localStorage.getItem("Theme")) || "default";
     
     const [selectedTheme, setSelectedTheme] = React.useState(localTheme);
 

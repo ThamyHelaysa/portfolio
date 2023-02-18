@@ -26,7 +26,7 @@ const Form = styled.form`
 const AddButton = styled(Button)`
     width: auto;
     height: 60px;
-    margin-left: -115px;
+    margin-left: -120px;
     padding-left: 1rem;
     padding-right: 1rem;
     & > i {
@@ -34,7 +34,7 @@ const AddButton = styled(Button)`
         font-style: normal;
     }
     @media (max-width: ${BREAKPOINTS.tablet}){
-        margin-left: -56px;
+        margin-left: -63px;
         & > span {
             display: none;
         }

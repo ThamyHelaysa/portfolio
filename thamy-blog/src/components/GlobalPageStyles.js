@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { createGlobalStyle } from 'styled-components'
+import * as React from 'react';
+import { createGlobalStyle } from 'styled-components';
 
 
 const Container = createGlobalStyle`
@@ -26,6 +26,13 @@ const Container = createGlobalStyle`
     text-rendering: optimizeSpeed;
     -webkit-font-smoothing: antialiased;
     transition: color 350ms ease 0s, background 350ms ease 0s;
+    @media (hover: none) and (pointer:coarse){
+      padding-right: initial;
+      margin-right: 0;
+    }
+    &:has(.--open-nav){
+      overflow: hidden;
+    }
   }
   img, picture, video, canvas, svg {
     display: block;
@@ -44,7 +51,7 @@ const Container = createGlobalStyle`
   hr {
     border: 1px solid ${(props) => props.theme.colors.hrColor};
   }
-  #root, #__next, #___gatsby {
+  #root, #___gatsby {
     isolation: isolate;
   }
   ::-webkit-scrollbar {

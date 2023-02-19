@@ -1,6 +1,8 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
+import FONTS from '../../constants/fonts';
+
 import GlitchCircle from './GlitchCircle';
 
 const Container = styled.div`
@@ -14,7 +16,7 @@ const InfoBox = styled.div`
     padding: 1rem;
     background-color: ${(props) => props.theme.colors.preCodeBg};
     color: ${(props) => props.theme.colors.preCodeColor};
-    font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
+    font-family: ${FONTS.emphasis.fontFamily};
     font-size: 14px;
     & > span {
         display: block;

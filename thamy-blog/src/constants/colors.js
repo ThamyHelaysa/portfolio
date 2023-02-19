@@ -20,6 +20,11 @@ const colorNames = {
     white: "#f3ece5",
     fullWhite: "#FFFFFF",
 
+    lightBlue: "#2196f3",
+    purple: "#9c27b0",
+    green: "#009688",
+    orange: "#ff6959",
+
     blue50: "#f2f3f4",
     blue100: "#e6e7e9",
     blue200: "#c0c2c9",
@@ -76,7 +81,17 @@ const COLORS = {
     emphaticPProjectBorder: colorNames.white,
     emphaticPProjectBorder2: colorNames.blue500,
 
-    imageFilter: "invert(0)"
+    imageFilter: "invert(0)",
+
+    lavander: colorNames.lavander,
+    yellow: colorNames.yellow,
+    peach: colorNames.peach,
+    lightBlue: colorNames.lightBlue,
+    purple: colorNames.purple,
+    green: colorNames.green,
+    orange: colorNames.orange,
+    darkPink: colorNames.darkPink,
+
 };
 
 const DARKCOLORS = {
@@ -114,7 +129,16 @@ const DARKCOLORS = {
     emphaticPProjectBorder: colorNames.blue700,
     emphaticPProjectBorder2: colorNames.blue400,
 
-    imageFilter: "invert(1)"
+    imageFilter: "invert(1)",
+
+    lavander: colorNames.lavander,
+    yellow: colorNames.yellow,
+    peach: colorNames.peach,
+    lightBlue: colorNames.lightBlue,
+    purple: colorNames.purple,
+    green: colorNames.green,
+    orange: colorNames.orange,
+    darkPink: colorNames.darkPink,
 }
 
 

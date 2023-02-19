@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createGlobalStyle } from 'styled-components';
 
+import FONTS from '../constants/fonts';
 
 const Container = createGlobalStyle`
   *, *::before, *::after {
@@ -20,7 +21,7 @@ const Container = createGlobalStyle`
     -webkit-background-size: 15px 15px;
     background-size: 15px 15px;
     color: ${(props) => props.theme.colors.text};
-    font-family: ${(props) => props.theme.fonts.paraGraphs.fontFamily};
+    font-family: ${FONTS.paraGraphs.fontFamily};
     line-height: 1.5;
     scroll-behavior: smooth;
     text-rendering: optimizeSpeed;

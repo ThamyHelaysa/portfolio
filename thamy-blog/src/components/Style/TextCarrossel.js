@@ -1,6 +1,8 @@
 import * as React from 'react';
 import styled, { keyframes } from 'styled-components';
 
+import FONTS from '../../constants/fonts';
+
 const scroll = keyframes`
     0% {
         transform: translateX(0%);
@@ -36,8 +38,8 @@ const Container = styled.div`
 const Box = styled.p`
     display: inline-block;
     margin: 1rem;
-    font-size: ${(props) => props.theme.fonts.mediumTitle.fontSize};
-    font-weight: ${(props) => props.theme.fonts.mediumTitle.fontWeight};
+    font-size: ${FONTS.mediumTitle.fontSize};
+    font-weight: ${FONTS.mediumTitle.fontWeight};
     white-space: nowrap;
 
 `

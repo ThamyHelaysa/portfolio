@@ -5,6 +5,7 @@ import styled from 'styled-components'
 import { itensOptions } from './List.helpers'
 
 import BREAKPOINTS from '../../constants/breakpoints';
+import FONTS from '../../constants/fonts';
 
 
 const List = styled.ul`
@@ -26,7 +27,7 @@ const Item = styled.li`
 
 const StyledLink = styled(Link)`
     color: inherit;
-    font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
+    font-weight: ${FONTS.paraGraphsBold.fontWeight};
     letter-spacing: 2px;
     transition: all 250ms ease 0s;
     &:hover {

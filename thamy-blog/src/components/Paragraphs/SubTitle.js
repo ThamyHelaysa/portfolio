@@ -1,9 +1,11 @@
 import styled from "styled-components";
 
+import FONTS from "../../constants/fonts";
+
 const SubTitle = styled.div`
   color: ${(props) => props.theme.colors.text};
-  font-family: ${(props) => props.theme.fonts.subTitle.fontFamily};
-  font-weight: ${(props) => props.theme.fonts.subTitle.fontWeight};
+  font-family: ${FONTS.subTitle.fontFamily};
+  font-weight: ${FONTS.subTitle.fontWeight};
 `
 
 export default SubTitle;

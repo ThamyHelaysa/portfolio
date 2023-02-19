@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { StaticImage } from "gatsby-plugin-image"
 
 import BREAKPOINTS from '../../constants/breakpoints';
+import FONTS from '../../constants/fonts';
 
 import NavigationWrapper from '../Navigation/Header';
 import Main from '../Main/Content';
@@ -13,6 +14,8 @@ import SubTitle from '../Paragraphs/SubTitle';
 import { StyledParagraph } from '../Paragraphs/Paragraph';
 import { GlobalThemeProvider } from '../../hooks/useGlobalTheme';
 
+import RecruiterBubble from '../Tooltip/Recruiter';
+import ContactList from '../Listing/ContactList';
 
 const PageWrapper = styled.div`
   display: grid;
@@ -50,6 +53,9 @@ const PageTitleH1 = styled(TitleH1)`
     color: #c54551;
     font-size: 5rem!important;
     text-shadow: none;
+    &.--big-font {
+      display: none;
+    }
     &.--medium-font {
       font-size: 3rem!important;
     }
@@ -63,8 +69,8 @@ const PageTitleH2 = styled(TitleH2)`
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   @media print {
-    break-inside: avoid-page;
-    color: #c54551;
+    break-inside: avoid;
+    color: ${(props) => props.theme.colors.darkPink};
     font-size: 2rem!important;
     text-shadow: none;
   }
@@ -89,7 +95,7 @@ const PageSubtitle = styled(SubTitle)`
   top: -1rem;
   left: 0;
   @media print {
-    display: none;
+    position: static;
   }
 `
 
@@ -112,6 +118,9 @@ const Container = styled.div`
   grid-template-columns: auto 2fr 1fr;
   grid-template-rows: auto 1fr;
   gap: 2rem 1rem;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
   padding: 2rem 0;
 
   @media (max-width: ${BREAKPOINTS.tablet}){
@@ -137,6 +146,12 @@ const Container = styled.div`
     grid-row: span 2;
     border: 1rem dashed ${(props) => props.theme.colors.darkness};
     @media (max-width: ${BREAKPOINTS.laptop}){
+      display: none;
+    }
+  }
+
+  @media not print {
+    & > .--with-me {
       display: none;
     }
   }
@@ -194,7 +209,7 @@ const ItensList = styled.ul`
     columns: 200px;
     column-gap: 1rem;
     line-height: 2;
-    font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
+    font-family: ${FONTS.emphasis.fontFamily};
   }
   @media print {
     line-height: 1.8;
@@ -219,7 +234,7 @@ const ListItem = styled.li`
 
 const ItemTitle = styled.span`
   display: block;
-  font-weight: ${(props) => props.theme.fonts.subTitle.fontWeight};
+  font-weight: ${FONTS.subTitle.fontWeight};
   font-style: italic;
 `
 
@@ -237,7 +252,7 @@ const ItemContent = styled.div`
 `
 
 const SkillEmphasis = styled.p`
-  font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
+  font-family: ${FONTS.emphasis.fontFamily};
   @media print {
     font-size: .875rem;
   }
@@ -262,65 +277,81 @@ const Layout = ({
       <PageWrapper>
         <NavigationWrapper />
         <Main>
-            <Container>
-              <PageTitleH1 className='--vertical --big-font'>Hello!</PageTitleH1>
-              <PageTitleH1 className='--medium-font'>{pageTitle}</PageTitleH1>
-              <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
-              <Paragraph>
-                {greetings.content}
-              </Paragraph>
-              <StaticImage
-                className='--image-me'
-                src='../../images/curriculum/thamires-helaysa.jpg'
-                alt='Thamires Helaysa'
-                width={600}
-                height={720}/>
-              <ContainerTwoColumns className='--two-columns --first'>
-                <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
-                <ItensList>
-                  {eduContent.content.map((item) => {
-                    return (
-                        <li key={`edu_content_${item.id}`}>
-                          <ItemTitle>{item.what} - {item.when}</ItemTitle>
-                          <ParagraphExp>{item.desc}</ParagraphExp>
-                        </li>
-                    )
-                  })}
-                </ItensList>
-              </ContainerTwoColumns>
-              <ContainerTwoColumns className='--two-columns --second'>
-                <PageTitleH2 className='--small-t'>{expContent.title}</PageTitleH2>
-                <ItensList>
-                  {expContent.content.map((item) => {
-                    return (
-                        <ListItem key={`exp_content_${item.id}`}>
-                          <ItemInfo>
-                            <ItemTitle>{item.as}</ItemTitle>
-                            <ItemTitle>{item.where}</ItemTitle>
-                            <ItemTitle>{item.when}</ItemTitle>
-                          </ItemInfo>
-                          <ItemContent>
-                            <ParagraphExp>{item.what}</ParagraphExp>
-                            <SkillEmphasis>{item.with}</SkillEmphasis>
-                          </ItemContent>
-                        </ListItem>
-                    )
-                  })}
-                </ItensList>
-              </ContainerTwoColumns>
-              <ContainerTwoColumns className='--two-columns'>
-                <PageTitleH2 className='--small-t'>{skillContent.title}</PageTitleH2>
-                <ItensList className='--with-columns'>
-                  {skillContent.content.map((item) => {
-                    return (
-                        <li key={`skill_content_${item.id}`}>
-                          <p>{item.skill}</p>
-                        </li>
-                    )
-                  })}
-                </ItensList>
-              </ContainerTwoColumns>
-            </Container>
+          <Container>
+            <PageTitleH1 className='--vertical --big-font'>Hello!</PageTitleH1>
+            <PageTitleH1 className='--medium-font'>{pageTitle}</PageTitleH1>
+            <PageSubtitle role="doc-subtitle">{pageSub}</PageSubtitle>
+            <ContactList className="--with-me">
+              <li>
+                <a href="https://t-helaysa.com/">
+                <StaticImage
+                  className='--image-me'
+                  src="../../images/android-chrome-192x192.png"
+                  alt='Thamires Helaysa'
+                  width={24}
+                  height={24}/>
+                </a>
+              </li>
+            </ContactList>
+            <Paragraph>
+              {greetings.content}
+            </Paragraph>
+            <StaticImage
+              className='--image-me'
+              src='../../images/curriculum/thamires-helaysa.jpg'
+              alt='Thamires Helaysa'
+              width={600}
+              height={720}/>
+            <ContainerTwoColumns className='--two-columns --first'>
+              <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
+              <ItensList>
+                {eduContent.content.map((item) => {
+                  return (
+                      <li key={`edu_content_${item.id}`}>
+                        <ItemTitle>{item.what} - {item.when}</ItemTitle>
+                        <ParagraphExp>{item.desc}</ParagraphExp>
+                      </li>
+                  )
+                })}
+              </ItensList>
+            </ContainerTwoColumns>
+            <ContainerTwoColumns className='--two-columns --second'>
+              <PageTitleH2 className='--small-t'>{expContent.title}</PageTitleH2>
+              <ItensList>
+                {expContent.content.map((item) => {
+                  return (
+                      <ListItem key={`exp_content_${item.id}`}>
+                        <ItemInfo>
+                          <ItemTitle>{item.as}</ItemTitle>
+                          <ItemTitle>{item.where}</ItemTitle>
+                          <ItemTitle>{item.when}</ItemTitle>
+                        </ItemInfo>
+                        <ItemContent>
+                          <ParagraphExp>{item.what}</ParagraphExp>
+                          <SkillEmphasis>{item.with}</SkillEmphasis>
+                        </ItemContent>
+                      </ListItem>
+                  )
+                })}
+              </ItensList>
+            </ContainerTwoColumns>
+            <ContainerTwoColumns className='--two-columns'>
+              <PageTitleH2 className='--small-t'>{skillContent.title}</PageTitleH2>
+              <ItensList className='--with-columns'>
+                {skillContent.content.map((item) => {
+                  return (
+                      <li key={`skill_content_${item.id}`}>
+                        <p>{item.skill}</p>
+                      </li>
+                  )
+                })}
+              </ItensList>
+            </ContainerTwoColumns>
+
+          </Container>
+          <RecruiterBubble>
+            Tech Recruiter or just curious 👀? You can generate a pdf file <strong>(ctrl + p or ⌘ + p)</strong> of this page!
+          </RecruiterBubble>
         </Main>
         <Footer footerPhrases={dataPhrases} />
       </PageWrapper>

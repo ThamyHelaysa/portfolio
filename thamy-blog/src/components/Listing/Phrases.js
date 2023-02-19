@@ -50,12 +50,12 @@ const Phrases = ({ dataPhrases, className }) => {
     const initPhrase = React.useCallback(() => {
       let newIndex = clamp(Math.ceil(Math.random() * (dataPhrases.length - 1)),0,(dataPhrases.length - 1));
       setPhrase(dataPhrases[newIndex].node || {});
-    },[dataPhrases])
+    },[dataPhrases]);
 
 
     React.useEffect(() => {
       initPhrase();
-    }, [phrase, initPhrase])
+    }, [initPhrase]);
 
     return (
         <Container className={className}>

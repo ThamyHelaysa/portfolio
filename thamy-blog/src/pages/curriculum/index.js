@@ -10,7 +10,6 @@ import GridLayout from '../../components/Layout/GridLayout'
 import GlobalStyle from '../../components/GlobalPageStyles'
 import GlobalFontStyle from '../../components/GlobalFontStyles';
 
-
 const Curriculum = ({data}) => {
     const latin_phrases = data.allMongodbPortfolioLatinPhrases.edges;
     return (

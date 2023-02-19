@@ -1,10 +1,12 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
+import FONTS from '../../constants/fonts';
+
 const Anchor = styled.a`
   padding: 0 5px;
   color: inherit;
-  font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
+  font-weight: ${FONTS.paraGraphsBold.fontWeight};
   transition: all 250ms ease 0s;
   word-break: break-all;
   &:hover {

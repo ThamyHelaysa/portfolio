@@ -1,12 +1,13 @@
 import * as React from 'react';
 import styled from "styled-components";
-// import { StaticImage, GatsbyImage, getImage } from "gatsby-plugin-image"
 import { Link } from 'gatsby';
+
+import BREAKPOINTS from '../../constants/breakpoints';
 
 import { TitleH3 } from '../Paragraphs/PageTitle';
 import { Paragraph } from '../Paragraphs/Paragraph';
 
-import BREAKPOINTS from '../../constants/breakpoints';
+import TheSpanInYellow from '../Paragraphs/TheSpanInYellow';
 
 
 const List = styled.div`
@@ -60,13 +61,21 @@ const LastPublishedLink = styled.div`
     font-weight: bold;
 `
 
+const SkillsList = styled.ul`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-weight: bold;
+`
+
+
 const CardsList = ({ dataList, lastPublished }) => {
     return (
         <List className={`${lastPublished && "--flex"}`}>
             {dataList.map((item,index) => (
                 <Item key={item.id} className="--item">
                     <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
-                        {item.image ? (
+                        {/* {item.image ? (
                             <ImageCard>
                                 <img
                                     className='--proj-img'
@@ -75,10 +84,17 @@ const CardsList = ({ dataList, lastPublished }) => {
                             </ImageCard>
                         ) : (
                             ""
-                        )}
+                        )} */}
                         <div>
                             <TitleH3>{ item.frontmatter ? item.frontmatter.title : item.title }</TitleH3>
                             <StyledParagraph>{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
+                            {item.skills && <SkillsList>
+                                {item.skills.map((skill, i) => (
+                                    <li key={item.id + i}>
+                                        <TheSpanInYellow>{skill}</TheSpanInYellow>
+                                    </li>
+                                ))}
+                            </SkillsList>}
                         </div>
                         {lastPublished &&
                             <LastPublishedLink className='--last-pub-link'>

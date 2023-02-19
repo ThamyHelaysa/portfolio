@@ -2,8 +2,10 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 import BREAKPOINTS from '../../constants/breakpoints';
+import FONTS from '../../constants/fonts';
 
 import { BorderedWrapper } from '../DefaultWrapper';
+import ContactList from '../Listing/ContactList';
 import Phrases from '../Listing/Phrases';
 
 const Wrapper = styled.footer`
@@ -60,7 +62,7 @@ const Copyright = styled.p`
 const Link = styled.a`
   padding: 0 5px;
   color: inherit;
-  font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
+  font-weight: ${FONTS.paraGraphsBold.fontWeight};
   transition: all 250ms ease 0s;
   &:hover {
       background-color: ${(props) => props.theme.colors.extra};
@@ -72,6 +74,7 @@ const Footer = ({footerPhrases}) => {
   return (
     <Wrapper>
       <Container>
+        <ContactList className="--on-footer"></ContactList>
         <Phrases className="--phrases-box" dataPhrases={footerPhrases}></Phrases>
         <Copyright>
           This website was built with

@@ -1,42 +1,43 @@
 import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 
+import FONTS from '../constants/fonts';
 
 const Container = createGlobalStyle`
 
     @font-face {
-        font-family: ${(props) => props.theme.fonts.bigTitle.fontFamily};
-        font-weight: ${(props) => props.theme.fonts.bigTitle.fontWeight};
+        font-family: ${FONTS.bigTitle.fontFamily};
+        font-weight: ${FONTS.bigTitle.fontWeight};
         font-style: normal;
-        src: url(${(props) => props.theme.fonts.bigTitle.source}) format(${(props) => props.theme.fonts.bigTitle.forMat});
+        src: url(${FONTS.bigTitle.source}) format(${FONTS.bigTitle.forMat});
         font-display: swap;
     }
     @font-face {
-        font-family: ${(props) => props.theme.fonts.paraGraphs.fontFamily};
-        font-weight: ${(props) => props.theme.fonts.paraGraphs.fontWeight};
+        font-family: ${FONTS.paraGraphs.fontFamily};
+        font-weight: ${FONTS.paraGraphs.fontWeight};
         font-style: normal;
-        src: url(${(props) => props.theme.fonts.paraGraphs.source}) format(${(props) => props.theme.fonts.paraGraphs.forMat});
+        src: url(${FONTS.paraGraphs.source}) format(${FONTS.paraGraphs.forMat});
         font-display: swap;
     }
     @font-face {
-        font-family: ${(props) => props.theme.fonts.paraGraphsBold.fontFamily};
-        font-weight: ${(props) => props.theme.fonts.paraGraphsBold.fontWeight};
+        font-family: ${FONTS.paraGraphsBold.fontFamily};
+        font-weight: ${FONTS.paraGraphsBold.fontWeight};
         font-style: bold;
-        src: url(${(props) => props.theme.fonts.paraGraphsBold.source}) format(${(props) => props.theme.fonts.paraGraphsBold.forMat});
+        src: url(${FONTS.paraGraphsBold.source}) format(${FONTS.paraGraphsBold.forMat});
         font-display: swap;
     }
     @font-face {
-        font-family: ${(props) => props.theme.fonts.paraGraphsBoldItalic.fontFamily};
-        font-weight: ${(props) => props.theme.fonts.paraGraphsBoldItalic.fontWeight};
+        font-family: ${FONTS.paraGraphsBoldItalic.fontFamily};
+        font-weight: ${FONTS.paraGraphsBoldItalic.fontWeight};
         font-style: italic;
-        src: url(${(props) => props.theme.fonts.paraGraphsBoldItalic.source}) format(${(props) => props.theme.fonts.paraGraphsBoldItalic.forMat});
+        src: url(${FONTS.paraGraphsBoldItalic.source}) format(${FONTS.paraGraphsBoldItalic.forMat});
         font-display: swap;
     }
     @font-face {
-        font-family: ${(props) => props.theme.fonts.emphasis.fontFamily};
-        font-weight: ${(props) => props.theme.fonts.emphasis.fontWeight};
+        font-family: ${FONTS.emphasis.fontFamily};
+        font-weight: ${FONTS.emphasis.fontWeight};
         font-style: normal;
-        src: url(${(props) => props.theme.fonts.emphasis.source}) format(${(props) => props.theme.fonts.emphasis.forMat});
+        src: url(${FONTS.emphasis.source}) format(${FONTS.emphasis.forMat});
         font-display: swap;
     }
 

@@ -7,6 +7,7 @@ import Input from '../Form/Input';
 import Button from '../Button/DefaultButton';
 
 import BREAKPOINTS from '../../constants/breakpoints';
+import FONTS from '../../constants/fonts';
 
 const Form = styled.form`
     display: flex;
@@ -83,7 +84,7 @@ const EmptyTodo = styled.div`
     padding: 2rem 1rem;
     background-color: ${(props) => props.theme.colors.brightness};
     border: ${(props) => props.theme.colors.border};
-    font-weight: ${(props) => props.theme.fonts.mediumTitle.fontWeight};
+    font-weight: ${FONTS.mediumTitle.fontWeight};
     text-align: center;
 `
 

@@ -5,7 +5,6 @@ import Layout from '../../components/Layout/Layout';
 import GlobalStyle from '../../components/GlobalPageStyles';
 import GlobalFontStyle from '../../components/GlobalFontStyles';
 
-import IntroJSONData from '../../../content/ProjIntro-JSON-Content.json'
 import Seo from '../../components/Seo';
 import CardsList from '../../components/Navigation/Cards';
 
@@ -20,7 +19,8 @@ const projData = [
     image: {
       name: 'ToDo List Preview',
       path: toDoGIF
-    }
+    },
+    skills: ["React", "Styled-components", "localStorage", "Jsx", "UI/UX"]
   },
   {
     title: "Intellibus",
@@ -30,7 +30,8 @@ const projData = [
     image: {
       name: 'ToDo List Preview',
       path: toDoGIF
-    }
+    },
+    skills: ["Design", "Illustrator", "UI/UX"]
   }
 ]
 
@@ -42,7 +43,7 @@ const IndexPage = ({data}) => {
       <Layout
         pageTitle="Projects"
         pageSub={"...and things"}
-        introText={IntroJSONData.item}
+        introText={"Here you find all my projects made until now!"}
         dataPhrases={latin_phrases}>
         <GlobalFontStyle />
         <GlobalStyle />

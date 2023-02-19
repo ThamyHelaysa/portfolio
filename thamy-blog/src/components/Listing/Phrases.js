@@ -22,6 +22,11 @@ const Title = styled(TitleH3)`
   padding: 0 8px;
   background-color: ${(props) => props.theme.colors.emphaticPProject};
   color: ${(props) => props.theme.colors.emphaticPProjectColor};
+
+  .--phrases-box & {
+    margin-left: 0;
+  }
+
   @media (max-width: ${BREAKPOINTS.tablet}){
     margin-left: 0;
   }

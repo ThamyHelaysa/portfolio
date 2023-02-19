@@ -28,7 +28,7 @@ const Container = styled(BorderedWrapper)`
     grid-column: 2/3;
     grid-row: span 4;
     align-self: center;
-    max-width: clamp(300px, 40%,  300px);
+    width: clamp(150px, 45%, 400px);
     margin-top: 0;
     margin-right: 0;
     margin-bottom: 0;
@@ -45,13 +45,16 @@ const Container = styled(BorderedWrapper)`
     flex-flow: column;
     padding: 2rem 1rem;
     & > .--phrases-box {
-      max-width: 100%;
+      width: 100%;
       margin: 2rem 0;
       padding: 1rem 1rem 2rem;
       text-align: left;
       line-height: 2;
       border-left: 0;
       border-bottom: ${(props) => props.theme.colors.border};
+      .--translate {
+        margin-top: 0;
+      }
     }
   }
 `

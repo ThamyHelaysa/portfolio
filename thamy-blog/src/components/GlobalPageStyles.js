@@ -34,6 +34,16 @@ const Container = createGlobalStyle`
     &:has(.--open-nav){
       overflow: hidden;
     }
+    @media print {
+      color: #000;
+      line-height: normal;
+      p, span {
+        font-size: 12px;
+      }
+      p {
+        text-align: justify;
+      }
+    }
   }
   img, picture, video, canvas, svg {
     display: block;

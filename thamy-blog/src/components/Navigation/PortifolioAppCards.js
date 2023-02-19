@@ -3,10 +3,16 @@ import styled from 'styled-components';
 import { GatsbyImage } from 'gatsby-plugin-image';
 import { graphql, useStaticQuery } from 'gatsby';
 
+import BREAKPOINTS from '../../constants/breakpoints';
+
 const List = styled.ul`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
+  @media (max-width: ${BREAKPOINTS.tablet}){
+    display: flex;
+    flex-flow: column;
+  }
 `
 
 const Item = styled.li`

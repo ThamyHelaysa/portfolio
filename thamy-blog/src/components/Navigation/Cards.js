@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Link } from 'gatsby';
 
 import BREAKPOINTS from '../../constants/breakpoints';
+import FONTS from '../../constants/fonts';
 
 import { TitleH3 } from '../Paragraphs/PageTitle';
 import { Paragraph } from '../Paragraphs/Paragraph';
@@ -49,14 +50,13 @@ const StyledLink = styled(Link)`
 `
 
 const StyledParagraph = styled(Paragraph)`
-    padding-top: 0;
-`
-
-const ImageCard = styled.div`
-    margin-bottom: 1rem;
+    &.--paragraph {
+        padding-bottom: 0;
+    }
 `
 
 const LastPublishedLink = styled.div`
+    margin-top: 1rem;
     font-weight: bold;
 `
 
@@ -67,6 +67,12 @@ const SkillsList = styled.ul`
     font-weight: bold;
 `
 
+const PublishDate = styled.p`
+    margin-bottom: 10px;
+    font-family: ${FONTS.emphasis.fontFamily};
+    font-size: 12px;
+`
+
 
 const CardsList = ({ dataList, lastPublished }) => {
     return (
@@ -74,19 +80,10 @@ const CardsList = ({ dataList, lastPublished }) => {
             {dataList.map((item,index) => (
                 <Item key={item.id} className="--item">
                     <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
-                        {/* {item.image ? (
-                            <ImageCard>
-                                <img
-                                    className='--proj-img'
-                                    src={item.image.path}
-                                    alt={item.name}/>
-                            </ImageCard>
-                        ) : (
-                            ""
-                        )} */}
                         <div>
                             <TitleH3>{ item.frontmatter ? item.frontmatter.title : item.title }</TitleH3>
-                            <StyledParagraph>{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
+                            {item.frontmatter.date && <PublishDate>Posted on {item.frontmatter.date}</PublishDate>}
+                            <StyledParagraph className="--paragraph">{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
                             {item.skills && <SkillsList>
                                 {item.skills.map((skill, i) => (
                                     <li key={item.id + i}>

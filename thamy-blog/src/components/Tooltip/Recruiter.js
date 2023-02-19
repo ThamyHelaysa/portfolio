@@ -21,8 +21,20 @@ const Container = styled.div`
   border: ${(props) => props.theme.colors.border};
   color: ${(props) => props.theme.colors.quoteColor};
   font-family: ${FONTS.emphasis.fontFamily};
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0);
+  transition: all 300ms ease 0s;
   z-index: 9;
+  &.--open {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
   @media (pointer:coarse), (max-width: ${BREAKPOINTS.tablet}){
+    display: none;
+  }
+  @media print {
     display: none;
   }
 `
@@ -35,16 +47,26 @@ const ConfirmButton = styled(Button)`
 
 const RecruiterBubble = ({children}) => {
   const gotIt = JSON.parse(typeof window !== 'undefined' && window.localStorage.getItem("gotIt")) || false;
+  const [initEffect, setInitEffect] = React.useState(false);
   const [close, setClose] = React.useState(gotIt);
 
   const closeBubble = React.useCallback(() => {
-    setClose(true);
-    typeof window !== 'undefined' && window.localStorage.setItem("gotIt",JSON.stringify(true));
-  }, [])
+    setInitEffect(false);
+    setTimeout(() => {
+      setClose(true);
+      typeof window !== 'undefined' && window.localStorage.setItem("gotIt",JSON.stringify(true));
+    }, 1000);
+  }, []);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      setInitEffect(true);
+    }, 1500);
+  }, []);
 
   return (
     <>
-      {!close && <Container>
+      {!close && <Container className={initEffect && "--open"}>
         <p className='--text'>{children}</p>
         <ConfirmButton onClick={closeBubble}>Got it!</ConfirmButton>
       </Container>}

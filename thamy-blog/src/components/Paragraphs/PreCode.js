@@ -6,7 +6,7 @@ import Button from '../Button/DefaultButton'
 import BREAKPOINTS from '../../constants/breakpoints'
 
 
-const Pre = styled.div`
+const Container = styled.div`
     position: relative;
     margin-bottom: 2rem;
     padding: 2rem;
@@ -23,6 +23,12 @@ const Pre = styled.div`
         width: calc(100vw - 4px);
         margin: 0 -1rem 2rem;
     }
+    @media print {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        break-inside: avoid;
+    }
 `
 
 const CopyButton = styled(Button)`
@@ -33,6 +39,9 @@ const CopyButton = styled(Button)`
     @media (max-width: ${BREAKPOINTS.tablet}){
         left: 0;
         right: auto;
+    }
+    @media print {
+        display: none;
     }
     &.--copy > .--ico-copy {
         transform: scale(0);
@@ -76,13 +85,13 @@ const PreCode = ({children}) => {
     }, [children]);
 
     return (
-        <Pre>
+        <Container>
             {children}
             {(typeof navigator !== 'undefined' && !!navigator.clipboard) && <CopyButton className={copyed && "--copy"} onClick={copyToClipboard}>
                 <Icon className='--ico-copy'>📋</Icon>
                 <Icon className='--ico-success'>✔️</Icon>
             </CopyButton>}
-        </Pre>
+        </Container>
     )
 }
 

@@ -10,10 +10,10 @@ const StyledParagraph = styled.p`
     line-height: 2;
 `
 
-const Paragraph = ({children}) => {
+const Paragraph = (props) => {
     return (
-        <StyledParagraph>
-            {children}
+        <StyledParagraph {...props}>
+            {props.children}
         </StyledParagraph>
     )
 }

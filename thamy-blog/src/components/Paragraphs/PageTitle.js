@@ -10,6 +10,9 @@ const TitleH1 = styled.h1`
   font-size: ${FONTS.bigTitle.fontSize};
   font-weight: ${FONTS.bigTitle.fontWeight};
   line-height: 1;
+  @media print {
+    font-size: 2rem!important;
+  }
 `
 
 const TitleH2 = styled.h2`

@@ -51,13 +51,9 @@ const PageTitleH1 = styled(TitleH1)`
   @media print {
     margin-top: 1rem;
     color: #c54551;
-    font-size: 5rem!important;
     text-shadow: none;
     &.--big-font {
       display: none;
-    }
-    &.--medium-font {
-      font-size: 3rem!important;
     }
   }
 `
@@ -71,11 +67,15 @@ const PageTitleH2 = styled(TitleH2)`
   @media print {
     break-inside: avoid;
     color: ${(props) => props.theme.colors.darkPink};
-    font-size: 2rem!important;
+    font-size: 0!important;
     text-shadow: none;
+    &::after {
+      content: attr(data-title);
+      font-size: 1.3rem!important;
+    }
   }
   @media print and (orientation: landscape){
-    height: 150px;
+    height: 100px;
     text-align: left;
     writing-mode: lr;
     transform: none;
@@ -102,12 +102,15 @@ const PageSubtitle = styled(SubTitle)`
 const Paragraph = styled(StyledParagraph)`
   grid-column: 2/3;
   grid-row: 2/3;
+  padding-right: 2vw;
   padding-bottom: 0;
   line-height: 2;
   @media (max-width: ${BREAKPOINTS.laptop}){
     grid-column: 2/span 2;
+    padding-right: 0;
   }
   @media print {
+    padding-right: 0;
     line-height: 1.8;
   }
 `
@@ -144,7 +147,7 @@ const Container = styled.div`
   }
   & > .--image-me {
     grid-row: span 2;
-    border: 1rem dashed ${(props) => props.theme.colors.darkness};
+    border: ${(props) => props.theme.colors.border};
     @media (max-width: ${BREAKPOINTS.laptop}){
       display: none;
     }
@@ -158,9 +161,13 @@ const Container = styled.div`
 
   @media print {
     display: block;
+    padding: 0;
     gap: 1rem;
     &::after  {
       display: none;
+    }
+    & > .--with-me {
+      margin-bottom: 1rem;
     }
   }
   
@@ -186,14 +193,14 @@ const ContainerTwoColumns = styled.div`
 
   @media print {
     display: block;
-    padding: 1rem 0;
+    padding: 0;
     border: 0;
     &.--first {
       break-inside: avoid-page;
       break-after: always;
     }
     & > .--small-t  {
-      height: 100px;
+      height: 70px;
     }
   }
 
@@ -303,7 +310,7 @@ const Layout = ({
               width={600}
               height={720}/>
             <ContainerTwoColumns className='--two-columns --first'>
-              <PageTitleH2 className='--small-t'>{eduContent.title}</PageTitleH2>
+              <PageTitleH2 className='--small-t' data-title={eduContent.title.replace("-", "")}>{eduContent.title}</PageTitleH2>
               <ItensList>
                 {eduContent.content.map((item) => {
                   return (
@@ -316,7 +323,7 @@ const Layout = ({
               </ItensList>
             </ContainerTwoColumns>
             <ContainerTwoColumns className='--two-columns --second'>
-              <PageTitleH2 className='--small-t'>{expContent.title}</PageTitleH2>
+              <PageTitleH2 className='--small-t' data-title={expContent.title.replace("-", "")}>{expContent.title}</PageTitleH2>
               <ItensList>
                 {expContent.content.map((item) => {
                   return (
@@ -336,7 +343,7 @@ const Layout = ({
               </ItensList>
             </ContainerTwoColumns>
             <ContainerTwoColumns className='--two-columns'>
-              <PageTitleH2 className='--small-t'>{skillContent.title}</PageTitleH2>
+              <PageTitleH2 className='--small-t' data-title={skillContent.title.replace("-", "")}>{skillContent.title}</PageTitleH2>
               <ItensList className='--with-columns'>
                 {skillContent.content.map((item) => {
                   return (
@@ -350,7 +357,7 @@ const Layout = ({
 
           </Container>
           <RecruiterBubble>
-            Tech Recruiter or just curious 👀? You can generate a pdf file <strong>(ctrl + p or ⌘ + p)</strong> of this page!
+            Tech Recruiter or just curious 👀? You can generate a pdf file <strong>(ctrl + p or ⌘ + p)</strong> of my resume!
           </RecruiterBubble>
         </Main>
         <Footer footerPhrases={dataPhrases} />

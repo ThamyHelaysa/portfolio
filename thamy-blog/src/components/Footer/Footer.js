@@ -27,6 +27,7 @@ const Container = styled(BorderedWrapper)`
   & > .--phrases-box {
     grid-column: 2/3;
     grid-row: span 4;
+    align-self: center;
     max-width: clamp(300px, 40%,  300px);
     margin-top: 0;
     margin-right: 0;

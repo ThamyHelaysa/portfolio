@@ -20,7 +20,7 @@ const projData = [
       name: 'ToDo List Preview',
       path: toDoGIF
     },
-    skills: ["React", "Styled-components", "localStorage", "Jsx", "UI/UX"]
+    skills: ["React", "Styled-components", "localStorage", "JSX", "UI/UX"]
   },
   {
     title: "Intellibus",

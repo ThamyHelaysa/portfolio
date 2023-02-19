@@ -1,2 +1,7 @@
 [context.production]
   environment = { NODE_VERSION = "18.14.0" }
+
+[[headers]]
+  for = "*.ttf"
+    [headers.values]
+      Cache-Control = "max-age=31536000, public"

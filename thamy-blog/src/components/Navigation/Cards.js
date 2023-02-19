@@ -57,7 +57,6 @@ const ImageCard = styled.div`
 `
 
 const LastPublishedLink = styled.div`
-    background-color: ${({theme}) => theme.colors.yellow};
     font-weight: bold;
 `
 

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
+import BREAKPOINTS from '../../constants/breakpoints';
 
 const Content = styled.p`
     position: relative;
@@ -28,6 +29,11 @@ const Content = styled.p`
         transform: translateX(-50%);
     }
 
+    @media (max-width: ${BREAKPOINTS.tablet}){
+        font-size: 2rem;
+        line-height: 5rem;
+    }
+
 `
 
 const SpecialSpan = styled.span`
@@ -35,16 +41,21 @@ const SpecialSpan = styled.span`
     display: inline-block;
     padding: 5px 10px;
     background: ${(props) => props.theme.colors.emphaticPProject};
-    border: 1px solid ${(props) => props.theme.colors.brightness};
+    border: 2px solid ${(props) => props.theme.colors.brightness};
     color: ${(props) => props.theme.colors.emphaticPProjectColor};
+
+    @media (max-width: ${BREAKPOINTS.mobile}){
+        flex: 1 1 auto;
+        border: 3px solid ${(props) => props.theme.colors.brightness};
+    }
 `
 
 const EmphaticParagraph = () => {
     return (
         <Content>
             <SpecialSpan>Its cool</SpecialSpan>
-            <SpecialSpan>when the</SpecialSpan>
-            <SpecialSpan>execution</SpecialSpan>
+            <SpecialSpan>when</SpecialSpan>
+            <SpecialSpan>the execution</SpecialSpan>
             <SpecialSpan>matches</SpecialSpan>
             <SpecialSpan>the ideia</SpecialSpan>
         </Content>

@@ -82,7 +82,7 @@ const CardsList = ({ dataList, lastPublished }) => {
                     <StyledLink to={item.excerpt ? `/blog/${item.frontmatter.slug}` : item.path}>
                         <div>
                             <TitleH3>{ item.frontmatter ? item.frontmatter.title : item.title }</TitleH3>
-                            {item.frontmatter.date && <PublishDate>Posted on {item.frontmatter.date}</PublishDate>}
+                            {item.frontmatter && item.frontmatter.date && <PublishDate>Posted on {item.frontmatter.date}</PublishDate>}
                             <StyledParagraph className="--paragraph">{ item.frontmatter ? item.frontmatter.desc : item.desc}</StyledParagraph>
                             {item.skills && <SkillsList>
                                 {item.skills.map((skill, i) => (

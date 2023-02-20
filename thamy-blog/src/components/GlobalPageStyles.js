@@ -48,6 +48,7 @@ const Container = createGlobalStyle`
   img, picture, video, canvas, svg {
     display: block;
     max-width: 100%;
+    height: auto;
   }
   input, button, textarea, select {
     font: inherit;

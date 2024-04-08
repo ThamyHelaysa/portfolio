@@ -8,7 +8,7 @@ import GlobalFontStyle from '../../../components/GlobalFontStyles';
 import Seo from '../../../components/Seo';
 
 import { Paragraph } from '../../../components/Paragraphs/Paragraph';
-import { BlogTitleH1, BlogTitleH3 } from '../../../components/Paragraphs/BlogTitle';
+import { BlogTitleH1, BlogTitleH2 } from '../../../components/Paragraphs/BlogTitle';
 import IntellibusContent from '../content/intellibus.mdx'
 import LinkDefault from '../../../components/Navigation/LinkDefault';
 import BlockQuote from '../../../components/Paragraphs/BlockQuote';
@@ -17,7 +17,7 @@ const components = {
   p: Paragraph,
   a: LinkDefault,
   h1: BlogTitleH1,
-  h2: BlogTitleH3,
+  h2: BlogTitleH2,
   blockquote: BlockQuote
 }
 

@@ -10,13 +10,13 @@ import Seo from '../../components/Seo';
 import LinkDefault from '../../components/Navigation/LinkDefault';
 import BlockQuote from '../../components/Paragraphs/BlockQuote';
 import { Paragraph } from '../../components/Paragraphs/Paragraph';
-import { BlogTitleH3 } from '../../components/Paragraphs/BlogTitle';
+import { BlogTitleH2 } from '../../components/Paragraphs/BlogTitle';
 import Code from '../../components/Paragraphs/CodeInline';
 
 const components = {
   p: Paragraph,
   a: LinkDefault,
-  h2: BlogTitleH3,
+  h2: BlogTitleH2,
   blockquote: BlockQuote,
   code: Code,
 }

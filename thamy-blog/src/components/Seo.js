@@ -14,8 +14,10 @@ const Seo = ({title}) => {
     }
   `);
 
+  const formatTitle = `${title} | ${data.site.siteMetadata.title}`;
+
   return (
-    <title>{title} | {data.site.siteMetadata.title}</title>
+    <title>{formatTitle}</title>
   )
 }
 

@@ -3,7 +3,7 @@
  */
 module.exports = {
   siteMetadata: {
-    title: `thamy-blog`,
+    title: `Thamy Helaysa`,
     siteUrl: `https://t-helaysa.com/`,
     description: "My portfolio"
   },

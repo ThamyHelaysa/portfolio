@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 
-import { TitleH1, TitleH3 } from './PageTitle'
+import { TitleH1, TitleH2 } from './PageTitle'
 
 
 const Heading1 = styled(TitleH1)`
@@ -15,7 +15,7 @@ const Heading1 = styled(TitleH1)`
   }
 `
 
-const Heading3 = styled(TitleH3)`
+const Heading2 = styled(TitleH2)`
   margin: 2rem 0;
 `
 
@@ -25,10 +25,10 @@ const BlogTitleH1 = ({children}) => {
   )
 }
 
-const BlogTitleH3 = ({children}) => {
+const BlogTitleH2 = ({children}) => {
   return (
-    <Heading3>{children}</Heading3>
+    <Heading2>{children}</Heading2>
   )
 }
 
-export  { BlogTitleH1, BlogTitleH3 }
+export  { BlogTitleH1, BlogTitleH2 }

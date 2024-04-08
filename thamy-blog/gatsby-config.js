@@ -5,7 +5,7 @@ module.exports = {
   siteMetadata: {
     title: `thamy-blog`,
     siteUrl: `https://t-helaysa.com/`,
-    description: "My new portfolio"
+    description: "My portfolio"
   },
   flags: {
     DEV_SSR: true,
@@ -130,5 +130,26 @@ module.exports = {
         ],
       },
     },
+    {
+      resolve: "gatsby-plugin-sitemap",
+      options: {
+        query: `
+          {
+            site {
+              siteMetadata {
+                siteUrl
+              }
+            }
+            allSitePage {
+              edges {
+                node {
+                  path
+                }
+              }
+            }
+          }`,
+        resolvePages: data => data.allSitePage.edges.map(edge => edge.node),
+      }
+    }
   ],
 };

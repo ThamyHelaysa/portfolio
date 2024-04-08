@@ -7,6 +7,9 @@ module.exports = {
     siteUrl: `https://t-helaysa.com/`,
     description: "My new portfolio"
   },
+  flags: {
+    DEV_SSR: true,
+  },
   plugins: [
     {
       resolve: `gatsby-source-filesystem`,
@@ -54,21 +57,21 @@ module.exports = {
     {
       resolve: 'gatsby-source-mongodb',
       options: {
-          dbName: 'portfolio',
-          collection: 'latin_phrases',
-          server: {
-              address: 'ac-u2aonht-shard-00-02.dqustge.mongodb.net',
-              port: 27017
-          },
-          auth: {
-              user: 'default',
-              password: 'LPO1HvEWC9WW0uQZ'
-          },
-          extraParams: {
-              ssl: true,
-              authSource: 'admin',
-              retryWrites: true
-          }
+        dbName: 'portfolio',
+        collection: 'latin_phrases',
+        server: {
+          address: 'ac-u2aonht-shard-00-02.dqustge.mongodb.net',
+          port: 27017
+        },
+        auth: {
+          user: 'default',
+          password: 'LPO1HvEWC9WW0uQZ'
+        },
+        extraParams: {
+          ssl: true,
+          authSource: 'admin',
+          retryWrites: true
+        }
       }
     },
     {
@@ -85,7 +88,12 @@ module.exports = {
         ],
       }
     },
-    `gatsby-plugin-styled-components`,
+    {
+      resolve: `gatsby-plugin-styled-components`,
+      options: {
+        displayName: false
+      }
+    },
     `gatsby-plugin-image`,
     {
       resolve: `gatsby-plugin-sharp`,

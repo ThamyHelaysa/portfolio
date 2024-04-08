@@ -1,7 +1,7 @@
 const colorNames = {
-    black: "#0D0D0D", //#060930 #0D0D0D #311D3F
-    shadow: "#262626", // #333456 #262626 #522546
-    darkGray: "#333333", // #595B83 #333333 #88304E
+    black: "#0D0D0D",
+    shadow: "#262626",
+    darkGray: "#333333",
     mediumGray: "#595959",
     gray: "#A6A6A6",
     snow: "#D9D9D9",
@@ -30,7 +30,7 @@ const colorNames = {
     blue200: "#c0c2c9",
     blue300: "#999ea9",
     blue400: "#4d5568",
-    blue500: "#010c27", // Main color
+    blue500: "#010c27",
     blue700: "#01091d",
     blue900: "#000613",
 
@@ -39,7 +39,7 @@ const colorNames = {
     pink200: "#fbd3de",
     pink300: "#f9b8c9",
     pink400: "#f483a1",
-    pink500: "#ef4e79", // Main color
+    pink500: "#ef4e79",
     pink700: "#b33b5b",
     pink900: "#75263b",
 

@@ -2,6 +2,13 @@
     "title": "edu-cation",
     "content": [
         {
+            "id": 2,
+            "where": "PUC Minas - Pontifícia Universidade Católica de Minas Gerais",
+            "what": "UX Engineering",
+            "desc": "This graduate course is the perfect match for my profile. Here I will improve already known skills and learn more about team management.",
+            "when": "2024 - 2025"
+        },
+        {
             "id": 1,
             "where": "UNIVEM - Centro Universitário Eurípides de Marília",
             "what": "Graphic Design",

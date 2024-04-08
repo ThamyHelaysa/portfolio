@@ -3,14 +3,22 @@
     "content": [
         {
             "id": 1,
-            "where": "WEBJUMP",
-            "as": "Mid Frontend Magento",
-            "when": "2022 - early 2023",
-            "what": "At the moment I'm responsible for maintain and discuss with the team better solutions for ecommerce. Daily participating in meetings with the client and supporting others teams and helping young developers.",
-            "with": "Git · JIRA · Scrum · phtml · LESS · XML · HTML · CSS · JavaScript · KnockoutJS · Docker"
+            "where": "Interfocus",
+            "as": "React/UI Developer",
+            "when": "mid 2023 - current",
+            "what": "Interfocus needed a experienced Frontend UI Developer with strong knowledge in Design to help with their new component library.",
+            "with": "Git · Scrum · HTML · CSS · JavaScript · React · Typescript · Storybook"
         },
         {
             "id": 2,
+            "where": "WEBJUMP",
+            "as": "Mid Frontend Magento",
+            "when": "2022 - early 2023",
+            "what": "I was responsible for maintain and discuss with the team better solutions for ecommerce. Daily participating in meetings with the client and supporting others teams and helping young developers.",
+            "with": "Git · JIRA · Scrum · phtml · LESS · XML · HTML · CSS · JavaScript · KnockoutJS · Docker"
+        },
+        {
+            "id": 3,
             "where": "DIGITAL HUB",
             "as": "Mid Frontend Developer",
             "when": "2021 - mid 2022",
@@ -18,7 +26,7 @@
             "with": "Git · LESS · HTML5 · XML · CSS · JavaScript · JQuery · Docker"
         },
         {
-            "id": 3,
+            "id": 4,
             "where": "Bizcommerce",
             "as": "Frontend Tech Lead",
             "when": "2020 - 2021",
@@ -26,7 +34,7 @@
             "with": "Git · Micro Front-ends · Jest · Cypress.io · yarn · API REST · phtml · GraphQL · Scrum · npm · HTML5 · XML · CSS · JavaScript · Vue.js"
         },
         {
-            "id": 4,
+            "id": 5,
             "where": "Bizcommerce",
             "as": "Frontend Web Developer Junior/Mid",
             "when": "2017 - 2020",

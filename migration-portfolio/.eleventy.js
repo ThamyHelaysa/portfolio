@@ -24,6 +24,8 @@ export default function (eleventyConfig) {
 
   // eleventyConfig.addPassthroughCopy("src/js");
   // eleventyConfig.addPassthroughCopy("./src/css");
+  eleventyConfig.addPassthroughCopy({ "src/css": "css" });
+
 
   // eleventyConfig.addBundle("css", {
 	// 	toFileDirectory: "dist",

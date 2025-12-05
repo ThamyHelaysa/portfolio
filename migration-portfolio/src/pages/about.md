@@ -1,6 +1,6 @@
 ---
 title: About
-layout: layout.njk
+layout: base.webc
 description: About me.
 permalink: /about/
 ---

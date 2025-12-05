@@ -1,0 +1,18 @@
+<script webc:setup>
+  const today = new Date().toLocaleDateString();
+</script>
+
+<style webc:scoped>
+  .site-header {
+    border: 1px solid red;
+  }
+</style>
+
+<header class="site-header">
+  <nav class="teste">
+    <a href="/">Home</a>
+    <a href="/about/">About</a>
+    <a href="/posts/">Blog</a>
+  </nav>
+  <span @text="today"></span>
+</header>

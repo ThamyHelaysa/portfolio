@@ -1,9 +1,8 @@
 ---
-title: My First Blog Post
-description: This is a test post.
-layout: post.njk
-date: 2024-01-01
-permalink: /blog/my-first-post/
+layout: post.webc
+title: First post
+date: 2025-01-01
+permalink: /posts/first-post/
 ---
 
-This is the content of my very first post using Eleventy.
+Content of my very first post.

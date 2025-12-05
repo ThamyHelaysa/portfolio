@@ -1,7 +1,8 @@
 ---
 title: Home
-layout: layout.njk
+layout: base.webc
 description: Welcome to my portfolio.
+permalink: /
 ---
 
 # Hello!

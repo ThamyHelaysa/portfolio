@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title @text="this.title || 'My portfolio'">My portfolio</title>
+
+    <link rel="stylesheet" href="/css/reset.css" webc:keep />
+    <style @raw="getBundle('css')" webc:keep></style>
+  </head>
+  <body>
+    <navigation ></navigation>
+
+    <main>
+      <!-- where each page’s content goes -->
+      <template @raw="content" webc:nokeep></template>
+    </main>
+
+    <footer>
+      footer
+    </footer>
+  </body>
+</html>

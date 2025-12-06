@@ -1,0 +1,42 @@
+<header class="px-6 py-8 md:px-12 md:py-12 flex justify-between items-start">
+  <div>
+    <a
+      href="/"
+      class="text-accent-red hover:opacity-80 transition-opacity font-serif text-lg tracking-wide {% if activeRoute == 'home' %}font-bold{% endif %}"
+    >
+      Thamires Helaysa
+    </a>
+  </div>
+  
+  <nav class="flex gap-6 md:gap-8 text-sm md:text-base font-light tracking-wider">
+    <a
+      href="/"
+      class="hover:text-accent-red transition-colors {% if activeRoute == '/' %}text-accent-red font-medium{% endif %}"
+    >
+      Work
+    </a>
+    <a
+      href="/about"
+      class="hover:text-accent-red transition-colors {% if activeRoute == 'about' %} text-accent-red font-medium {% endif %}"
+    >
+      About
+    </a>
+    <a
+      href="/blog"
+      class="hover:text-accent-red transition-colors {% if activeRoute == 'blog' %}text-accent-red font-medium{% endif %}"
+    >
+      Blog
+    </a>
+    <a
+      href="https://www.linkedin.com/in/thamy-helaysa"
+      target="_blank"
+      rel="noreferrer"
+      class="hover:text-accent-red transition-colors"
+    >
+      LinkedIn
+    </a>
+  </nav>
+  <div class="bg-warm-bg text-accent-red font-serif p-10">
+    TESTING COLORS
+</div>
+</header>

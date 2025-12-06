@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Colors */
+  --color-warm-bg: #f3e5e4;
+  --color-accent-red: #ff453a;
+  --color-text-dark: #1a1a1a;
+  --color-text-gray: #4a4a4a;
+
+  /* Fonts */
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Lato", sans-serif;
+}

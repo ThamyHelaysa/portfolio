@@ -1,0 +1,23 @@
+{
+  "name": "migration-portfolio",
+  "version": "1.0.0",
+  "description": "My brand new portfolio",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx eleventy --serve",
+    "build": "npx eleventy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thamires H Santos",
+  "license": "ISC",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@tailwindcss/postcss": "^4.1.17",
+    "autoprefixer": "^10.4.22",
+    "cssnano": "^7.1.2",
+    "motion": "^12.23.25",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17"
+  }
+}

@@ -1,24 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 import cssnano from 'cssnano';
+import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
 import tailwindcss from '@tailwindcss/postcss'; // Assuming Tailwind v4 or the postcss plugin
-import collections from "./config/collections.js";
+import collections from "./src/_config/collections.js";
+import shortcodes from "./src/_config/shortcodes.js";
+import filters from './src/_config/filters.js';
 
 export default function (eleventyConfig) {
 
-  // 1. WATCH TARGET: Tell Eleventy to watch your CSS source files
-  // If you don't add this, you have to restart the server to see CSS changes.
+  // Watch CSS files
   eleventyConfig.addWatchTarget("./src/assets/styles/");
 
-  // 2. COMPILE TAILWIND
+  // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
     // INPUT: Where your source CSS lives
     const tailwindInputPath = path.resolve('./src/assets/styles/index.css');
     
     // OUTPUT: MUST match the path in your HTML <link> tag
-    // Changed from 'styles/index.css' to 'css/main.css' to match your error log
-    const tailwindOutputPath = './dist/assets/css/main.css'; 
+    const tailwindOutputPath = './dist/assets/css/index.css'; 
     
     const cssContent = fs.readFileSync(tailwindInputPath, 'utf8');
 
@@ -28,8 +29,8 @@ export default function (eleventyConfig) {
     }
 
     const result = await processor.process(cssContent, {
-      from: tailwindInputPath,
-      to: tailwindOutputPath,
+      from: path.resolve(tailwindInputPath),
+      to: path.resolve(tailwindOutputPath),
     });
 
     fs.writeFileSync(tailwindOutputPath, result.css);
@@ -37,25 +38,33 @@ export default function (eleventyConfig) {
 
   const processor = postcss([
     tailwindcss(),
+    autoprefixer(),
     cssnano({ preset: 'default' }),
   ]);
 
   // Collections
-  Object.keys(collections).forEach(collectionName => {
-    eleventyConfig.addCollection(collectionName, collections[collectionName]);
-  });
+  // Object.keys(collections).forEach(collectionName => {
+  // });
+  eleventyConfig.addCollection("posts", collections.posts);
+  eleventyConfig.addCollection("projects", collections.projects);
 
-  // 3. PASSTHROUGH FIX
+  // Filters
+  eleventyConfig.addFilter("formatYear", filters.formatYear);
+  eleventyConfig.addFilter("formatDatefull", filters.formatDateFull);
+
+  // Shortcodes
+  eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
+  eleventyConfig.addPairedShortcode("blogSectionBlock", shortcodes.blogSectionBlock);
+
   // Avoid copying the raw CSS folder if it's inside assets. 
   // We only want the compiled version.
   // Using a glob pattern to copy everything in assets EXCEPT the styles folder if needed.
   // For now, simpler is:
-  eleventyConfig.addPassthroughCopy("src/assets/images"); 
-  eleventyConfig.addPassthroughCopy("src/assets/fonts");
+  eleventyConfig.addPassthroughCopy("src/assets/css"); 
+  // eleventyConfig.addPassthroughCopy("src/assets/fonts");
   // Do NOT passthrough "src/assets" broadly if it contains your raw source CSS, 
   // or it might overwrite your compiled file during the build race.
 
-  eleventyConfig.addPassthroughCopy("src/components");
 
   return {
     dir: {
@@ -63,6 +72,8 @@ export default function (eleventyConfig) {
       output: 'dist',
       includes: '_includes',
       layouts: '_layouts'
-    }
+    },
+    markdownTemplateEngine: "njk", // this is fine
+    htmlTemplateEngine: "njk",
   };
 }

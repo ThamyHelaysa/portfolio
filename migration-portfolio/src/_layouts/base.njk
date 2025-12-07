@@ -4,10 +4,13 @@
     <meta charset="UTF-8" />
     <title>{{ title or "My Portfolio" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {# <link rel="stylesheet" href="/assets/styles/index.css"> #}
-    <link rel="stylesheet" href="{{ '/assets/css/main.css' | url }}">
+    {# <link rel="stylesheet" href="/assets/css/index.css"> #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ '/assets/css/index.css' | url }}">
   </head>
-  <body class="bg-warm-bg">
+  <body class="bg-warm-bg font-serif">
     <div class="min-h-screen bg-warm-bg text-text-dark font-sans selection:bg-accent-red selection:text-white flex flex-col">
       
       {% include "partials/header.njk" %}

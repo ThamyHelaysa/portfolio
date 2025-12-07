@@ -1,0 +1,14 @@
+
+{% for item in personal.favorites %}
+<div key={{item.id}} class="flex flex-col group">
+  <span class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">
+    {{item.category}}
+  </span>
+  <span class="font-serif text-xl md:text-2xl text-text-dark leading-tight mb-2 group-hover:translate-x-1 transition-transform duration-300">
+    {{item.title}}
+  </span>
+  <span class="text-sm font-sans text-text-gray/70 font-light border-l border-accent-red/20 pl-3">
+    {{item.details}}
+  </span>
+</div>
+{% endfor %}

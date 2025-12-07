@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+
+/* @source "../../"; */
+
 @theme {
   /* Colors */
   --color-warm-bg: #f3e5e4;
@@ -10,4 +13,12 @@
   /* Fonts */
   --font-serif: "Playfair Display", serif;
   --font-sans: "Lato", sans-serif;
+}
+
+body {
+  @apply bg-[var(--color-theme-bg)] text-[var(--color-theme-text)] font-serif;
+}
+
+p {
+  @apply font-serif;
 }

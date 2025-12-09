@@ -60,7 +60,9 @@ export default function (eleventyConfig) {
   // We only want the compiled version.
   // Using a glob pattern to copy everything in assets EXCEPT the styles folder if needed.
   // For now, simpler is:
-  eleventyConfig.addPassthroughCopy("src/assets/css"); 
+  eleventyConfig.addPassthroughCopy("src/assets/css");
+
+  eleventyConfig.addPassthroughCopy("src/components/*.js"); 
   // eleventyConfig.addPassthroughCopy("src/assets/fonts");
   // Do NOT passthrough "src/assets" broadly if it contains your raw source CSS, 
   // or it might overwrite your compiled file during the build race.

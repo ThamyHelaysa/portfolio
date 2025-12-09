@@ -2,7 +2,7 @@
 export default {
   blogSectionBlock: function (content, url, title, date, tags) {
     return `
-      <div class="flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-16 border-t border-accent-red/10 first:border-t-0">
+      <div class="bg-warm-bg transition flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-16 border-t border-accent-red/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
           <h3 class="text-2xl md:text-3xl font-serif text-accent-red mb-2 leading-tight">
             <a href="${url}">
@@ -14,13 +14,11 @@ export default {
             </p>
         </div>
         <div class="md:w-2/3 leading-relaxed text-text-gray font-light text-lg">
-          <div>${content}</div>
+          <div class="">${content}</div>
           <div class="flex flex-wrap gap-2 mt-6">
             ${tags ? tags.map((tag) => (
-              `
-              <span
-                class="text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider"
-              >
+              `<span
+                class="text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider">
                 ${tag}
               </span>
               `
@@ -33,7 +31,7 @@ export default {
 
   sectionBlock: function (content, title, subtitle) {
     return `
-      <div class="flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-16 border-t border-accent-red/10 first:border-t-0">
+      <div class="bg-warm-bg transition flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-16 border-t border-accent-red/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
           <h3 class="text-2xl md:text-3xl font-serif text-accent-red mb-2 leading-tight">
             ${title}

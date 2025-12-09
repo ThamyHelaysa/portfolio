@@ -1,5 +1,5 @@
 ---
-layout: base.njk
+layout: post.njk
 title: "How to add ratings to recently viewed listing Magento 2"
 date: "2023-01-16"
 author: "Thamires H."

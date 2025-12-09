@@ -4,5 +4,8 @@ export default {
   },
   projects: function (collectionApi) {
     return collectionApi.getFilteredByGlob('src/projects/**/*.md');
+  },
+  games: function (collectionApi) {
+    return collectionApi.getFilteredByGlob('src/games/**/*.md');
   }
 };

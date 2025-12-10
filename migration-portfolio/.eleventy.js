@@ -42,11 +42,9 @@ export default function (eleventyConfig) {
     cssnano({ preset: 'default' }),
   ]);
 
-  // Collections
-  // Object.keys(collections).forEach(collectionName => {
-  // });
   eleventyConfig.addCollection("posts", collections.posts);
   eleventyConfig.addCollection("projects", collections.projects);
+  eleventyConfig.addCollection("published", collections.published);
 
   // Filters
   eleventyConfig.addFilter("formatYear", filters.formatYear);

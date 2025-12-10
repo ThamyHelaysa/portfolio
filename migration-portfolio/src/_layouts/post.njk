@@ -1,14 +1,20 @@
-{% extends "./base.njk" %}
-    <h1>{{ title }}</h1>
+---
+layout: base.njk
+---
 
-{% block content %}
-  <article>
+<h1 class="text-4xl md:text-6xl mb-16 lg:text-7xl font-serif text-accent-red leading-[1.1] md:leading-[1.1] max-w-5xl">{{ title }}</h1>
 
-    {% if date %}
-      <p><small>{{ date }}</small></p>
-    {% endif %}
-    <div>
-      {{ content | safe }}
-    </div>
-  </article>
-{% endblock %}
+<article>
+  {% if date %}
+    <p><small>{{ date }}</small></p>
+  {% endif %}
+
+  <div>
+    {{ content | safe }}
+  </div>
+</article>
+
+<nav>
+  {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
+  {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
+</nav>

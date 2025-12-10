@@ -1,24 +1,23 @@
 class ThemeToggle extends HTMLElement {
   constructor() {
     super();
-    // Initialize state
+    // Init state
     this.theme = 'pinky'; 
   }
 
   connectedCallback() {
-    // 1. Initialize logic (checking local storage/system pref)
+    // Init logic (checking local storage/system pref)
     this.initializeTheme();
     
-    // 2. Render the HTML
+    // Render template
     this.render();
 
-    // 3. Cache DOM elements so we don't query them every time we click
+    // 'Cache' DOM elements
     this.btn = this.querySelector('button');
     this.dot = this.querySelector('.theme-dot');
     this.text = this.querySelector('.theme-text');
 
-    // 4. Add Event Listener
-    // Note: We bind 'this' so the function can access the class properties
+    // Add Event Listener
     this.btn.addEventListener('click', this.toggleTheme.bind(this));
   }
 
@@ -32,19 +31,19 @@ class ThemeToggle extends HTMLElement {
       this.theme = 'dark';
     }
 
-    // Apply the theme immediately so the UI is correct on first render
+    // Apply theme immediately so the UI is correct on first render
     this.applyThemeToDocument();
   }
 
   toggleTheme() {
-    // Flip the state
+    // Flip 'state'
     this.theme = this.theme === 'pinky' ? 'dark' : 'pinky';
     
-    // Save and Apply
+    // Save and apply
     localStorage.setItem('theme', this.theme);
     this.applyThemeToDocument();
     
-    // Update the button visuals
+    // Update template
     this.updateUI();
   }
 
@@ -61,7 +60,7 @@ class ThemeToggle extends HTMLElement {
   }
 
   updateUI() {
-    // Manually update classes/text to avoid re-rendering the whole HTML
+    // Manually update every thing to avoid re-rendering the whole HTML
     if (this.theme === 'dark') {
       this.dot.classList.remove('scale-0');
       this.dot.classList.add('scale-100');
@@ -74,7 +73,6 @@ class ThemeToggle extends HTMLElement {
   }
 
   render() {
-    // This uses "Light DOM" so your Tailwind classes work instantly.
     this.innerHTML = `
       <button 
         type="button"

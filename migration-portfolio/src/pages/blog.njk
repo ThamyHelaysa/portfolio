@@ -1,0 +1,26 @@
+---
+layout: post.njk
+title: Nice stuff I wrote
+permalink: /blog/
+pagination:
+  data: collections.published
+  size: 10
+  alias: posts
+---
+
+
+<ul class="space-y-6">
+  {% for post in collections.published | reverse %}
+    {% set formatedDate = post.date | formatDatefull(post.date) %}
+    {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
+      <p>{{ post.data.description }}</p>
+    {% endblogSectionBlock %}
+  {% endfor %}
+</ul>
+
+<nav>
+  {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
+  {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
+</nav>
+
+

@@ -1,0 +1,29 @@
+@theme {
+  /* Map tailwind utilities to the CSS variables */
+  --color-warm-bg: var(--color-warm-bg);
+  --color-accent-red: var(--color-accent-red);
+  --color-text-dark: var(--color-text-dark);
+  --color-text-gray: var(--color-text-gray);
+  --default-transition-duration: 300ms;
+
+  --color-paper: var(--color-paper);
+  --color-paper-text: var(--color-paper-text);
+
+  /* Fonts */
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* https://conorhaining.com/posts/view-transitions-for-your-static-site/ */
+  --animate-fade-in: 400ms ease-in-out both fade-in;
+  --animate-fade-out: 100ms ease-in-out both fade-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+}

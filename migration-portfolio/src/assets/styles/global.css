@@ -1,4 +1,15 @@
 @import 'tailwindcss';
+@import './config-theme.css';
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion) {
+    @view-transition {
+        navigation: none;
+    }
+}
 
 @layer base {
   :root {
@@ -7,6 +18,8 @@
     --color-accent-red: #ff453a;
     --color-text-dark: #1a1a1a;
     --color-text-gray: #4a4a4a;
+    --color-paper: #fffdf5; 
+    --color-paper-text: #292524;
   }
   
   :root.dark {
@@ -15,27 +28,33 @@
     --color-accent-red: #38bdf8; /* Sky 400 */
     --color-text-dark: #f8fafc; /* Slate 50 */
     --color-text-gray: #cbd5e1; /* Slate 300 */
+    --color-paper: #1e293b; 
+    --color-paper-text: #e2e8f0;
   }
 }
 
+::view-transition-old(post) {
+  /* animation: 0.1s ease-in-out both fade-out; */
+  animation: var(--animate-fade-out);
+}
 
-@theme {
-  /* Map tailwind utilities to the CSS variables */
-  --color-warm-bg: var(--color-warm-bg);
-  --color-accent-red: var(--color-accent-red);
-  --color-text-dark: var(--color-text-dark);
-  --color-text-gray: var(--color-text-gray);
-  --default-transition-duration: 300ms;
-
-  /* Fonts */
-  --font-serif: "Playfair Display", serif;
-  --font-mono: "IBM Plex Mono", monospace;
+::view-transition-new(post) {
+  /* animation: 0.4s ease-in-out both fade-in; */
+  animation: var(--animate-fade-in);
 }
 
 body {
   /* background-color: var(--color-warm-bg); */
   color: var(--color-text-dark);
   transition: color 300ms ease 0ms;
+}
+
+main {
+  view-transition-name: post;
+}
+
+h1 {
+  @apply text-4xl md:text-6xl mb-16 lg:text-7xl font-serif text-accent-red leading-[1.1] md:leading-[1.1] max-w-5xl
 }
 
 .dotted-bg {

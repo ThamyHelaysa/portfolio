@@ -1,0 +1,38 @@
+@theme {
+  /* Map tailwind utilities to the CSS variables */
+  --color-warm-bg: var(--color-warm-bg);
+  --color-accent-red: var(--color-accent-red);
+  --color-text-dark: var(--color-text-dark);
+  --color-text-gray: var(--color-text-gray);
+  --default-transition-duration: 300ms;
+
+  --color-paper: var(--color-paper);
+  --color-paper-text: var(--color-paper-text);
+
+  /* Fonts */
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+
+  --animate-dialog: fade-in 300ms ease-out both;
+  --animate-backdrop: blur-in 400ms ease both;
+
+  @keyframes fade-in {
+    0% { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes blur-in {
+    0% { 
+      opacity: 0;
+    }
+    100% { 
+      opacity: 1;
+    }
+  }
+}

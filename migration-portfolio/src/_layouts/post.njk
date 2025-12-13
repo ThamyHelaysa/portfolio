@@ -2,13 +2,13 @@
 layout: base.njk
 ---
 
-<h1 class="text-4xl md:text-6xl mb-16 lg:text-7xl font-serif text-accent-red leading-[1.1] md:leading-[1.1] max-w-5xl">{{ title }}</h1>
 
-<article>
-  {% if date %}
-    <p><small>{{ date }}</small></p>
-  {% endif %}
+<h1>{{ title }}</h1>
+{% if date %}
+  <p><small class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">{{ date }}</small></p>
+{% endif %}
 
+<article class="bg-warm-bg py-4 px-2 md:py-12 md:px-6">
   <div>
     {{ content | safe }}
   </div>

@@ -1,0 +1,20 @@
+/*
+* File only for importing Tailwind and
+* config for the theme
+*/
+
+@import "tailwindcss" prefix(sw);
+@source "../../components/note-modal.js";
+@import "./shadow-config.css";
+
+dialog[open] {
+  @apply sw:animate-dialog sw:transition-transform;
+}
+
+dialog[open]::backdrop {
+  animation: var(--sw-animate-backdrop);
+}
+
+dialog::backdrop {
+  @apply sw:backdrop-blur-lg;
+}

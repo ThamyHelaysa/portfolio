@@ -16,24 +16,61 @@ export default function (eleventyConfig) {
   // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
     // INPUT: Where your source CSS lives
-    const tailwindInputPath = path.resolve('./src/assets/styles/index.css');
-    
-    // OUTPUT: MUST match the path in your HTML <link> tag
-    const tailwindOutputPath = './dist/assets/css/index.css'; 
-    
-    const cssContent = fs.readFileSync(tailwindInputPath, 'utf8');
+    // const tailwindInputPath = path.resolve('./src/assets/styles/global.css');
+    // 1. Define your compilation targets
+    const targets = [
+      {
+        input: './src/assets/styles/global.css',
+        output: './dist/assets/css/global.css'
+      },
+      {
+        input: './src/assets/styles/shadow.css',
+        output: './dist/assets/css/shadow.css'
+      }
+    ];
 
-    const outputDir = path.dirname(tailwindOutputPath);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
+    for (const target of targets) {
+      const inputPath = path.resolve(target.input);
+      const outputPath = path.resolve(target.output);
+
+      // Ensure input exists to avoid crashing
+      if (!fs.existsSync(inputPath)) {
+        console.warn(`⚠️ CSS Input not found: ${inputPath}`);
+        continue;
+      }
+
+      const cssContent = fs.readFileSync(inputPath, 'utf8');
+      const outputDir = path.dirname(outputPath);
+
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      // Process with Tailwind
+      const result = await processor.process(cssContent, {
+        from: inputPath,
+        to: outputPath,
+      });
+
+      fs.writeFileSync(outputPath, result.css);
+      console.log(`[Tailwind] Compiled: ${target.input} -> ${target.output}`);
     }
+    // OUTPUT: MUST match the path in your HTML <link> tag
+    // const tailwindOutputPath = './dist/assets/css/global.css'; 
 
-    const result = await processor.process(cssContent, {
-      from: path.resolve(tailwindInputPath),
-      to: path.resolve(tailwindOutputPath),
-    });
+    // const cssContent = fs.readFileSync(tailwindInputPath, 'utf8');
 
-    fs.writeFileSync(tailwindOutputPath, result.css);
+    // const outputDir = path.dirname(tailwindOutputPath);
+    // if (!fs.existsSync(outputDir)) {
+    //   fs.mkdirSync(outputDir, { recursive: true });
+    // }
+
+    // const result = await processor.process(cssContent, {
+    //   from: path.resolve(tailwindInputPath),
+    //   to: path.resolve(tailwindOutputPath),
+    // });
+
+    // fs.writeFileSync(tailwindOutputPath, result.css);
   });
 
   const processor = postcss([
@@ -42,7 +79,7 @@ export default function (eleventyConfig) {
     cssnano({ preset: 'default' }),
   ]);
 
-  eleventyConfig.addCollection("posts", collections.posts);
+  // eleventyConfig.addCollection("posts", collections.posts);
   eleventyConfig.addCollection("projects", collections.projects);
   eleventyConfig.addCollection("published", collections.published);
 
@@ -60,7 +97,7 @@ export default function (eleventyConfig) {
   // For now, simpler is:
   eleventyConfig.addPassthroughCopy("src/assets/css");
 
-  eleventyConfig.addPassthroughCopy("src/components/*.js"); 
+  eleventyConfig.addPassthroughCopy("src/components/*.js");
   // eleventyConfig.addPassthroughCopy("src/assets/fonts");
   // Do NOT passthrough "src/assets" broadly if it contains your raw source CSS, 
   // or it might overwrite your compiled file during the build race.

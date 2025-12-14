@@ -108,7 +108,7 @@
       "category": "Last Read",
       "title": "Refactoring UI",
       "details": "Adam Wathan & Steve Schoger",
-      "previewUrl": "https://picsum.photos/200",
+      "previewUrl": "../assets/images/clefairy.jpg",
       "previewType": "img"
     },
     {
@@ -116,7 +116,7 @@
       "category": "On Repeat",
       "title": "Cochise",
       "details": "Audio Slave",
-      "previewUrl": "https://picsum.photos/200",
+      "previewUrl": "../assets/images/jigglypuff.png",
       "previewType": "img"
     },
     {
@@ -124,7 +124,7 @@
       "category": "Playing",
       "title": "Hollow Knight",
       "details": "-",
-      "previewUrl": "https://picsum.photos/200",
+      "previewUrl": "../assets/images/pikachu.jpg",
       "previewType": "img"
     },
     {
@@ -132,7 +132,7 @@
       "category": "Studying",
       "title": "Astro & Islands Architecture",
       "details": "Performance Patterns",
-      "previewUrl": "https://picsum.photos/200",
+      "previewUrl": "../assets/images/psyduck.png",
       "previewType": "img"
     }
   ]

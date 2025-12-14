@@ -1,16 +1,18 @@
 
-{% for item in personal.favorites %}
-  <cursor-preview preview-type="{{item.previewType}}" preview-src="{{item.previewUrl}}">
-    <div key={{item.id}} class="flex flex-col group">
-      <span class="text-xs text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">
-        {{item.category}}
-      </span>
-      <span class="text-accent-red text-xl md:text-2xl leading-tight mb-2 group-hover:translate-x-1 transition-transform duration-300">
-        {{item.title}}
-      </span>
-      <span class="text-sm font-mono text-text-gray/70 font-thin border-l border-accent-red/60 pl-3">
-        {{item.details}}
-      </span>
-    </div>
-  </cursor-preview>
-{% endfor %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 mb-24 md:mb-32 bg-warm-bg border-y border-accent-red/60 py-12">
+  {% for item in personal.favorites %}
+    <media-preview class="flex flex-col" preview-type="{{item.previewType}}" preview-src="{{item.previewUrl}}">
+      <div key={{item.id}} class="flex flex-col group">
+        <span class="text-xs text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">
+          {{item.category}}
+        </span>
+        <span class="text-accent-red text-xl md:text-2xl leading-tight mb-2 group-hover:translate-x-1 transition-transform duration-300">
+          {{item.title}}
+        </span>
+        <span class="text-sm font-mono text-text-gray/70 font-thin border-l border-accent-red/60 pl-3">
+          {{item.details}}
+        </span>
+      </div>
+    </media-preview>
+  {% endfor %}
+</div>

@@ -90,3 +90,55 @@ h1 {
     visibility: visible;
   }
 }
+
+#mediaPreview {
+  @apply fixed inset-0 flex items-center justify-center
+         w-[100px] h-[100px]
+         bg-accent-red rounded-[200px]
+         pointer-events-none overflow-hidden
+         z-99;
+
+  border: solid white;
+  border-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  cursor: none;
+
+  /* One unified transform: translate + scale var */
+  transform: translate3d(var(--preview-x, 0px), var(--preview-y, 0px), 0)
+             scale(var(--preview-scale, 0));
+
+  /* Keep transitions defined in a single place */
+  transition-property: transform, opacity, visibility, border-width;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+  transition-delay: 0ms;
+
+  will-change: transform, opacity;
+
+  /* Hide children that don't have src at all (initial state) */
+  & > :not([src]) {
+    display: none;
+  }
+}
+
+/* Visible state — easier & faster if you toggle a class from JS */
+#mediaPreview.is-visible {
+  border-width: 2px;
+  opacity: 1;
+  visibility: visible;
+  --preview-scale: 1;
+}
+
+/* Optionally fade-in the media itself */
+#mediaPreview img,
+#mediaPreview video {
+  @apply w-full h-full object-cover;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+#mediaPreview img.visible,
+#mediaPreview video.visible {
+  opacity: 1;
+}

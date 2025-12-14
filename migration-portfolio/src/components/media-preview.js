@@ -72,6 +72,15 @@ class MediaPreview extends HTMLElement {
   }
 
   /**
+   * Gets the position type for preview
+   * @readonly
+   * @returns {string} The value of the 'preview-position' attribute, or 'cursor' if not set.
+   */
+  get previewPosition() {
+    return this.getAttribute('preview-position') || 'cursor';
+  }
+
+  /**
    * Gets the source URL for the preview.
    * @readonly
    * @returns {string|null} The value of the 'preview-src' attribute.
@@ -97,11 +106,15 @@ class MediaPreview extends HTMLElement {
    */
   _handleMouseEnter(e) {
     const preview = SharedMediaPreview.getInstance();
+    const rect = this.getBoundingClientRect(); // the card area
+
     preview.show({
       src: this.previewSrc,
       type: this.previewType,
       x: e.clientX,
       y: e.clientY,
+      placement: this.previewPosition,
+      triggerRect: rect,
     });
   }
 
@@ -111,10 +124,18 @@ class MediaPreview extends HTMLElement {
    * * @param {MouseEvent} e - The mouse event object.
    * @private
    */
-  _handleMouseMove(e) {
+  _handleMouseMove = (e) => {
     const preview = SharedMediaPreview.getInstance();
-    preview.move(e.clientX, e.clientY);
-  }
+    const rect = this.getBoundingClientRect();
+
+    preview.move({
+      x: e.clientX,
+      y: e.clientY,
+      placement: this.previewPosition,
+      triggerRect: rect,
+    });
+  };
+
 
   /**
    * Handles the mouse leave event.

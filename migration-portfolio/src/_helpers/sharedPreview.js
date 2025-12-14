@@ -4,8 +4,9 @@
  * from interfering with mouse events on the underlying element.
  * @constant {number}
  */
-const PREVIEW_OFFSET = 50;
-
+// const PREVIEW_OFFSET = 50;
+const PREVIEW_OFFSET = 12;   // small gap between preview and anchor
+const PREVIEW_SIZE = 100;    // matches your 100x100
 /**
  * A Singleton class that manages a global media preview overlay.
  * * This class is responsible for creating a single DOM structure attached to the body
@@ -35,7 +36,7 @@ export class SharedMediaPreview {
    * the structure to the document body.
    */
   constructor() {
-    
+
     /** @type {HTMLDivElement} The main container for the preview. */
     this._wrapper = document.createElement('div');
     this._wrapper.id = 'mediaPreview';
@@ -92,17 +93,14 @@ export class SharedMediaPreview {
    * @param {number} options.x - The X coordinate (usually clientX).
    * @param {number} options.y - The Y coordinate (usually clientY).
    */
-  show({ src, type, x, y }) {
+  show({ src, type, x, y, placement = 'cursor', triggerRect }) {
     if (!src) return;
 
     // Determine type: use provided type or try to guess from file extension
     const effectiveType = type || this.inferType(src);
-    if (!effectiveType) {
-      // If we can't determine the type, do not show anything
-      return;
-    }
+    if (!effectiveType) return;
 
-    this._setPosition(x, y);
+    this._setPosition({ x, y, placement, triggerRect });
 
     // Toggle specific element visibility
     if (effectiveType === 'video') {
@@ -119,11 +117,14 @@ export class SharedMediaPreview {
   /**
    * Updates the position of the preview element.
    * Usually called during mousemove events.
+   * @param {Object} options - Configuration object.
    * @param {number} x - The new X coordinate.
    * @param {number} y - The new Y coordinate.
+   * @param {string} placement - The type of placement of the preview
+   * @param {DOMRect} triggerRect - The container position
    */
-  move(x, y) {
-    this._setPosition(x, y);
+  move({ x, y, placement = 'cursor', triggerRect }) {
+    this._setPosition({ x, y, placement, triggerRect });
   }
 
   /**
@@ -147,15 +148,63 @@ export class SharedMediaPreview {
    * Applies an offset to center the preview relative to the cursor.
    * @param {number} x - Raw X coordinate.
    * @param {number} y - Raw Y coordinate.
+   * @param {string} placement - The type of placement of the preview
+   * @param {DOMRect} triggerRect - The container position
    * @private
    */
-  _setPosition(x, y) {
-    const eixoX = x - PREVIEW_OFFSET;
-    const eixoY = y - PREVIEW_OFFSET;
+  _setPosition({ x, y, placement, triggerRect }) {
+    let eixoX = 0;
+    let eixoY = 0;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    if (placement === 'cursor' || !triggerRect) {
+      // center bubble on cursor, like you already do
+      eixoX = x - PREVIEW_SIZE / 2;
+      eixoY = y - PREVIEW_SIZE / 2;
+    } else {
+      const rect = triggerRect;
+      switch (placement) {
+        case 'right':
+          eixoX = rect.right + PREVIEW_OFFSET;
+          eixoY = rect.top + (rect.height - PREVIEW_SIZE) / 2;
+          break;
+
+        case 'left':
+          eixoX = rect.left - PREVIEW_SIZE - PREVIEW_OFFSET;
+          eixoY = rect.top + (rect.height - PREVIEW_SIZE) / 2;
+          break;
+
+        case 'top':
+          eixoX = rect.left + (rect.width - PREVIEW_SIZE) / 2;
+          eixoY = rect.top - PREVIEW_SIZE - PREVIEW_OFFSET;
+          break;
+
+        case 'bottom':
+          eixoX = rect.left + (rect.width - PREVIEW_SIZE) / 2;
+          eixoY = rect.bottom + PREVIEW_OFFSET;
+          break;
+
+        default:
+          // fallback to cursor
+          eixoX = x - PREVIEW_SIZE / 2;
+          eixoY = y - PREVIEW_SIZE / 2;
+          break;
+      }
+    }
+
+    // Clamp so it doesn’t overflow viewport too badly
+    const maxX = vw - PREVIEW_SIZE - PREVIEW_OFFSET;
+    const maxY = vh - PREVIEW_SIZE - PREVIEW_OFFSET;
+
+    eixoX = Math.max(PREVIEW_OFFSET, Math.min(eixoX, maxX));
+    eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));
 
     this._wrapper.style.setProperty('--preview-x', `${eixoX}px`);
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);
   }
+
 
   /**
    * Internal helper to activate the image element and deactivate the video.
@@ -180,7 +229,7 @@ export class SharedMediaPreview {
    * @private
    */
   _showVideo(src) {
-    
+
     this.img.classList.remove('visible');
 
     this.video.classList.add('visible');
@@ -191,6 +240,6 @@ export class SharedMediaPreview {
 
     // Attempt to play. Catch prevents errors if the user hasn't interacted with the document yet
     // or if the browser blocks autoplay.
-    this.video.play().catch(() => {});
+    this.video.play().catch(() => { });
   }
 }

@@ -107,25 +107,33 @@
       "id": "books",
       "category": "Last Read",
       "title": "Refactoring UI",
-      "details": "Adam Wathan & Steve Schoger"
+      "details": "Adam Wathan & Steve Schoger",
+      "previewUrl": "https://picsum.photos/200",
+      "previewType": "img"
     },
     {
       "id": "album",
       "category": "On Repeat",
       "title": "Cochise",
-      "details": "Audio Slave"
+      "details": "Audio Slave",
+      "previewUrl": "https://picsum.photos/200",
+      "previewType": "img"
     },
     {
       "id": "game",
       "category": "Playing",
       "title": "Hollow Knight",
-      "details": "-"
+      "details": "-",
+      "previewUrl": "https://picsum.photos/200",
+      "previewType": "img"
     },
     {
       "id": "learning",
       "category": "Studying",
       "title": "Astro & Islands Architecture",
-      "details": "Performance Patterns"
+      "details": "Performance Patterns",
+      "previewUrl": "https://picsum.photos/200",
+      "previewType": "img"
     }
   ]
 }

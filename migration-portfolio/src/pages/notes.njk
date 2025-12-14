@@ -15,7 +15,7 @@ title: Random Notes
       name="note-{{ loop.index }}"
       class="cursor-pointer group relative flex flex-col items-start text-left p-6 bg-paper rounded-sm shadow-sm hover:shadow-md transition-all duration-300 w-full"
     >
-      <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 bg-accent-red/10 opacity-70 rotate-[-2deg] backdrop-blur-sm"></div>
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 bg-accent-red/10 opacity-70 -rotate-2 backdrop-blur-sm"></div>
       <span class="font-serif text-lg text-paper-text font-medium mb-2 group-hover:text-accent-red transition-colors">{{ note.data.title }}</span>
       {# onclick="openNote('note-{{ loop.index }}', '{{ note.data.title | escape }}', '{{ note.date | formatDatefull(note.date) }}')" #}
       <span class="text-xs font-sans text-paper-text/50 uppercase tracking-wider">{{ note.date | formatDatefull(note.date) }}</span>

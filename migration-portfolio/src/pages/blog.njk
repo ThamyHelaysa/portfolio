@@ -13,7 +13,7 @@ pagination:
   {% for post in collections.published | reverse %}
     {% set formatedDate = post.date | formatDatefull(post.date) %}
     {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
-      <p>{{ post.data.description }}</p>
+      <p>{{ post.data.description }}{{post.data.updateDate}}</p>
     {% endblogSectionBlock %}
   {% endfor %}
 </ul>

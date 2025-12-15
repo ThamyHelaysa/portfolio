@@ -13,24 +13,98 @@
 
 @layer base {
   :root {
-    /* Default Theme (Pinky) */
-    --color-warm-bg: #f3e5e4;
-    --color-accent-red: #ff453a;
-    --color-text-dark: #1a1a1a;
-    --color-text-gray: #4a4a4a;
-    --color-paper: #fffdf5; 
+    --color-gray-50: #fafaf9;
+    --color-gray-100: #f5f5f4;
+    --color-gray-200: #e7e5e4;
+    --color-gray-300: #d6d3d1;
+    --color-gray-400: #a8a29e;
+    --color-gray-500: #78716c;
+    --color-gray-600: #57534e;
+    --color-gray-700: #44403c;
+    --color-gray-800: #292524;
+    --color-gray-900: #1c1917;
+    --color-gray-950: #0c0a09;
+
+    /* Pink colors */
+    --color-pink-50: #FFFBFC;
+    --color-pink-100: #FDCFDA;
+    --color-pink-200: #FBA7BB;
+    --color-pink-300: #F9839F;
+    --color-pink-400: #F86285;
+    --color-pink-500: #F7446D;
+    --color-pink-600: #F62655;
+    --color-pink-700: #F50B40;
+    --color-red-800: #DD0939;
+    --color-red-900: #C70833;
+    --color-red-950: #B3072E;
+
+    /* Pinky Vars */
+    --color-warm-bg: var(--color-pink-50);
+    --color-accent-red: var(--color-red-900);
+    --color-paper: var(--color-pink-50); 
     --color-paper-text: #292524;
   }
   
   :root.dark {
-    /* Dark Theme (Darky - Blacks/Blues) */
-    --color-warm-bg: #0f172a; /* Slate 900 */
-    --color-accent-red: #38bdf8; /* Sky 400 */
-    --color-text-dark: #f8fafc; /* Slate 50 */
-    --color-text-gray: #cbd5e1; /* Slate 300 */
-    --color-paper: #1e293b; 
+
+    /* Dark Vars */
+    --color-warm-bg: var(--color-gray-950); 
+    --color-accent-red: var(--color-pink-300); 
+    --color-paper: var(--color-gray-800); 
     --color-paper-text: #e2e8f0;
   }
+}
+
+@layer components {
+  
+  .dotted-bg {
+    position: relative;
+    min-height: 100vh;
+    /* background-image: radial-gradient(1px,
+        color-mix(in oklab,#ff453a 50%,transparent),
+        color-mix(in oklab,#ff453a 50%,transparent) 1px,
+        #f3e5e4); */
+    background-image: radial-gradient(
+        circle at 1px 1px, /* explicit position helps clarity */
+        color-mix(in oklab, var(--color-accent-red) 50%, transparent) 1px, 
+        transparent 0);
+    background-color: var(--color-warm-bg);
+    background-size: 20px 20px;
+    background-repeat: repeat repeat;
+    background-position: top left;
+    transition: opacity 400ms ease, visibility 400ms ease;
+    will-change: opacity;
+    &::after {
+      position: absolute;
+      content: '';
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      /* background-image: radial-gradient(1px,
+        color-mix(in oklab,#F9839F 30%,#0f172a),
+        color-mix(in oklab,#F9839F 30%,#0f172a) 1px,
+        #0f172a); */
+      background-image: radial-gradient(
+          circle at 1px 1px, 
+          color-mix(in oklab, #F9839F 30%, #0f172a) 1px, 
+          transparent 0);
+      background-color: inherit;
+      background-size: 20px 20px;
+      background-repeat: repeat repeat;
+      background-position: top left;
+      z-index: -1;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 400ms ease, visibility 400ms ease;
+    }
+    &:where(.dark, .dark *) {
+      &::after {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
 }
 
 ::view-transition-old(post) {
@@ -44,51 +118,21 @@
 }
 
 body {
-  /* background-color: var(--color-warm-bg); */
-  color: var(--color-text-dark);
+  color: var(--color-gray-700);
+  font-weight: 600;
   transition: color 300ms ease 0ms;
+  .dark & {
+    color: var(--color-gray-400);
+  }
 }
 
 main {
+  @apply max-w-4xl;
   view-transition-name: post;
 }
 
 h1 {
-  @apply text-4xl md:text-6xl mb-16 lg:text-7xl font-serif text-accent-red leading-[1.1] md:leading-[1.1] max-w-5xl
-}
-
-.dotted-bg {
-  position: relative;
-  background-image: radial-gradient(1px,
-      color-mix(in oklab,#ff453a 50%,transparent),
-      color-mix(in oklab,#ff453a 50%,transparent) 1px,
-      #f3e5e4);
-  background-size: 20px 20px;
-  background-repeat: repeat repeat;
-  background-position: top left;
-  transition: opacity 400ms ease, visibility 400ms ease;
-  &::after {
-    position: absolute;
-    content: '';
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background-image: radial-gradient(1px,
-      color-mix(in oklab,#38bdf8 30%,#0f172a),
-      color-mix(in oklab,#38bdf8 30%,#0f172a) 1px,
-      #0f172a);
-    background-size: 20px 20px;
-    background-repeat: repeat repeat;
-    background-position: top left;
-    z-index: -1;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 400ms ease, visibility 400ms ease;
-  }
-  .dark &::after {
-    opacity: 1;
-    visibility: visible;
-  }
+  @apply text-4xl md:text-6xl mb-16 lg:text-6xl font-serif text-accent-red leading-[1.1] md:leading-[1.1] max-w-5xl
 }
 
 #mediaPreview {

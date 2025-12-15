@@ -97,6 +97,9 @@ export default function (eleventyConfig) {
   // For now, simpler is:
   eleventyConfig.addPassthroughCopy("src/assets/css");
   eleventyConfig.addPassthroughCopy("src/assets/images");
+  eleventyConfig.addPassthroughCopy({
+    "src/assets/video-previews": "assets/video-previews"
+  });
 
   eleventyConfig.addPassthroughCopy("src/components/*.js");
   eleventyConfig.addPassthroughCopy("src/_helpers/*.js");

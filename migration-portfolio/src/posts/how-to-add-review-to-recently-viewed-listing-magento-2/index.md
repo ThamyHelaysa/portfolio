@@ -1,6 +1,7 @@
 ---
 title: "How to add ratings to recently viewed listing Magento 2"
 date: "2023-01-16"
+updateDate: "2015-12-09"
 permalink: /blog/how-to-add-review-to-recently-viewed-listing-magento-2/
 description: "Did you notice that the default recently viewed magento 2 listing just have a few components? Here I show you how you can add the product review and more."
 tags: 

@@ -2,7 +2,7 @@
 export default {
   blogSectionBlock: function (content, url, title, date, tags) {
     return `
-      <div class="bg-warm-bg transition flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-y border-accent-red/10 ">
+      <div class="bg-warm-bg flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-y border-accent-red/10 ">
         <div class="md:w-1/3 shrink-0">
           <h3 class="text-2xl md:text-3xl font-serif text-accent-red mb-2 leading-tight">
             <a href="${url}">
@@ -31,7 +31,7 @@ export default {
 
   sectionBlock: function (content, title, subtitle) {
     return `
-      <div class="bg-warm-bg transition flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-t border-accent-red/10 first:border-t-0">
+      <div class="bg-warm-bg flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-t border-accent-red/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
           <h3 class="text-2xl md:text-3xl font-serif text-accent-red mb-2 leading-tight">
             ${title}

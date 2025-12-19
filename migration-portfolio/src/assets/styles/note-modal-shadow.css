@@ -1,0 +1,118 @@
+/*
+* File only for importing Tailwind and
+* config for the theme
+*/
+@source "../../components/note-modal.js";
+@import "tailwindcss" prefix(nm);
+@import "./shadow-config.css";
+
+dialog[open] {
+  @apply nm:fixed nm:items-center nm:justify-center 
+  nm:top-[50%] nm:left-[50%] nm:-translate-x-[50%] nm:-translate-y-[50%]
+  nm:min-w-[90vw] nm:overflow-hidden
+  nm:z-50 nm:p-4 nm:flex nm:flex-col
+  nm:bg-transparent nm:perspective-[1000px];
+  
+  .animate-drop-in {
+    animation: var(--nm-animate-drop-in);
+  }
+  .animate-scale-in {
+    animation: var(--nm-animate-scale-in);
+  }
+
+  p {
+    @apply nm:font-serif nm:text-paper-text/80 
+    nm:text-base nm:leading-7 nm:text-pretty nm:transition-opacity;
+  }
+
+  & [data-index="1"] p::first-letter {
+    @apply nm:leading-8;
+    float: left;
+    font-size: 50px;
+    font-weight: bold;
+  }
+
+  button {
+    @apply nm:select-none nm:text-paper-text/40 nm:hover:text-accent-red;
+  }
+}
+
+dialog[open]::backdrop {
+  animation: var(--nm-animate-backdrop);
+}
+
+dialog::backdrop {
+  @apply nm:backdrop-blur-3xl;
+}
+
+#containerStack {
+  @apply nm:relative nm:w-full nm:max-w-lg nm:aspect-3/4
+}
+
+#sheetWrapper {
+  @apply nm:absolute nm:inset-0 nm:z-20;
+}
+
+#innerFlipper {
+  @apply nm:w-full nm:h-full nm:relative ;
+  /* transition-property: transform, translate, scale, rotate; */
+  transition-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  transform-origin: center center;
+  transition-duration: 700ms;
+  transform-style: preserve-3d;
+
+  /* display: flex;
+  flex-flow: column;
+  justify-content: stretch;
+  align-items: flex-start; */
+  /* min-height: calc(80vh - 100px); */
+}
+
+#innerFlipper .content {
+  @apply nm:flex-grow nm:flex 
+  nm:items-center nm:justify-center 
+  nm:overflow-hidden
+  nm:w-full;
+}
+
+.sidesWrapper {
+  @apply nm:absolute nm:inset-0 nm:bg-paper
+  nm:flex nm:flex-col nm:items-center nm:justify-between
+  nm:backface-hidden nm:z-30
+  nm:p-8 nm:md:p-12;
+}
+
+#frontSide {
+  /* width: 100%;
+  height: 70vh; */
+}
+
+#backSide {
+  @apply nm:rotate-y-180;
+  /* width: 100%;
+  height: 70vh; */
+}
+
+#containerNavigation {
+  @apply nm:flex nm:justify-between nm:items-stretch
+  nm:absolute nm:w-[calc(100%+160px)] nm:h-[50px] 
+  nm:top-1/2 nm:left-1/2 nm:-translate-1/2
+  nm:text-sm nm:font-sans nm:font-bold
+  nm:z-[19]
+  nm:opacity-0;
+  animation: var(--nm-animate-backdrop);
+  animation-delay: 180ms;
+  button {
+    @apply nm:px-3 nm:py-2 nm:uppercase;
+  }
+  button:not([disabled]) {
+    @apply nm:cursor-pointer nm:z-[99];
+  }
+  button[disabled]{
+    @apply nm:text-paper-text/10 nm:cursor-not-allowed;
+  }
+}
+
+#pageIndicator {
+  
+}

@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'node:crypto';
+
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
-import tailwindcss from '@tailwindcss/postcss'; // Assuming Tailwind v4 or the postcss plugin
+import tailwindcss from '@tailwindcss/postcss';
 import collections from "./src/_config/collections.js";
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
@@ -11,8 +13,20 @@ import filters from './src/_config/filters.js';
 export default function (eleventyConfig) {
 
   // Watch CSS files
-  eleventyConfig.addWatchTarget("./src/assets/styles/");
+  eleventyConfig.addWatchTarget("./src/assets/styles/**/*.css");
 
+  const processor = postcss([
+    tailwindcss(),
+    autoprefixer(),
+    cssnano({ preset: 'default' }),
+  ]);
+  eleventyConfig.addExtension("11ty.ts", {
+    key: "11ty.js",
+  });
+
+  // Add to --formats via Configuration
+  // or via CLI: --formats=11ty.ts
+  eleventyConfig.addTemplateFormats("11ty.ts");
   // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
     // INPUT: Where your source CSS lives
@@ -26,6 +40,14 @@ export default function (eleventyConfig) {
       {
         input: './src/assets/styles/shadow.css',
         output: './dist/assets/css/shadow.css'
+      },
+      {
+        input: './src/assets/styles/toggle-theme-shadow.css',
+        output: './dist/assets/css/toggle-theme-shadow.css'
+      },
+      {
+        input: './src/assets/styles/note-modal-shadow.css',
+        output: './dist/assets/css/note-modal-shadow.css'
       }
     ];
 
@@ -73,19 +95,18 @@ export default function (eleventyConfig) {
     // fs.writeFileSync(tailwindOutputPath, result.css);
   });
 
-  const processor = postcss([
-    tailwindcss(),
-    autoprefixer(),
-    cssnano({ preset: 'default' }),
-  ]);
-
   // eleventyConfig.addCollection("posts", collections.posts);
   eleventyConfig.addCollection("projects", collections.projects);
   eleventyConfig.addCollection("published", collections.published);
+  eleventyConfig.addCollection("notesPublished", collections.notesPublished);
 
   // Filters
   eleventyConfig.addFilter("formatYear", filters.formatYear);
   eleventyConfig.addFilter("formatDatefull", filters.formatDateFull);
+  // eleventyConfig.addFilter("cspHash", (rawString) => {
+  //   const hash = createHash("sha256").update(rawString).digest("base64");
+  //   return `'sha256-${hash}'`;
+  // });
 
   // Shortcodes
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
@@ -95,7 +116,7 @@ export default function (eleventyConfig) {
   // We only want the compiled version.
   // Using a glob pattern to copy everything in assets EXCEPT the styles folder if needed.
   // For now, simpler is:
-  eleventyConfig.addPassthroughCopy("src/assets/css");
+  // eleventyConfig.addPassthroughCopy("src/assets/css");
   eleventyConfig.addPassthroughCopy("src/assets/images");
   eleventyConfig.addPassthroughCopy({
     "src/assets/video-previews": "assets/video-previews"

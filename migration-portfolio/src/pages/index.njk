@@ -4,6 +4,7 @@ layout: base.njk
 permalink: /
 ---
 
+{# Intro #}
 <section class="mb-24 md:mb-40">
   <div class="max-w-5xl">
     <h1>
@@ -18,7 +19,20 @@ permalink: /
     {{personal.info.summary}}
     </p>
   </div>
+
 </section>
 
+{# As of now #}
 {% include "partials/favorites.njk" %}
 
+<h2 class="">Last published</h2>
+{# Last published #}
+<ul class="space-y-6">
+    {% set postslist = collections.published | reverse %}
+    {% for post in postslist.slice(0,5) %}
+      {% set formatedDate = post.date | formatDatefull(post.date) %}
+      {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
+        <p>{{ post.data.description }}{{post.data.updateDate}}</p>
+      {% endblogSectionBlock %}
+    {% endfor %}
+  </ul>

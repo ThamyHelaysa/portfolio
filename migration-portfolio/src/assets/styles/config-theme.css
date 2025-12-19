@@ -1,5 +1,5 @@
 @theme {
-  --color-gray-50: var(--color-gray-50);
+  /* --color-gray-50: var(--color-gray-50);
   --color-gray-100: var(--color-gray-100);
   --color-gray-200: var(--color-gray-200);
   --color-gray-300: var(--color-gray-300);
@@ -9,11 +9,12 @@
   --color-gray-700: var(--color-gray-700);
   --color-gray-800: var(--color-gray-800);
   --color-gray-900: var(--color-gray-900);
-  --color-gray-950: var(--color-gray-950);
+  --color-gray-950: var(--color-gray-950); */
 
   /* Custom colors */
   --color-warm-bg: var(--color-warm-bg);
   --color-accent-red: var(--color-accent-red);
+  --color-accent-pink: var(--color-accent-pink);
   
   --color-paper: var(--color-paper);
   --color-paper-text: var(--color-paper-text);
@@ -26,6 +27,7 @@
   /* https://conorhaining.com/posts/view-transitions-for-your-static-site/ */
   --animate-fade-in: fade-in 400ms ease-in-out both;
   --animate-fade-out: fade-out 100ms ease-in-out both;
+  --animate-drop-in: dropIn 500ms ease-out forwards;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -34,5 +36,18 @@
   @keyframes fade-out {
     from { opacity: 1; }
     to { opacity: 0; }
+  }
+
+  @keyframes dropIn {
+    0% {
+      /* Start position: slightly above its final position and hidden */
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    100% {
+      /* End position: original position and fully visible */
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }

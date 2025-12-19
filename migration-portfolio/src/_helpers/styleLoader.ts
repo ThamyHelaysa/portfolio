@@ -1,24 +1,21 @@
 /**
  * Global cache for instantiated CSSStyleSheet objects.
  * Maps the resolved URL to the constructed sheet.
- * @type {Map<string, CSSStyleSheet>}
  */
-let shared = new Map();
+const shared = new Map<string, CSSStyleSheet>();
 
 /**
  * Global cache for pending fetch/parsing promises.
  * Prevents multiple components from triggering simultaneous requests for the same file.
- * @type {Map<string, Promise<CSSStyleSheet>>}
  */
-let sharedPromises = new Map();
+const sharedPromises = new Map<string, Promise<CSSStyleSheet>>();
 
 /**
  * Checks browser support for Constructable Stylesheets.
  * This API allows sharing a single CSSStyleSheet instance across multiple Shadow DOMs
  * without cloning the CSS text, significantly reducing memory usage.
- * @returns {boolean} True if the browser supports `adoptedStyleSheets`.
  */
-function supportsConstructableStylesheets() {
+function supportsConstructableStylesheets(): boolean {
   return (
     "adoptedStyleSheets" in Document.prototype &&
     "replaceSync" in CSSStyleSheet.prototype
@@ -29,14 +26,10 @@ function supportsConstructableStylesheets() {
  * Resolves the input string into a valid absolute URL path.
  * * Handles defaults and assumes a specific directory structure for bare filenames.
  *
- * @param {string} [input] - The file path or name.
- * @returns {string} The resolved absolute path.
- * @example
- * resolveCssUrl() // "/assets/css/shadow.css"
- * resolveCssUrl("foo.css") // "/assets/css/foo.css"
- * resolveCssUrl("/custom/style.css") // "/custom/style.css"
+ * @param input - The file path or name.
+ * @returns The resolved absolute path.
  */
-function resolveCssUrl(input) {
+function resolveCssUrl(input?: string): string {
   if (!input) return "/assets/css/shadow.css";
   if (input.startsWith("/")) return input;
   if (input.includes("/")) return `/${input}`;
@@ -48,15 +41,19 @@ function resolveCssUrl(input) {
  * Implements the "Request Coalescing" pattern: if a request is already in flight,
  * subsequent calls wait for that same promise rather than starting a new fetch.
  *
- * @param {string} url - The resolved URL of the CSS file.
- * @returns {Promise<CSSStyleSheet>} A promise resolving to the shared stylesheet.
+ * @param url - The resolved URL of the CSS file.
+ * @returns A promise resolving to the shared stylesheet.
  */
-async function getSheet(url) {
+async function getSheet(url: string): Promise<CSSStyleSheet> {
   // 1. Return cached instance if available (fastest)
-  if (shared.has(url)) return shared.get(url);
+  if (shared.has(url)) {
+    return shared.get(url)!;
+  }
 
   // 2. Return existing promise if fetch is already in progress (prevents race conditions)
-  if (sharedPromises.has(url)) return sharedPromises.get(url);
+  if (sharedPromises.has(url)) {
+    return sharedPromises.get(url)!;
+  }
 
   // 3. Initiate new fetch
   const p = (async () => {
@@ -89,10 +86,10 @@ async function getSheet(url) {
  * Adopts a shared stylesheet into a ShadowRoot.
  * Prevents duplicates by checking existing sheets.
  *
- * @param {ShadowRoot} shadowRoot - The target shadow root.
- * @param {CSSStyleSheet} sheet - The stylesheet to adopt.
+ * @param shadowRoot - The target shadow root.
+ * @param sheet - The stylesheet to adopt.
  */
-function adoptSheet(shadowRoot, sheet) {
+function adoptSheet(shadowRoot: ShadowRoot, sheet: CSSStyleSheet): void {
   const existing = shadowRoot.adoptedStyleSheets || [];
   if (!existing.includes(sheet)) {
     shadowRoot.adoptedStyleSheets = [...existing, sheet];
@@ -103,11 +100,10 @@ function adoptSheet(shadowRoot, sheet) {
  * Main utility to load and apply Tailwind (or any CSS) to a Shadow DOM.
  * * Automatically handles URL resolution, caching, and browser compatibility.
  *
- * @param {ShadowRoot} shadowRoot - The component's shadow root.
- * @param {string} [cssFileOrUrl] - The CSS filename or path (e.g., "my-component.css").
- * @returns {Promise<void>}
+ * @param shadowRoot - The component's shadow root.
+ * @param cssFileOrUrl - The CSS filename or path (e.g., "my-component.css").
  */
-export async function adoptTailwind(shadowRoot, cssFileOrUrl) {
+export async function adoptTailwind(shadowRoot: ShadowRoot, cssFileOrUrl?: string): Promise<void> {
   const url = resolveCssUrl(cssFileOrUrl);
 
   // Fallback: Legacy browsers (no Constructable Stylesheets)

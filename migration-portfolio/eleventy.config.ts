@@ -1,6 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import esbuild from "esbuild";
+// import { createHash } from 'node:crypto';
+// import UserConfig from '@11ty/eleventy';
 
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
@@ -10,7 +12,7 @@ import collections from "./src/_config/collections.js";
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
 
-export default function (eleventyConfig) {
+export default function (eleventyConfig: any) {
 
   // Watch CSS files
   eleventyConfig.addWatchTarget("./src/assets/styles/**/*.css");
@@ -20,13 +22,31 @@ export default function (eleventyConfig) {
     autoprefixer(),
     cssnano({ preset: 'default' }),
   ]);
-  eleventyConfig.addExtension("11ty.ts", {
-    key: "11ty.js",
+
+  eleventyConfig.addExtension("ts", {
+    outputFileExtension: "js", // Output as .js
+    compile: async (_: any, inputPath: string) => {
+      // Skip files outside the '_helpers' directory 
+      if (!inputPath.includes("_helpers") && !inputPath.includes("components")) return;
+
+      return async (data: any) => {
+        // Compile using esbuild
+        const result = await esbuild.build({
+          entryPoints: [inputPath],
+          write: false,
+          bundle: true,     // Bundle dependencies
+          minify: true,     // Minify for performance
+          target: "es2020", // Modern JS target
+        });
+
+        // Return the compiled code
+        return result.outputFiles[0].text;
+      };
+    },
   });
 
-  // Add to --formats via Configuration
-  // or via CLI: --formats=11ty.ts
-  eleventyConfig.addTemplateFormats("11ty.ts");
+  eleventyConfig.addTemplateFormats("ts");
+
   // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
     // INPUT: Where your source CSS lives
@@ -103,30 +123,19 @@ export default function (eleventyConfig) {
   // Filters
   eleventyConfig.addFilter("formatYear", filters.formatYear);
   eleventyConfig.addFilter("formatDatefull", filters.formatDateFull);
-  // eleventyConfig.addFilter("cspHash", (rawString) => {
-  //   const hash = createHash("sha256").update(rawString).digest("base64");
-  //   return `'sha256-${hash}'`;
-  // });
 
   // Shortcodes
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
   eleventyConfig.addPairedShortcode("blogSectionBlock", shortcodes.blogSectionBlock);
 
-  // Avoid copying the raw CSS folder if it's inside assets. 
-  // We only want the compiled version.
-  // Using a glob pattern to copy everything in assets EXCEPT the styles folder if needed.
-  // For now, simpler is:
-  // eleventyConfig.addPassthroughCopy("src/assets/css");
+  // Passthrough
   eleventyConfig.addPassthroughCopy("src/assets/images");
   eleventyConfig.addPassthroughCopy({
     "src/assets/video-previews": "assets/video-previews"
   });
 
-  eleventyConfig.addPassthroughCopy("src/components/*.js");
-  eleventyConfig.addPassthroughCopy("src/_helpers/*.js");
-  // eleventyConfig.addPassthroughCopy("src/assets/fonts");
-  // Do NOT passthrough "src/assets" broadly if it contains your raw source CSS, 
-  // or it might overwrite your compiled file during the build race.
+  // eleventyConfig.addPassthroughCopy("src/components/*.js");
+  // eleventyConfig.addPassthroughCopy("src/_helpers/*.js");
 
 
   return {

@@ -2,11 +2,25 @@
  * Offset in pixels to position the preview element relative to the cursor.
  * This ensures the cursor remains visible and prevents the preview
  * from interfering with mouse events on the underlying element.
- * @constant {number}
  */
-// const PREVIEW_OFFSET = 50;
 const PREVIEW_OFFSET = 12;   // small gap between preview and anchor
 const PREVIEW_SIZE = 100;    // matches your 100x100
+
+type MediaType = 'image' | 'video';
+type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
+
+interface PositionOptions {
+  x: number;
+  y: number;
+  placement?: PreviewPlacement;
+  triggerRect?: DOMRect | null;
+}
+
+interface ShowOptions extends PositionOptions {
+  src: string;
+  type?: MediaType;
+}
+
 /**
  * A Singleton class that manages a global media preview overlay.
  * * This class is responsible for creating a single DOM structure attached to the body
@@ -14,15 +28,20 @@ const PREVIEW_SIZE = 100;    // matches your 100x100
  * visibility toggling, and resource management (like pausing videos when hidden).
  */
 export class SharedMediaPreview {
-  /** @type {SharedMediaPreview} The single instance of the class. */
-  static instance;
+  /** The single instance of the class. */
+  private static instance: SharedMediaPreview;
+
+  private _wrapper: HTMLDivElement;
+  private img: HTMLImageElement;
+  private video: HTMLVideoElement;
+  private _currentSrc: string | null;
+  private _currentType: MediaType | null;
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
    * If it does not exist, it creates one.
-   * @returns {SharedMediaPreview} The singleton instance.
    */
-  static getInstance() {
+  static getInstance(): SharedMediaPreview {
     if (!SharedMediaPreview.instance) {
       SharedMediaPreview.instance = new SharedMediaPreview();
     }
@@ -35,16 +54,15 @@ export class SharedMediaPreview {
    * configures default video settings (autoplay, mute, loop), and appends
    * the structure to the document body.
    */
-  constructor() {
-
-    /** @type {HTMLDivElement} The main container for the preview. */
+  private constructor() {
+    /** The main container for the preview. */
     this._wrapper = document.createElement('div');
     this._wrapper.id = 'mediaPreview';
 
-    /** @type {HTMLImageElement} Element used to display static images. */
+    /** Element used to display static images. */
     this.img = document.createElement('img');
 
-    /** @type {HTMLVideoElement} Element used to display video content. */
+    /** Element used to display video content. */
     this.video = document.createElement('video');
 
     // Configure video for background-like behavior (no sound, auto loop)
@@ -58,18 +76,18 @@ export class SharedMediaPreview {
 
     document.body.appendChild(this._wrapper);
 
-    /** @type {string|null} Tracks the currently loaded source to avoid redundant reloading. */
+    /** Tracks the currently loaded source to avoid redundant reloading. */
     this._currentSrc = null;
-    /** @type {string|null} Tracks the current media type ('image' or 'video'). */
+    /** Tracks the current media type ('image' or 'video'). */
     this._currentType = null;
   }
 
   /**
    * Infers the media type based on the file extension of the source URL.
-   * @param {string} src - The source URL to analyze.
-   * @returns {'image'|'video'|undefined} The inferred type, or undefined if unknown.
+   * @param src - The source URL to analyze.
+   * @returns The inferred type, or undefined if unknown.
    */
-  inferType(src) {
+  inferType(src: string | null | undefined): MediaType | undefined {
     if (!src || typeof src !== 'string') return undefined;
 
     const lower = src.toLowerCase();
@@ -87,13 +105,8 @@ export class SharedMediaPreview {
   /**
    * Displays the preview at specific coordinates.
    * Determines whether to show video or image based on explicit type or inference.
-   * @param {Object} options - Configuration object.
-   * @param {string} options.src - The media source URL.
-   * @param {string} [options.type] - Explicit type ('image' or 'video'). If omitted, it is inferred from src.
-   * @param {number} options.x - The X coordinate (usually clientX).
-   * @param {number} options.y - The Y coordinate (usually clientY).
    */
-  show({ src, type, x, y, placement = 'cursor', triggerRect }) {
+  show({ src, type, x, y, placement = 'cursor', triggerRect }: ShowOptions): void {
     if (!src) return;
 
     // Determine type: use provided type or try to guess from file extension
@@ -117,13 +130,8 @@ export class SharedMediaPreview {
   /**
    * Updates the position of the preview element.
    * Usually called during mousemove events.
-   * @param {Object} options - Configuration object.
-   * @param {number} x - The new X coordinate.
-   * @param {number} y - The new Y coordinate.
-   * @param {string} placement - The type of placement of the preview
-   * @param {DOMRect} triggerRect - The container position
    */
-  move({ x, y, placement = 'cursor', triggerRect }) {
+  move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
     this._setPosition({ x, y, placement, triggerRect });
   }
 
@@ -131,7 +139,7 @@ export class SharedMediaPreview {
    * Hides the preview and pauses any active media.
    * Cleans up internal state.
    */
-  hide() {
+  hide(): void {
     this._wrapper.classList.remove('is-visible');
 
     // Pause video to save resources when not visible
@@ -146,13 +154,8 @@ export class SharedMediaPreview {
   /**
    * Calculates and applies CSS variables for positioning.
    * Applies an offset to center the preview relative to the cursor.
-   * @param {number} x - Raw X coordinate.
-   * @param {number} y - Raw Y coordinate.
-   * @param {string} placement - The type of placement of the preview
-   * @param {DOMRect} triggerRect - The container position
-   * @private
    */
-  _setPosition({ x, y, placement, triggerRect }) {
+  private _setPosition({ x, y, placement, triggerRect }: PositionOptions): void {
     let eixoX = 0;
     let eixoY = 0;
 
@@ -160,7 +163,7 @@ export class SharedMediaPreview {
     const vh = window.innerHeight;
 
     if (placement === 'cursor' || !triggerRect) {
-      // center bubble on cursor, like you already do
+      // center bubble on cursor
       eixoX = x - PREVIEW_SIZE / 2;
       eixoY = y - PREVIEW_SIZE / 2;
     } else {
@@ -205,13 +208,10 @@ export class SharedMediaPreview {
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);
   }
 
-
   /**
    * Internal helper to activate the image element and deactivate the video.
-   * @param {string} src - The image source URL.
-   * @private
    */
-  _showImage(src) {
+  private _showImage(src: string): void {
     // Switch active classes
     this.video.classList.remove('visible');
     this.img.classList.add('visible');
@@ -225,13 +225,9 @@ export class SharedMediaPreview {
   /**
    * Internal helper to activate the video element and deactivate the image.
    * Handles the play promise to prevent errors.
-   * @param {string} src - The video source URL.
-   * @private
    */
-  _showVideo(src) {
-
+  private _showVideo(src: string): void {
     this.img.classList.remove('visible');
-
     this.video.classList.add('visible');
 
     if (this.video.src !== src) {

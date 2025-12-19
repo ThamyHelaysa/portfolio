@@ -1,5 +1,5 @@
 // utils/AnimationManager.ts
-import { waitForVisual } from './waitForVisuals.11ty.ts';
+import waitForVisual from "./waitForVisuals.ts";
 
 class AnimationManager {
   private static instance: AnimationManager;
@@ -33,7 +33,7 @@ class AnimationManager {
     }
 
     // 2. Clean up any existing animation on this element to prevent conflicts
-    this.cancelRunningAnimation(element);
+    this.cancel(element);
 
     // 3. Wait for visual readiness (prevents FOUC on new elements)
     await waitForVisual();
@@ -77,7 +77,7 @@ class AnimationManager {
   /**
    * Manually cancels an animation on an element if it exists.
    */
-  public cancelRunningAnimation(element: HTMLElement): void {
+  public cancel(element: HTMLElement): void {
     const existing = this.activeAnimations.get(element);
     if (existing) {
       existing.cancel();

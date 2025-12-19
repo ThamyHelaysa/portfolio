@@ -1,4 +1,4 @@
-import { SharedMediaPreview } from "../_helpers/sharedPreview.js";
+import { SharedMediaPreview } from "../_helpers/sharedPreview.ts";
 
 /**
  * A Custom Element that triggers a floating media preview (image or video)

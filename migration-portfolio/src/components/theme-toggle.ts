@@ -1,4 +1,4 @@
-import { adoptTailwind } from "../_helpers/styleLoader.js";
+import { adoptTailwind } from "../_helpers/styleLoader.ts";
 
 /**
  * Available theme options.
@@ -8,6 +8,8 @@ const THEMES = /** @type {const} */ ({
   pinky: "pinky",
   dark: "dark",
 });
+
+type Theme = typeof THEMES[keyof typeof THEMES];
 
 /**
  * Key used to persist the theme preference in localStorage.
@@ -33,11 +35,24 @@ class ThemeToggle extends HTMLElement {
    * @readonly
    * @returns {string[]}
    */
-  static observedAttributes = ["theme"];
+  static get observedAttributes(): string[] {
+    return ["theme"];
+  }
+
+  /** Internal state for the current theme. */
+  private _theme: Theme;
+
+  /** Media Query Listener for system preference changes. */
+  private _mql: MediaQueryList | null = null;
+
+  // Cached DOM elements
+  private _btn: HTMLButtonElement | null = null;
+  private _dot: HTMLSpanElement | null = null;
+  private _text: HTMLSpanElement | null = null;
 
   constructor() {
     super();
-    /** @type {string} Internal state for the current theme. */
+    
     this._theme = THEMES.pinky;
     this.attachShadow({ mode: "open" });
 
@@ -52,21 +67,21 @@ class ThemeToggle extends HTMLElement {
    * 1. **Synchronous:** Applies global theme state immediately (document root) to prevent page flashing.
    * 2. **Asynchronous:** Fetches CSS, then renders the button UI.
    */
-  connectedCallback() {
+  connectedCallback(): void {
     // 1. Initialize Global State Immediately (Sync)
     // Don't wait for CSS to load to set the document class
     this._initThemeState();
 
     // 2. Render UI (Async)
-    adoptTailwind(this.shadowRoot, "toggle-theme-shadow.css")
+    adoptTailwind(this.shadowRoot!, "toggle-theme-shadow.css")
       .then(() => {
         // Ensure connection before rendering
         if (!this.isConnected) return;
 
-        this._render(); 
+        this._render();
         this._cacheDOM();
         this._bindEvents();
-        
+
         // Sync UI to the state
         this._syncUI(this._theme);
       });
@@ -76,7 +91,7 @@ class ThemeToggle extends HTMLElement {
    * Lifecycle callback.
    * Removes event listeners to prevent memory leaks.
    */
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this._btn?.removeEventListener("click", this._onClick);
     this._mql?.removeEventListener("change", this._onSystemChange);
   }
@@ -85,7 +100,7 @@ class ThemeToggle extends HTMLElement {
    * Gets the current theme.
    * @returns {string}
    */
-  get theme() {
+  get theme(): Theme {
     return this._theme;
   }
 
@@ -94,15 +109,15 @@ class ThemeToggle extends HTMLElement {
    * * Note: This is the primary entry point for manual changes.
    * @param {string} value - The new theme to apply.
    */
-  set theme(value) {
+  set theme(value: Theme) {
     const next = value === THEMES.dark ? THEMES.dark : THEMES.pinky;
     if (next === this._theme) return;
 
     this._theme = next;
-    
+
     // Reflect state to attribute (triggers attributeChangedCallback)
     this.setAttribute("theme", next);
-    
+
     // Persist
     localStorage.setItem(STORAGE_KEY, next);
 
@@ -117,12 +132,12 @@ class ThemeToggle extends HTMLElement {
    * @param {string} _oldValue - Previous value.
    * @param {string} newValue - New value.
    */
-  attributeChangedCallback(name, _oldValue, newValue) {
+  attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
     if (name === "theme" && newValue !== this._theme) {
       // Validate input strictly
       const validTheme = newValue === THEMES.dark ? THEMES.dark : THEMES.pinky;
       console.log('INSIDE: attributeChangedCallback', validTheme)
-      
+
       // Update internal state directly to avoid triggering the Setter's "setAttribute"
       // avoiding the circular dependency loop.
       this._theme = validTheme;
@@ -138,7 +153,7 @@ class ThemeToggle extends HTMLElement {
    * * Also sets up the system preference listener if no saved theme exists.
    * @private
    */
-  _initThemeState() {
+  private _initThemeState(): void {
     this._mql = window.matchMedia("(prefers-color-scheme: dark)");
     const hasSaved = this._loadSavedTheme();
 
@@ -147,7 +162,7 @@ class ThemeToggle extends HTMLElement {
       this._theme = this._mql.matches ? THEMES.dark : THEMES.pinky;
       this._mql.addEventListener("change", this._onSystemChange);
     }
-    
+
     // Apply immediately to prevent FOUC
     this._applyThemeToDocument(this._theme);
   }
@@ -157,7 +172,7 @@ class ThemeToggle extends HTMLElement {
    * @returns {boolean} True if a valid saved theme was found.
    * @private
    */
-  _loadSavedTheme() {
+  private _loadSavedTheme(): boolean {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === THEMES.dark || saved === THEMES.pinky) {
       this._theme = saved;
@@ -171,10 +186,10 @@ class ThemeToggle extends HTMLElement {
    * Toggles the theme and disables system preference listening (user intent overrides system).
    * @private
    */
-  _onClick() {
+  private _onClick(): void {
     // Standard Toggle Logic
     this.theme = this._theme === THEMES.pinky ? THEMES.dark : THEMES.pinky;
-    
+
     // Stop listening to system once user makes a manual choice
     if (this._mql) this._mql.removeEventListener("change", this._onSystemChange);
   }
@@ -185,7 +200,7 @@ class ThemeToggle extends HTMLElement {
    * @param {MediaQueryListEvent} e 
    * @private
    */
-  _onSystemChange(e) {
+  private _onSystemChange(e: MediaQueryListEvent): void {
     this.theme = e.matches ? THEMES.dark : THEMES.pinky;
   }
 
@@ -193,7 +208,8 @@ class ThemeToggle extends HTMLElement {
    * Inject HTML into the shadow root.
    * @private
    */
-  _render() {
+  private _render(): void {
+    if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
       <button type="button" aria-pressed="false">
         <span class="dot-container">
@@ -208,12 +224,11 @@ class ThemeToggle extends HTMLElement {
    * Caches DOM references to avoid repeated querySelectors.
    * @private
    */
-  _cacheDOM() {
-    /** @type {HTMLButtonElement} */
+  private _cacheDOM(): void {
+    if (!this.shadowRoot) return;
+
     this._btn = this.shadowRoot.querySelector("button");
-    /** @type {HTMLSpanElement} */
     this._dot = this.shadowRoot.querySelector(".theme-dot");
-    /** @type {HTMLSpanElement} */
     this._text = this.shadowRoot.querySelector(".theme-text");
   }
 
@@ -221,8 +236,8 @@ class ThemeToggle extends HTMLElement {
    * Attaches event listeners to the rendered DOM.
    * @private
    */
-  _bindEvents() {
-    this._btn.addEventListener("click", this._onClick);
+  private _bindEvents(): void {
+    this._btn?.addEventListener("click", this._onClick);
   }
 
   /**
@@ -231,7 +246,7 @@ class ThemeToggle extends HTMLElement {
    * @param {string} theme 
    * @private
    */
-  _applyThemeToDocument(theme) {
+  private _applyThemeToDocument(theme: Theme): void {
     const root = document.documentElement;
     root.dataset.theme = theme;
     root.classList.toggle("dark", theme === THEMES.dark);
@@ -242,9 +257,9 @@ class ThemeToggle extends HTMLElement {
    * @param {string} theme 
    * @private
    */
-  _syncUI(theme) {
+  private _syncUI(theme: Theme): void {
     // If UI isn't rendered yet (async css), do nothing
-    if (!this._btn) return;
+    if (!this._btn || !this._dot || !this._text) return;
 
     const isDark = theme === THEMES.dark;
 
@@ -257,7 +272,7 @@ class ThemeToggle extends HTMLElement {
     this._dot.classList.toggle("sw:scale-0", !isDark);
 
     // 3. Text (Dynamic)
-    this._text.textContent = isDark ? "Dark" : "Pinky"; 
+    this._text.textContent = isDark ? "Dark" : "Pinky";
   }
 }
 

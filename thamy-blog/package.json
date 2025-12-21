@@ -35,5 +35,9 @@
   },
   "devDependencies": {
     "eslint-plugin-mdx": "^2.0.5"
+  },
+  "overrides": {
+    "json5": "^1.0.2",
+    "loader-utils": "^2.0.0"
   }
 }

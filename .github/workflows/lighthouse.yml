@@ -1,10 +1,8 @@
 name: Lighthouse Performance Audit
-
 on:
-  pull_request:
+  push:
     paths:
-      - 'v2-blog/**' # Only run when you touch the new portfolio
-
+      - 'v2-blog/**'
 jobs:
   lighthouse:
     runs-on: ubuntu-latest

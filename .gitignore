@@ -2,3 +2,21 @@ node_modules/
 .cache/
 public
 .DS_Store
+
+.vscode/
+# !.vscode/extensions.json
+*.code-workspace
+
+v2-blog/node_modules/
+
+# Eleventy Build Output (Don't commit the built site!)
+v2-blog/_site/
+v2-blog/dist/
+
+# Local Environment Secrets
+v2-blog/.env
+
+# Lighthouse Local Reports (if you run it locally)
+.lighthouseci/
+v2-blog/.lighthouseci/
+v2-blog/reports/

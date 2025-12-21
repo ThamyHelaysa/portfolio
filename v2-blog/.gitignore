@@ -2,7 +2,6 @@
 # 1. Dependency Management
 # ------------------------------------------------------
 node_modules/
-# Logs from package managers (if things break)
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -11,15 +10,12 @@ pnpm-debug.log*
 # ------------------------------------------------------
 # 2. Build Outputs (Production Code)
 # ------------------------------------------------------
-# Based on your eleventy config, you are outputting here:
 dist/
-# Standard Eleventy default (just in case you change it back):
 _site/
 
 # ------------------------------------------------------
 # 3. Environment & Security (CRITICAL)
 # ------------------------------------------------------
-# Never commit API keys or secrets
 .env
 .env.local
 .env.*.local
@@ -39,29 +35,26 @@ _site/
 # 5. Editor / IDE (VS Code)
 # ------------------------------------------------------
 .vscode/
-# Exception: You might want to share recommended extensions later
 # !.vscode/extensions.json
 *.code-workspace
 
-# History plugins often create this
 .history/
 
 # ------------------------------------------------------
 # 6. Tooling & Caches
 # ------------------------------------------------------
-# Eleventy Cache (used by image plugins etc)
+# Eleventy Cache
 .cache/
-# Vite Cache
 node_modules/.vite/
-
-# TypeScript incremental build info
 *.tsbuildinfo
 
 # ------------------------------------------------------
 # 7. Testing & Coverage (For the future)
 # ------------------------------------------------------
 coverage/
+reports/
 .nyc_output/
+.lighthouseci/
 
 # ------------------------------------------------------
 # 8. Temporary Files

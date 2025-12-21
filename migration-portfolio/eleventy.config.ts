@@ -1,8 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import esbuild from "esbuild";
-// import { createHash } from 'node:crypto';
-// import UserConfig from '@11ty/eleventy';
+import { createHash } from 'node:crypto';
 
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
@@ -26,15 +25,16 @@ export default function (eleventyConfig: any) {
   eleventyConfig.addExtension("ts", {
     outputFileExtension: "js", // Output as .js
     compile: async (_: any, inputPath: string) => {
-      // Skip files outside the '_helpers' directory 
+      // Skip files outside the '_helpers and components' directory 
       if (!inputPath.includes("_helpers") && !inputPath.includes("components")) return;
 
-      return async (data: any) => {
+      return async (_: any) => {
         // Compile using esbuild
         const result = await esbuild.build({
           entryPoints: [inputPath],
           write: false,
           bundle: true,     // Bundle dependencies
+          format: "esm",
           minify: true,     // Minify for performance
           target: "es2020", // Modern JS target
         });
@@ -46,6 +46,11 @@ export default function (eleventyConfig: any) {
   });
 
   eleventyConfig.addTemplateFormats("ts");
+
+  eleventyConfig.addFilter("cspHash", (rawString: string) => {
+    const hash = createHash("sha256").update(rawString).digest("base64");
+    return `'sha256-${hash}'`;
+  });
 
   // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
@@ -115,7 +120,7 @@ export default function (eleventyConfig: any) {
     // fs.writeFileSync(tailwindOutputPath, result.css);
   });
 
-  // eleventyConfig.addCollection("posts", collections.posts);
+
   eleventyConfig.addCollection("projects", collections.projects);
   eleventyConfig.addCollection("published", collections.published);
   eleventyConfig.addCollection("notesPublished", collections.notesPublished);
@@ -134,10 +139,6 @@ export default function (eleventyConfig: any) {
     "src/assets/video-previews": "assets/video-previews"
   });
 
-  // eleventyConfig.addPassthroughCopy("src/components/*.js");
-  // eleventyConfig.addPassthroughCopy("src/_helpers/*.js");
-
-
   return {
     dir: {
       input: 'src',
@@ -145,7 +146,7 @@ export default function (eleventyConfig: any) {
       includes: '_includes',
       layouts: '_layouts'
     },
-    markdownTemplateEngine: "njk", // this is fine
+    markdownTemplateEngine: "njk",
     htmlTemplateEngine: "njk",
   };
 }

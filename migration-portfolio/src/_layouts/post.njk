@@ -2,8 +2,10 @@
 layout: base.njk
 ---
 
+<div class="max-w-5xl">
+  <h1>{{ title }}</h1>
+</div>
 
-<h1>{{ title }}</h1>
 {% if date %}
   <p><small class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">{{ date }}</small></p>
 {% endif %}

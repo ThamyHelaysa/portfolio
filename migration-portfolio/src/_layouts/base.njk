@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    {% set themeScript %}{% include "inline-theme.js" %}{% endset %}
+    {% if pageScript %}{% set inlineJS %}{% include (pageScript) %}{% endset %}{% endif %}
+    {% set cspList = "script-src 'self' " + (themeScript | cspHash) %}
+    {% if inlineJS %}{% set cspList = cspList + " " + (inlineJS | cspHash) %}{% endif %}
+    <meta http-equiv="Content-Security-Policy" content="{{ cspList }};">
     <meta charset="UTF-8" />
     <title>{{ title or "My Portfolio" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,42 +13,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700" rel="stylesheet">
-    <link rel="preload" href="/assets/css/global.css" as="style" />
+    <link href="/assets/css/global.css" as="style" />
     <link rel="stylesheet" href="/assets/css/global.css">
-    {% if customStyle %}
+    {# {% if customStyle %}
       <link rel="stylesheet" href="/assets/css/{{ customStyle }}">
-    {% endif %}
-
-    {# Update to CSP safe script #}
-    <script>
-      (function() {
-        // 1. Read storage immediately
-        const saved = localStorage.getItem("theme");
-        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        
-        // 2. Decide theme
-        const isDark = saved === "dark" || (!saved && systemDark);
-
-        // 3. Apply to <html> immediately (blocks rendering for microseconds to prevent flash)
-        if (isDark) {
-          document.documentElement.classList.add("dark");
-          document.documentElement.setAttribute("data-theme", "dark");
-        }
-      })();
-    </script>
+    {% endif %} #}
 
     <script type="module" src="/components/theme-toggle.js"></script>
     <script type="module" src="/components/note-modal.js"></script>
     <script type="module" src="/components/note-button-open.js"></script>
     <script type="module" src="/components/media-preview.js"></script>
-  
-    {# <script>
-      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    </script> #}
+    <script defer type="module" src="/_helpers/identityManager.js"></script>
+    <script>{{ themeScript | safe | trim }}</script>
+    {% if inlineJS %}<script>{{ inlineJS | safe | trim }}</script>{% endif %}
   </head>
   <body class="font-serif dotted-bg">
     <div class="min-h-screen text-text-dark selection:bg-accent-red selection:text-white flex flex-col">

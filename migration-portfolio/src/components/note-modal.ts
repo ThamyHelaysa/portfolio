@@ -20,6 +20,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
   private _frontContentArea: HTMLParagraphElement | null = null;
   private _backContentArea: HTMLParagraphElement | null = null;
   private _pageIndicator: HTMLSpanElement | null = null;
+  private _navigationIndicator: HTMLDivElement | null = null;
   private _sheetWrapper: HTMLDivElement | null = null;
   private _sheetFlipper: HTMLDivElement | null = null;
 
@@ -142,6 +143,20 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     this._resetAnimations();
   }
 
+  _getCharsLimit() {
+    // Option A: Check Window Width (Simpler, works for full-screen modals)
+    // const width = window.innerWidth;
+    
+    // Option B: Check Element Width (More robust if modal size varies)
+    const width = this._sheetWrapper?.offsetWidth || window.innerWidth;
+
+    if (width < 460) return 250;  // Petitte mobile
+    if (width < 640) return 350;  // Mobile (Tailwind 'sm')
+    if (width < 768) return 450;  // Tablet (Tailwind 'md')
+    if (width < 1024) return 550; // Laptop (Tailwind 'lg')
+    return 650;                   // Desktop
+  }
+
   private _paginateText(text: string): string[] {
     if (!text) return [];
 
@@ -149,7 +164,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     let currentIndex = 0;
 
     while (currentIndex < text.length) {
-      let sliceEnd = currentIndex + CHARS_PER_PAGE;
+      let sliceEnd = currentIndex + this._getCharsLimit();
 
       // Case 1: We reached the end of the text
       if (sliceEnd >= text.length) {
@@ -191,7 +206,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     // returns a DocumentFragment
     const contentFrag = template.content.cloneNode(true) as DocumentFragment;
 
-    // A. Extract slots
+    // Extract slots
     const titleEl = contentFrag.querySelector('[slot="title"]');
     const dateEl = contentFrag.querySelector('[slot="date"]');
 
@@ -246,8 +261,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
   }
 
   private async _updatePageContent(newId: string | undefined = undefined): Promise<void> {
-    // 1. Typescript Safety: The "Guard Clause"
-    // We check ALL potentially null elements here so we don't need '!' or '?' later.
+    // Check ALL potentially null elements here so we don't need '!' or '?' later.
     if (
       !this._frontContentArea ||
       !this._backContentArea ||
@@ -279,8 +293,12 @@ class NoteModal extends HTMLElement implements EventListenerObject {
       // We disable transitions temporarily so the rotation resets INSTANTLY
       this._sheetFlipper.style.transition = 'none';
       this._sheetFlipper.style.transform = isBackSide ? 'rotateY(180deg)' : 'rotateY(0deg)';
-      this._frontContentArea.style.opacity = isBackSide ? "0" : "1";
-      this._backContentArea.style.opacity = isBackSide ? "1" : "0";
+      // this._frontContentArea.style.opacity = isBackSide ? "0" : "1";
+      // this._backContentArea.style.opacity = isBackSide ? "1" : "0";
+
+      // this._frontContentArea.style.zIndex = isBackSide ? "30" : "31";
+      // this._backContentArea.style.zIndex = isBackSide ? "31" : "30";
+      // this._transitionContents(isBackSide);
 
       // 3. Snap to State (Instant Reset)
       // We manually set the transforms so the element is in position for the "Drop"
@@ -295,7 +313,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
       // (Optional: await here if you want to block input)
       const isFirstSheet = sheetIndex === 0;
 
-      animator.animate(
+      await animator.animate(
         this._sheetWrapper,
         isFirstSheet
           ? [{ transform: 'scale(0.9)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }]
@@ -369,9 +387,9 @@ class NoteModal extends HTMLElement implements EventListenerObject {
   _render(): void {
     if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
-      <dialog>
-        <div id="containerStack">
-          <div id="sheetWrapper" class="">
+      <dialog class="nm:open:top-[50%] nm:open:left-[50%] nm:open:-translate-x-[50%] nm:open:-translate-y-[50%] nm:open:flex nm:open:items-center nm:open:justify-center nm:open:bg-transparent nm:open:flex-col nm:open:p-4 nm:open:overflow-hidden nm:open:min-w-[90vw] nm:open:perspective-[1000px]">
+        <div id="containerStack" class="nm:relative nm:w-full nm:max-w-2xl nm:max-h-[90vh] nm:aspect-3/5">
+          <div id="sheetWrapper" class="nm:absolute nm:inset-0 nm:z-20 nm:opacity-0 nm:flex nm:flex-col">
             <div class="nm:w-full nm:h-fit nm:z-1 nm:text-center">
               <button id="btn-close" type="button"
                 class="nm:text-paper-text/40 nm:hover:text-accent-red nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
@@ -379,26 +397,26 @@ class NoteModal extends HTMLElement implements EventListenerObject {
               </button>
             </div>
             <div id="innerFlipper"
-              class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:preserve-3d">
-              <div id="frontSide" class="sidesWrapper">
-                <div class="content">
-                    <p id="frontContent"></p>
+              class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:transform-3d">
+              <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                    <p id="frontContent" class="nm:transition-opacity"></p>
                 </div>
               </div>
 
-              <div id="backSide" class="sidesWrapper">
-                <div class="content">
-                    <p id="backContent"></p>
+              <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                    <p id="backContent" class="nm:transition-opacity"></p>
                 </div>
               </div>
             </div>
-            <span id="pageIndicator"></span>
           </div>
-          <div id="containerNavigation">
-            <button id="btn-prev" type="button">
+          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-red/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
+            <button id="btn-prev" class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99" type="button">
                 &larr; Prev
             </button>
-            <button id="btn-next" type="button">
+            <span id="pageIndicator"></span>
+            <button id="btn-next" class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99" type="button">
                 Next &rarr;
             </button>
           </div>
@@ -414,6 +432,7 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     this._btnPrev = this.shadowRoot!.querySelector('#btn-prev');
     this._frontContentArea = this.shadowRoot!.querySelector('#frontContent');
     this._backContentArea = this.shadowRoot!.querySelector('#backContent');
+    this._navigationIndicator = this.shadowRoot!.querySelector('#containerNavigation');
     this._pageIndicator = this.shadowRoot!.querySelector('#pageIndicator');
     this._sheetWrapper = this.shadowRoot!.querySelector('#sheetWrapper');
     this._sheetFlipper = this.shadowRoot!.querySelector('#innerFlipper');

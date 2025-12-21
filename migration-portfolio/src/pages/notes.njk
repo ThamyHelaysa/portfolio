@@ -2,14 +2,15 @@
 layout: base.njk
 permalink: /notes/
 title: Random Notes
+pageScript: "inline-modal-listener.js"
 pagination:
   data: collections.notesPublished
   size: 10
   alias: notes
 ---
 
+{# {% set pageScript %}{% include "inline-modal-listener.js" %}{% endset %} #}
 <h1>My Digital Garden</h1>
-
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
   
   {% for note in collections.notesPublished | reverse %}
@@ -40,11 +41,11 @@ pagination:
 
 <note-modal id="mainNoteModal"></note-modal>
 
-<script>
+{# <script>
   /**
   * Toobar Mode Button CustomEvent
   */
   window.addEventListener("open:modal", ({detail}) => {
     document.querySelector("note-modal").setAttribute("node-tmpl", detail.value);
   });
-</script>
+</script> #}

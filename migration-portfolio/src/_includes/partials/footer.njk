@@ -1,15 +1,15 @@
-<footer class="px-6 py-12 md:px-12 md:py-24 mt-12 bg-warm-bg">
-  <div class="max-w-7xl mx-auto">
-    <h2 class="text-4xl md:text-6xl lg:text-7xl font-serif text-accent-red mb-12 hover:translate-x-4 transition-transform duration-500 cursor-pointer w-fit">
+<footer class="flex items-end px-6 py-12 md:px-12 md:py-24 mt-20 bg-accent-red">
+  <div class="max-w-7xl mx-auto w-full">
+    <h2 class="text-4xl md:text-6xl lg:text-7xl text-pink-50 mb-12 hover:translate-x-4 transition-transform duration-500 cursor-pointer w-fit">
       <a href="mailto:thamy.helaysa@live.com">Get in touch &rarr;</a>
     </h2>
     
-    <div class="flex flex-col md:flex-row gap-8 md:gap-16 text-lg font-serif text-accent-red/80">
+    <div class="text-pink-50 flex flex-col md:flex-row md:flex-wrap gap-x-8 md:gap-16 text-lg">
       <a
         href="https://www.linkedin.com/in/thamy-helaysa"
         target="_blank"
         rel="noreferrer"
-        class="hover:text-accent-red hover:underline underline-offset-4"
+        class=" hover:text-accent-red hover:underline underline-offset-4"
       >
         LinkedIn
       </a>
@@ -19,11 +19,13 @@
       >
         Email
       </a>
-      <span class="text-text-gray font-mono text-base mt-2 md:mt-0">
-        {{ date | formatYear }} Thamires Helaysa does not care about copyright,
-        thoghts are not property
-        This site does not track any personal information, like the web is supost the be :)
-      </span>
+      <div class="flex flex-col flex-11/12 text-text-gray text-base mt-2 md:mt-0">
+        <span>
+          I do not care about copyright,
+          <a href="/copyrighty" rel="internal" class="underline underline-offset-4">thoghts are not property</a>
+        </span>
+        <span>This site does not track any personal information, like the web is supost the be :)</span>
+      </div>
     </div>
   </div>
 </footer>

@@ -1,0 +1,14 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# The Lighthouse Plugin
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  [plugins.inputs]
+    # Fail the build if performance is below 90?
+    # thresholds = { performance = 0.9, accessibility = 1.0 }
+    
+    # Show the results in the Deploy Preview logs
+    output_path = "reports/lighthouse.html"

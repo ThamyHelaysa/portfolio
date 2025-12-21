@@ -26,8 +26,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         with:
           # Point to where your built files are
-          urls: /
-          
+          urls: https://thamy-v2-blog.netlify.app/
           budgetPath: ./v2-blog/budget.json
           temporaryPublicStorage: true 
           runs: 3

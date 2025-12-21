@@ -1,0 +1,16 @@
+---
+title: "Tailwind shadowDOM hate each other"
+date: "2025-12-11"
+---
+
+from classes not beeing generated if not prefixed
+
+1 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur mattis turpis tellus, eu vestibulum nisl euismod ac. Cras sollicitudin ex ac magna convallis, id tincidunt risus gravida. Pellentesque consectetur mollis leo, quis iaculis sapien scelerisque nec. Morbi id ligula ac eros molestie rhoncus. In hac habitasse platea dictumst. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque vitae nulla dui. Proin eu nibh odio. Mauris eget pharetra nisi, facilisis consectetur mauris. Sed semper at tortor non ornare. Phasellus accumsan est nibh, sit amet finibus libero elementum at. Nullam auctor nisl ut purus tempus, a rhoncus ipsum rutrum.
+
+2 Sed malesuada, magna tincidunt convallis tincidunt, nunc magna vestibulum urna, in dictum diam erat eu mauris. Donec scelerisque enim ipsum, vitae efficitur dui maximus eu. Pellentesque consequat est ante, porta convallis lectus ornare eu. Nullam suscipit turpis dui, id viverra tortor consequat ut. Nulla vel suscipit sapien. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Fusce finibus urna mauris, et tempus urna placerat a. Aenean ornare leo et feugiat posuere. Pellentesque pulvinar aliquet sem a commodo. Nunc vel fringilla est. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam vulputate lectus quis erat rutrum, ut sollicitudin purus fringilla.
+
+3 Cras gravida lectus eu felis cursus viverra. Etiam lacinia placerat eros, et vehicula nisl tempus eu. Phasellus pharetra lobortis imperdiet. Quisque aliquam iaculis vehicula. Nunc ultricies sed est id ultrices. Cras ac laoreet turpis, eu accumsan dolor. Interdum et malesuada fames ac ante ipsum primis in faucibus. Ut nec tincidunt ligula. Praesent mauris lectus, sagittis eget posuere sed, pulvinar sed sem. Sed a efficitur enim. Aliquam sollicitudin justo fermentum, tristique augue nec, sollicitudin velit.
+
+4 Phasellus quis tristique felis, sed tristique ligula. Nam a odio ultricies, ornare leo aliquet, maximus nunc. Nunc mollis purus eget tellus vestibulum, ac elementum quam vulputate. Sed id quam sit amet tortor malesuada condimentum. Praesent tristique id nisi ac consectetur. Nulla malesuada tempor convallis. Vestibulum luctus volutpat rutrum. Suspendisse fringilla dui non odio varius, id scelerisque odio semper.
+
+5 Quisque lectus enim, ultrices non diam quis, placerat rhoncus nisi. Pellentesque et maximus turpis, id consectetur odio. Ut et odio vel sem viverra pulvinar non ac lectus. Maecenas mollis neque id felis ullamcorper, ac luctus ex tristique. Proin molestie condimentum nisi, eu finibus velit placerat hendrerit. Fusce vel justo consectetur, convallis risus in, aliquam nunc. In lectus libero, aliquam eget orci a, varius condimentum ligula. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse accumsan enim eget velit vehicula, ultrices fermentum orci dapibus.

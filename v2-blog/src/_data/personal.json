@@ -1,0 +1,139 @@
+{
+  "info": {
+    "name": "Thamires Helaysa dos Santos",
+    "role": "Front-End Developer & UX Engineer",
+    "location": "Marília, SP, Brazil",
+    "email": "thamy@t-helaysa.com",
+    "phone": "+55 14 99900-7043",
+    "linkedin": "https://www.linkedin.com/in/thamy-helaysa",
+    "website": "https://t-helaysa.com",
+    "summary": "Besides beeing in the field for almost a decade, my interests are more of the same: Frontend + Design. From ecommerce I grow myself as a lover of the web arts. I consider myself lucky to have great people beside me that took me by the hand and said: frontend is lame, dont do it. Aaand proudly gave 0 cares and continue with it. Im a introvert adopted by some extroverts and love listening lofi to concentrate myself nowadyas."
+  },
+  "experience": [
+    {
+      "company": "Interfocus Tecnologia",
+      "role": "React/UI Developer",
+      "period": "March 2023 – Present",
+      "location": "Marília, SP",
+      "description": "As a designer and developer, I led the redesign of the company's website (UX and UI in Adobe XD and Figma) and developed it in Next.js, in alignment with the new brand identity. Co-created the company's component library (React and TypeScript), which is now adopted in over 20 web applications.",
+      "technologies": [
+        "React",
+        "Next.js",
+        "Styled-components",
+        "TypeScript",
+        "Storybook",
+        "Design System"
+      ]
+    },
+    {
+      "company": "Digital Hub and WEBJUMP",
+      "role": "Front-End Developer (Magento)",
+      "period": "September 2021 – February 2023",
+      "location": "Home Office",
+      "description": "Maintained and customized Magento 2 themes using PHTML, XML, HTML, CSS, and JavaScript (jQuery). Served as a technical reference for the team. Responsible for maintaining and discussing better solutions for Magento 2 with the team.",
+      "technologies": [
+        "Magento 2",
+        "JavaScript",
+        "HTML5",
+        "CSS3 (LESS)",
+        "Docker",
+        "JIRA",
+        "Git"
+      ]
+    },
+    {
+      "company": "BizCommerce",
+      "role": "Front-End Jr/Mid and Senior",
+      "period": "October 2017 – September 2021",
+      "location": "Marília, SP",
+      "description": "Performed maintenance on themes in HTML and CSS, and jQuery. Maintained and evolved the component library using Vue.js, was responsible for conception and documentation of new projects.",
+      "technologies": [
+        "JavaScript (ES6+)",
+        "REST",
+        "Jest",
+        "Cypress",
+        "Git",
+        "Scrum"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Post degree in UX Engineering",
+      "institution": "PUC Minas",
+      "period": "March 2024 – September 2025"
+    },
+    {
+      "degree": "Associate Degree in Graphic Design",
+      "institution": "Centro Universitário Eurípides de Marília (UNIVEM)",
+      "period": "January 2018 – December 2020"
+    }
+  ],
+  "skills": [
+    {
+      "category": "Front-end",
+      "items": [
+        "HTML5",
+        "CSS3 (Flexbox, Grid)",
+        "JavaScript (ES6+)",
+        "TypeScript"
+      ]
+    },
+    {
+      "category": "Frameworks/Libs",
+      "items": [
+        "React.js",
+        "Next.js",
+        "jQuery"
+      ]
+    },
+    {
+      "category": "Tools & Design",
+      "items": [
+        "Storybook",
+        "Git",
+        "Docker",
+        "Figma",
+        "Adobe Illustrator"
+      ]
+    }
+  ],
+  "languages": [
+    "Portuguese (native)",
+    "English (intermediate – B1/B2)"
+  ],
+  "favorites": [
+    {
+      "id": "books",
+      "category": "Last Read",
+      "title": "Refactoring UI",
+      "details": "Adam Wathan & Steve Schoger",
+      "previewUrl": "../assets/images/clefairy.jpg",
+      "previewType": "img"
+    },
+    {
+      "id": "album",
+      "category": "On Repeat",
+      "title": "Cochise",
+      "details": "Audio Slave",
+      "previewUrl": "../assets/images/jigglypuff.png",
+      "previewType": "img"
+    },
+    {
+      "id": "game",
+      "category": "Playing",
+      "title": "Hollow Knight",
+      "details": "-",
+      "previewUrl": "../assets/images/pikachu.jpg",
+      "previewType": "img"
+    },
+    {
+      "id": "learning",
+      "category": "Studying",
+      "title": "Astro & Islands Architecture",
+      "details": "Performance Patterns",
+      "previewUrl": "../assets/images/psyduck.png",
+      "previewType": "img"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+---
+layout: base.njk
+title: About me
+permalink: /about/
+---
+
+<div class="max-w-5xl">
+  <h1>{{ title }}</h1>
+</div>
+
+
+<div class="font-mono text-sm text-gray-400">
+  <span class="mr-2">IDENTITY_DETECTED:</span>
+  {# Call the custom element here #}
+  <span id="visitor-id" class="font-bold text-[#ff453a] tracking-widest uppercase">
+    INITIALIZING...
+  </span>
+</div>
+
+{# Use custom element for this bellow #}
+{# <script type="module">
+  import { hackersCrakers } from '/_helpers/identityManager.js';
+  hackersCrakers.init('visitor-id');
+</script> #}
+
+{# <div class="space-y-4">
+  <!-- Personal Experience -->
+  <h2 class="text-2xl md:text-2xl text-accent-red/80 font-serif italic leading-relaxed">Where I've been</h2>
+  {% for job in personal.experience %}
+  {% sectionBlock job.company, job.period %}
+    <div class="mb-4">
+      <strong class="block text-text-dark font-medium mb-2 text-xl">{{job.role}}</strong>
+      <p>{{job.description}}</p>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-6">
+      {% for tech in job.technologies %}
+        <span class="text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider">
+          {{ tech }}
+        </span>
+      {% endfor %}
+    </div>
+  {% endsectionBlock %}
+  {% endfor %}
+
+  <!-- Education -->
+  <h2 class="text-2xl md:text-2xl text-accent-red/80 font-serif italic leading-relaxed">Where I've learned</h2>
+  {% sectionBlock "Education", "Academic background" %}<ul class="space-y-8">
+      {% for edu in personal.education %}
+        <li>
+          <h4 class="text-xl text-text-dark font-medium">{{edu.degree}}</h4>
+          <p class="text-accent-red/70 italic mt-1">{{edu.institution}}</p>
+          <p class="text-sm mt-1 opacity-60">{{edu.period}}</p>
+        </li>
+      {% endfor %}
+    </ul>{% endsectionBlock %}
+</div> #}

@@ -1,0 +1,26 @@
+{
+  "name": "migration-portfolio",
+  "version": "1.0.0",
+  "description": "My brand new portfolio",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts",
+    "start": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts --serve --incremental",
+    "generate:previews": "node scripts/generate-previews.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thamires H Santos",
+  "license": "ISC",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^25.0.3",
+    "autoprefixer": "^10.4.22",
+    "cssnano": "^7.1.2",
+    "esbuild": "^0.27.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "tsx": "^4.21.0"
+  }
+}

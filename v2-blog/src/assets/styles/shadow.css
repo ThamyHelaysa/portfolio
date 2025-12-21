@@ -1,0 +1,8 @@
+/*
+* File only for importing Tailwind and
+* config for the theme
+*/
+@source "../../components/*.js";
+@import "tailwindcss" prefix(sw);
+@import "./shadow-config.css";
+

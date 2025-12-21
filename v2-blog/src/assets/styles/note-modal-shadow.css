@@ -1,0 +1,75 @@
+/*
+* File only for importing Tailwind and
+* config for the theme
+*/
+@source "../../components/note-modal.js";
+@import "tailwindcss" prefix(nm);
+@import "./shadow-config.css";
+
+dialog[open] {
+  position: fixed;
+  z-index: 50;
+  
+  .animate-drop-in {
+    animation: var(--nm-animate-drop-in);
+  }
+  .animate-scale-in {
+    animation: var(--nm-animate-scale-in);
+  }
+
+  p {
+    @apply nm:text-base nm:leading-7 nm:text-pretty ;
+  }
+
+  /* & [data-index="1"] p::first-letter {
+    @apply nm:leading-8;
+    float: left;
+    font-size: 50px;
+    font-weight: bold;
+  } */
+
+  button {
+    @apply nm:select-none nm:text-paper-text/40 nm:hover:text-accent-red;
+  }
+}
+
+dialog[open]::backdrop {
+  animation: var(--nm-animate-backdrop);
+}
+
+dialog::backdrop {
+  @apply nm:backdrop-blur-3xl;
+}
+
+/* #innerFlipper {
+  @apply nm:w-full nm:h-full nm:relative;
+  transform-style: preserve-3d;
+} */
+/* 
+#innerFlipper .content {
+  @apply nm:grow nm:flex 
+  nm:items-start nm:justify-center 
+  
+  nm:w-full;
+  p {
+    @apply nm:text-sm nm:md:text-base nm:font-mono;
+    height: 100%;
+  }
+} */
+
+/* .sidesWrapper {
+  @apply nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12;
+} */
+
+#containerNavigation {
+  animation: var(--nm-animate-backdrop);
+  animation-delay: 200ms;
+
+  /* button:not([disabled]) {
+    cursor: pointer;
+    @apply nm:cursor-pointer nm:z-99;
+  }
+  button[disabled]{
+    @apply nm:text-paper-text/10 nm:cursor-not-allowed;
+  } */
+}

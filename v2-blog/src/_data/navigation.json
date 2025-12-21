@@ -1,0 +1,8 @@
+{
+  "links": [
+    { "label": "Home", "url": "/", "open": "" },
+    { "label": "About", "url": "/about/", "open": "" },
+    { "label": "Blog", "url": "/blog/", "open": "" },
+    { "label": "Random", "url": "/notes/", "open": "" }
+  ]
+}

@@ -1,0 +1,23 @@
+/*
+* File only for importing Tailwind and
+* config for the theme
+*/
+@source "../../components/theme-toggle.js";
+@import "tailwindcss" prefix(sw);
+@import "./shadow-config.css";
+
+button {
+  @apply sw:flex sw:items-center sw:gap-2 sw:text-sm 
+  sw:min-w-[65px] sw:font-light sw:tracking-wider 
+  sw:hover:text-accent-red sw:transition-colors 
+  sw:cursor-pointer;
+  & .dot-container {
+    @apply sw:w-4 sw:h-4 sw:rounded-full 
+    sw:border sw:border-current 
+    sw:flex sw:items-center sw:justify-center;
+  }
+  & .theme-dot {
+    @apply sw:w-2 sw:h-2 sw:rounded-full 
+    sw:bg-accent-red sw:transition-transform sw:duration-300
+  }
+}

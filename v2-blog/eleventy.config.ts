@@ -7,7 +7,7 @@ import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
 import tailwindcss from '@tailwindcss/postcss';
-import collections from "./src/_config/collections.js";
+import collections from './src/_config/collections.js';
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
 

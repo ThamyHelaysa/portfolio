@@ -20,7 +20,7 @@
   --color-paper-text: var(--color-paper-text);
 
   /* Fonts */
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Playfair Display", "Playfair-Fallback", serif;
   --font-mono: "IBM Plex Mono", monospace;
 
   /* Animation */

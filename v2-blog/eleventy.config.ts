@@ -135,6 +135,7 @@ export default function (eleventyConfig: any) {
 
   // Passthrough
   eleventyConfig.addPassthroughCopy("src/assets/images");
+  eleventyConfig.addPassthroughCopy("src/assets/fonts");
   eleventyConfig.addPassthroughCopy({
     "src/assets/video-previews": "assets/video-previews"
   });

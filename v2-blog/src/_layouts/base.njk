@@ -1,31 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% set themeScript %}{% include "inline-theme.js" %}{% endset %}
-    {% if pageScript %}{% set inlineJS %}{% include (pageScript) %}{% endset %}{% endif %}
-    {% set cspList = "script-src 'self' " + (themeScript | cspHash) %}
-    {% if inlineJS %}{% set cspList = cspList + " " + (inlineJS | cspHash) %}{% endif %}
-    <meta http-equiv="Content-Security-Policy" content="{{ cspList }};">
     <meta charset="UTF-8" />
-    <title>{{ title or "My Portfolio" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title or "My Portfolio" }}</title>
+
+    
+    {# Start our CSP lists with 'self' #}
+    {% set cspScriptSrc = "'self'" %}
+    {% set cspStyleSrc = "'self'" %}
+
+    {# Initialize buffers to hold the actual HTML tags we want to print later #}
+    {% set scriptsOutput = "" %}
+    {% set stylesOutput = "" %}
+
+    {% set themeContent %}{% include "inline-theme.js" %}{% endset %}
+    {% set themeHash = themeContent | trim | cspHash %}
+
+    {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
+    {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
+    
+    {# Handle optional page script #}
+    {% if inlineScripts %}
+      {% for path in inlineScripts %}
+        {# 1. Read file #}
+        {% set content %}{% include path %}{% endset %}
+        
+        {# 2. Hash it #}
+        {% set hash = content | trim | cspHash %}
+        {% set cspScriptSrc = cspScriptSrc + " " + hash %}
+        
+        {# 3. Store the tag for later #}
+        {% set scriptsOutput = scriptsOutput + '<script>' + (content | safe | trim) + '</script>' %}
+      {% endfor %}
+    {% endif %}
+
+    {% if inlineStyles %}
+      {% for path in inlineStyles %}
+        {# 1. Read file #}
+        {% set content %}{% include path %}{% endset %}
+        
+        {# 2. Hash it #}
+        {% set hash = content | trim | cspHash %}
+        {% set cspStyleSrc = cspStyleSrc + " " + hash %}
+        
+        {# 3. Store the tag for later #}
+        {% set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' %}
+      {% endfor %}
+    {% endif %}
+
+    <meta 
+      http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }};"
+    >
     <meta name="view-transition" content="same-origin">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700" rel="stylesheet">
-    <link href="/assets/css/global.css" as="style" />
+
+    <link rel="preload" href="/assets/fonts/playfair-display-v40/playfair-display-v40-latin-800.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/playfair-display-v40/playfair-display-v40-latin-800italic.woff2" as="font" type="font/woff2" crossorigin>
+
+    {# Style matches the hash (Added | trim just to be super safe) #}
+    {# <style>{{ fontCss | safe | trim }}</style> #}
+    {{ stylesOutput | safe }}
+
     <link rel="stylesheet" href="/assets/css/global.css">
-    {# {% if customStyle %}
-      <link rel="stylesheet" href="/assets/css/{{ customStyle }}">
-    {% endif %} #}
 
     <script type="module" src="/components/theme-toggle.js"></script>
-    <script type="module" src="/components/note-modal.js"></script>
-    <script type="module" src="/components/note-button-open.js"></script>
-    <script type="module" src="/components/media-preview.js"></script>
-    <script defer type="module" src="/_helpers/identityManager.js"></script>
-    <script>{{ themeScript | safe | trim }}</script>
-    {% if inlineJS %}<script>{{ inlineJS | safe | trim }}</script>{% endif %}
+    {# <script type="module" src="/components/note-modal.js"></script> #}
+    {# <script type="module" src="/components/note-button-open.js"></script> #}
+    {# <script type="module" src="/components/media-preview.js"></script> #}
+    {# <script type="module" src="/_helpers/identityManager.js"></script> #}
+
+    {% if pageModules %}
+      {% for url in pageModules %}
+        <script type="module" src="{{ url }}"></script>
+      {% endfor %}
+    {% endif %}
+
+    {# {% if inlineJS %}<script>{{ inlineJS | safe | trim }}</script>{% endif %} #}
+    {{ scriptsOutput | safe }}
   </head>
   <body class="font-serif dotted-bg">
     <div class="min-h-screen text-text-dark selection:bg-accent-red selection:text-white flex flex-col">

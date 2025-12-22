@@ -2,14 +2,18 @@
 layout: base.njk
 permalink: /notes/
 title: Random Notes
-pageScript: "inline-modal-listener.js"
+inlineScripts:
+  - "inline-modal-listener.js"
+pageModules: 
+  - "/components/note-button-open.js"
+  - "/components/note-modal.js"
 pagination:
   data: collections.notesPublished
   size: 10
   alias: notes
 ---
 
-{# {% set pageScript %}{% include "inline-modal-listener.js" %}{% endset %} #}
+
 <h1>My Digital Garden</h1>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
   
@@ -40,12 +44,3 @@ pagination:
 </div>
 
 <note-modal id="mainNoteModal"></note-modal>
-
-{# <script>
-  /**
-  * Toobar Mode Button CustomEvent
-  */
-  window.addEventListener("open:modal", ({detail}) => {
-    document.querySelector("note-modal").setAttribute("node-tmpl", detail.value);
-  });
-</script> #}

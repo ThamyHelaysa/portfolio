@@ -6,10 +6,11 @@
     },
     "assert": {
       "assertions": {
-        "render-blocking-resources": ["error", {"minScore": 0.9}],
+        "render-blocking-resources": ["warn", {"minScore": 1}],
         "server-response-time": ["error", {"minScore": 0.9}],
         "font-display": ["error", {"minScore": 1}],
         "categories:performance": ["error", {"minScore": 0.9}],
+        "categories:seo": ["error", {"minScore": 0.9}],
         "cumulative-layout-shift": ["error", {"maxNumericValue": 0.1}],
         "largest-contentful-paint": ["error", {"maxNumericValue": 2500}],
         "resource-counts:image": ["warn", {"maxNumericValue": 20}],

@@ -1,9 +1,9 @@
-/*
-* File only for importing Tailwind and
-* config for the theme
-*/
 @source "../../components/note-modal.js";
 @import "tailwindcss" prefix(nm);
+/* @layer theme, base, components, utilities; */
+/* @import "tailwindcss/theme.css" layer(theme) prefix(nm); */
+/* @import "tailwindcss/preflight.css" layer(base); */
+/* @import "tailwindcss/utilities.css" layer(utilities) prefix(nm); */
 @import "./shadow-config.css";
 
 dialog[open] {
@@ -41,35 +41,7 @@ dialog::backdrop {
   @apply nm:backdrop-blur-3xl;
 }
 
-/* #innerFlipper {
-  @apply nm:w-full nm:h-full nm:relative;
-  transform-style: preserve-3d;
-} */
-/* 
-#innerFlipper .content {
-  @apply nm:grow nm:flex 
-  nm:items-start nm:justify-center 
-  
-  nm:w-full;
-  p {
-    @apply nm:text-sm nm:md:text-base nm:font-mono;
-    height: 100%;
-  }
-} */
-
-/* .sidesWrapper {
-  @apply nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12;
-} */
-
 #containerNavigation {
   animation: var(--nm-animate-backdrop);
   animation-delay: 200ms;
-
-  /* button:not([disabled]) {
-    cursor: pointer;
-    @apply nm:cursor-pointer nm:z-99;
-  }
-  button[disabled]{
-    @apply nm:text-paper-text/10 nm:cursor-not-allowed;
-  } */
 }

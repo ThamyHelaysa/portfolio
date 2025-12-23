@@ -1,4 +1,8 @@
-@import 'tailwindcss';
+/* @import 'tailwindcss'; */
+@layer theme, base, components, utilities;
+
+/* @import "tailwindcss/preflight.css" layer(base); */
+@import "tailwindcss/utilities.css" layer(utilities);
 @import './config-theme.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -13,7 +17,7 @@
   }
 }
 
-@layer base {
+@layer theme {
 
   :root, :host, html {
     --color-gray-50: #fafaf9;
@@ -59,39 +63,10 @@
     --color-paper-text: var(--color-gray-400);
   }
 
-  body {
-    color: var(--color-gray-700);
-    font-weight: 600;
-    transition: color 300ms ease 0ms;
-    .dark & {
-      color: var(--color-gray-400);
-    }
-  }
+}
 
-  main {
-    @apply max-w-4xl;
-    view-transition-name: post;
-  }
-
-  h1 {
-    @apply text-4xl md:text-6xl mb-16 lg:text-6xl 
-    font-serif font-extrabold text-accent-red
-    leading-[1.1] md:leading-tight 
-    text-pretty
-    inline-block max-w-5xl;
-  }
-
-  h2 {
-    @apply text-3xl md:text-4xl mb-16 lg:text-4xl 
-    font-serif dark:text-red-800 italic
-    leading-[1.1] md:leading-[1.2] 
-    inline-block w-max max-w-5xl;
-  }
-
-  a {
-
-  }
-
+theme-toggle {
+  min-width: 85px;
 }
 
 @utility dotted-bg {
@@ -153,19 +128,24 @@
 }
 
 /* Media Preview */
-
 #mediaPreview {
-  @apply fixed inset-0 flex items-center justify-center
-         w-[100px] h-[100px]
-         bg-accent-red rounded-[200px]
-         pointer-events-none overflow-hidden
-         z-99;
-
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background-color: var(--color-accent-red);
   border: solid white;
   border-width: 0;
+  border-radius: 200px;
   opacity: 0;
   visibility: hidden;
   cursor: none;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 99;
 
   /* One unified transform: translate + scale var */
   transform: translate3d(var(--preview-x, 0px), var(--preview-y, 0px), 0)
@@ -196,7 +176,9 @@
 /* Optionally fade-in the media itself */
 #mediaPreview img,
 #mediaPreview video {
-  @apply w-full h-full object-cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   opacity: 0;
   transition: opacity 150ms ease;
 }

@@ -1,5 +1,7 @@
+@import "tailwindcss/theme.css" layer(theme);
+
 @theme {
-  /* --color-gray-50: var(--color-gray-50);
+  --color-gray-50: var(--color-gray-50);
   --color-gray-100: var(--color-gray-100);
   --color-gray-200: var(--color-gray-200);
   --color-gray-300: var(--color-gray-300);
@@ -9,7 +11,7 @@
   --color-gray-700: var(--color-gray-700);
   --color-gray-800: var(--color-gray-800);
   --color-gray-900: var(--color-gray-900);
-  --color-gray-950: var(--color-gray-950); */
+  --color-gray-950: var(--color-gray-950);
 
   /* Custom colors */
   --color-warm-bg: var(--color-warm-bg);
@@ -20,8 +22,8 @@
   --color-paper-text: var(--color-paper-text);
 
   /* Fonts */
-  --font-serif: "Playfair Display", "Playfair-Fallback", serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Lato", sans-serif;
 
   /* Animation */
   /* https://conorhaining.com/posts/view-transitions-for-your-static-site/ */
@@ -40,12 +42,10 @@
 
   @keyframes dropIn {
     0% {
-      /* Start position: slightly above its final position and hidden */
       transform: translateY(-50px);
       opacity: 0;
     }
     100% {
-      /* End position: original position and fully visible */
       transform: translateY(0);
       opacity: 1;
     }

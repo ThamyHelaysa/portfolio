@@ -49,26 +49,29 @@
       {% endfor %}
     {% endif %}
 
+    {% set fontCss %}{% include "css/fonts.css" %}{% endset %}
+
+    {% set fontHash = fontCss | trim | cspHash %}
+    {% set cspStyleSrc = cspStyleSrc + " " + fontHash %}
+
+    {% set stylesOutput = stylesOutput + '<style>' + (fontCss | safe | trim) + '</style>' %}
+
     <meta 
       http-equiv="Content-Security-Policy" 
       content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }};"
     >
     <meta name="view-transition" content="same-origin">
+    
 
-    <link rel="preload" href="/assets/fonts/playfair-display-v40/playfair-display-v40-latin-800.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/playfair-display-v40/playfair-display-v40-latin-800italic.woff2" as="font" type="font/woff2" crossorigin>
-
-    {# Style matches the hash (Added | trim just to be super safe) #}
-    {# <style>{{ fontCss | safe | trim }}</style> #}
     {{ stylesOutput | safe }}
 
+    <link rel="preload" href="/assets/fonts/pf-display-v40-cy_latin/playfair-display-v40-cyrillic_latin-900italic.woff2" as="font" type="font/woff2" crossorigin/>
+    <link rel="preload" href="/assets/fonts/lato-v25-latin/lato-v25-latin-regular.woff2" as="font" type="font/woff2" crossorigin/>
+
+    <link rel="stylesheet" href="/assets/css/reset.css">
     <link rel="stylesheet" href="/assets/css/global.css">
 
     <script type="module" src="/components/theme-toggle.js"></script>
-    {# <script type="module" src="/components/note-modal.js"></script> #}
-    {# <script type="module" src="/components/note-button-open.js"></script> #}
-    {# <script type="module" src="/components/media-preview.js"></script> #}
-    {# <script type="module" src="/_helpers/identityManager.js"></script> #}
 
     {% if pageModules %}
       {% for url in pageModules %}
@@ -76,7 +79,6 @@
       {% endfor %}
     {% endif %}
 
-    {# {% if inlineJS %}<script>{{ inlineJS | safe | trim }}</script>{% endif %} #}
     {{ scriptsOutput | safe }}
   </head>
   <body class="font-serif dotted-bg">

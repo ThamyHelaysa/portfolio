@@ -1,8 +1,8 @@
-/*
-* File only for importing Tailwind and
-* config for the theme
-*/
+@layer theme, base, components, utilities;
 @source "../../components/*.js";
-@import "tailwindcss" prefix(sw);
+/* @import "tailwindcss" prefix(sw); */
+@import "tailwindcss/theme.css" layer(theme) prefix(sw);
+/* @import "tailwindcss/preflight.css" layer(base); */
+@import "tailwindcss/utilities.css" layer(utilities) prefix(sw);
 @import "./shadow-config.css";
 

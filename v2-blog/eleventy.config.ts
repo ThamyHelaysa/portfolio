@@ -59,6 +59,10 @@ export default function (eleventyConfig: any) {
     // 1. Define your compilation targets
     const targets = [
       {
+        input: './src/assets/styles/reset.css',
+        output: './dist/assets/css/reset.css'
+      },
+      {
         input: './src/assets/styles/global.css',
         output: './dist/assets/css/global.css'
       },

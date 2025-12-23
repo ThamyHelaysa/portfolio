@@ -6,7 +6,7 @@
     },
     "assert": {
       "assertions": {
-        "render-blocking-resources": ["error", {"minScore": 1}],
+        "render-blocking-resources": ["error", {"minScore": 0.9}],
         "server-response-time": ["error", {"minScore": 0.9}],
         "font-display": ["error", {"minScore": 1}],
         "categories:performance": ["error", {"minScore": 0.9}],

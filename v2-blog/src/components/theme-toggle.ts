@@ -33,6 +33,18 @@ export class ThemeToggle extends LitElement {
       border: none;
       box-shadow: none;
     }
+    button .dot-container {
+      align-items: center;
+      border-color: currentcolor;
+      border-radius: calc(infinity * 1px);
+      border-style: var(--tw-border-style);
+      border-width: 1px;
+      display: flex;
+      
+      height: calc(var(--sw-spacing) * 4);
+      justify-content: center;
+      width: calc(var(--sw-spacing) * 4);
+    }
   `;
 
   connectedCallback() {

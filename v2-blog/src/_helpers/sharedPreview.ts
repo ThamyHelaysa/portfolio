@@ -6,8 +6,8 @@
 const PREVIEW_OFFSET = 12;   // small gap between preview and anchor
 const PREVIEW_SIZE = 100;    // matches your 100x100
 
-type MediaType = 'image' | 'video';
-type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
+export type MediaType = 'image' | 'video';
+export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
 
 interface PositionOptions {
   x: number;

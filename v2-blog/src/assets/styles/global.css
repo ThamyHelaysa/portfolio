@@ -43,8 +43,8 @@
 
   h1 {
     @apply text-4xl md:text-6xl lg:text-6xl 
-    font-black text-accent-red font-black
-    md:leading-[1.25] tracking-wide;
+    font-black text-accent-red
+    md:leading-tight tracking-wide;
   }
 
   h2 {
@@ -53,6 +53,10 @@
     font-bold
     md:leading-[1.2];
     font-style: italic;
+  }
+
+  a {
+    padding-block: calc(var(--spacing)*2.5);
   }
 
   p {

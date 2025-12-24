@@ -1,0 +1,8 @@
+@source "../../components/menu-mobile.ts";
+
+@import "tailwindcss/theme.css" layer(theme) prefix(sw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(sw);
+
+/* @import "tailwindcss" prefix(sw); */
+@import "./shadow-config.css";
+

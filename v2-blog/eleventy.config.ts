@@ -57,11 +57,8 @@ export default function (eleventyConfig: any) {
     // INPUT: Where your source CSS lives
     // const tailwindInputPath = path.resolve('./src/assets/styles/global.css');
     // 1. Define your compilation targets
+    
     const targets = [
-      {
-        input: './src/assets/styles/reset.css',
-        output: './dist/assets/css/reset.css'
-      },
       {
         input: './src/assets/styles/global.css',
         output: './dist/assets/css/global.css'
@@ -77,6 +74,10 @@ export default function (eleventyConfig: any) {
       {
         input: './src/assets/styles/note-modal-shadow.css',
         output: './dist/assets/css/note-modal-shadow.css'
+      },
+      {
+        input: './src/assets/styles/menu-mobile-shadow.css',
+        output: './dist/assets/css/menu-mobile-shadow.css'
       }
     ];
 
@@ -106,22 +107,6 @@ export default function (eleventyConfig: any) {
       fs.writeFileSync(outputPath, result.css);
       console.log(`[Tailwind] Compiled: ${target.input} -> ${target.output}`);
     }
-    // OUTPUT: MUST match the path in your HTML <link> tag
-    // const tailwindOutputPath = './dist/assets/css/global.css'; 
-
-    // const cssContent = fs.readFileSync(tailwindInputPath, 'utf8');
-
-    // const outputDir = path.dirname(tailwindOutputPath);
-    // if (!fs.existsSync(outputDir)) {
-    //   fs.mkdirSync(outputDir, { recursive: true });
-    // }
-
-    // const result = await processor.process(cssContent, {
-    //   from: path.resolve(tailwindInputPath),
-    //   to: path.resolve(tailwindOutputPath),
-    // });
-
-    // fs.writeFileSync(tailwindOutputPath, result.css);
   });
 
 

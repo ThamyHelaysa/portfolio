@@ -25,7 +25,7 @@ export class MenuMobile extends LitElement {
   }
 
   private _handleClickLink(e: Event){
-    e.preventDefault();
+    // e.preventDefault();
     console.log(e)
     if (this.isOpen){
       setTimeout(() => {this._handleOpen()}, 300);
@@ -73,23 +73,25 @@ export class MenuMobile extends LitElement {
           </button>
         </div>
 
-        <nav class="sw:grow sw:flex sw:flex-col sw:justify-center" @click="${this._handleClickLink}">
+        <nav 
+          class="sw:overflow-hidden sw:pb-6 sw:grow sw:flex sw:flex-col sw:justify-center" 
+          @click="${this._handleClickLink}">
           <slot name="content"></slot>
-          <div class="sw:mt-12 sw:space-y-6 sw:transition-all sw:duration-500 sw:delay-300 ${
-            open ? 'sw:opacity-100 sw:translate-y-0' : 'sw:opacity-0 sw:translate-y-4'
+          <div class="sw:pt-12 sw:px-8 sw:gap-8 sw:border-t sw:border-accent-red/5 sw:transition-all sw:duration-500 sw:delay-600 ${
+            open ? 'sw:opacity-100 sw:translate-x-0' : 'sw:opacity-0 sw:-translate-x-4'
           }">
-            <div class="sw:h-px sw:w-full sw:bg-accent-red/10"></div>
-            <div class="sw:flex sw:flex-col sw:gap-6">
+            <div class="sw:flex sw:flex-col sw:gap-3">
               <a
                 href="https://www.linkedin.com/in/thamy-helaysa"
                 target="_blank"
                 rel="noreferrer"
-                class="text-lg font-serif italic text-accent-red/80 hover:text-accent-red"
+                class="sw:py-3 sw:text-lg sw:font-serif sw:italic sw:text-accent-red/80 sw:hover:text-accent-red"
               >
                 LinkedIn &rarr;
               </a>
-              <div class="flex items-center gap-4 text-accent-red">
-                 <span class="text-sm uppercase tracking-widest opacity-50 font-bold">Theme</span>
+              <slot name="linkedin"></slot>
+              <div class="sw:py-3 sw:flex sw:items-center sw:gap-4 sw:text-accent-red">
+                 <span class="sw:text-sm sw:uppercase sw:tracking-widest sw:opacity-50 ">Theme</span>
                  <theme-toggle class="hidden md:flex" data-template-id="mobile-theme-toggle-tmpl"></theme-toggle>
               </div>
             </div>

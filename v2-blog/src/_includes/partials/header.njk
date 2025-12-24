@@ -32,15 +32,15 @@
         "0": "delay-[400ms]",
         "1": "delay-[500ms]",
         "2": "delay-[600ms]",
-        "3": "delay-[700ms]",
+        "3": "delay-[800ms]",
         "default": "delay-[100ms]"
       } %}
-      <div class="grow flex flex-col justify-center px-8 gap-8" slot="content">
+      <div class="grow flex flex-col justify-center px-8 gap-4 align-center" slot="content">
         {% for link in navigation.links %}
           <a
             href="{{ link.url }}"
-            class="-translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent-red transition-all duration-500 {{ delayMap[loop.index0] or delayMap['default'] }}"
-            {% if page.url == link.url %}aria-current="page"{% endif %}
+            class="-translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent-red transition-all duration-350 {{ delayMap[loop.index0] or delayMap['default'] }}"
+            {% if page.url.startsWith(link.url.toString()) %}aria-current="page"{% endif %}
             {% if link.url.startsWith("http") %}
               rel="noopener noreferrer"
               target="_blank"

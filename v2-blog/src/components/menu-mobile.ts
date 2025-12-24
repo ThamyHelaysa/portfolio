@@ -1,6 +1,7 @@
 import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property, queryAssignedElements } from "lit/decorators.js";
+import { customElement, property, query, queryAssignedElements, state } from "lit/decorators.js";
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
+import { animator } from "../_helpers/animationManager.ts";
 
 @customElement("menu-mobile")
 export class MenuMobile extends LitElement {
@@ -8,10 +9,22 @@ export class MenuMobile extends LitElement {
   @property({ type: Boolean, reflect: true })
   isOpen: boolean = false;
 
+  @state() private _blockAnim: boolean = false;
+
+  @query('#mobile-menu') private _menuWrapper!: HTMLDivElement;
+
   // @queryAssignedElements({ slot: 'trigger' })
   // private _triggers!: HTMLElement[];
 
   static styles = css`
+    #mobile-menu {
+      position: fixed;
+      opacity: 0;
+      transform: translateY(-999px);
+      pointer-events: none;
+      z-index: 999;
+    }
+
     button {
       background-color: transparent;
       border: none;
@@ -19,17 +32,36 @@ export class MenuMobile extends LitElement {
     }
   `;
 
-  private _handleOpen() {
+  private async _handleOpen() {
+    if (this._blockAnim) return;
+
     this.isOpen = !this.isOpen;
     this._lockBody(this.isOpen);
+    animator.cancel(this._menuWrapper);
+    await this._showMenu(this.isOpen);
   }
 
-  private _handleClickLink(e: Event){
-    // e.preventDefault();
-    console.log(e)
-    if (this.isOpen){
-      setTimeout(() => {this._handleOpen()}, 300);
+  private async _handleClickLink(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (!link) return;
+
+    console.log(target, link, link?.target);
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0 || link.target === '_blank'){
+      this._handleOpen();
+      return;
     }
+
+    e.preventDefault();
+    const href = link?.href;
+
+    this._handleOpen();
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const delay = prefersReducedMotion ? 0 : 300;
+
+    await new Promise(resolve => setTimeout(resolve, delay));
+
+    window.location.href = href;
   }
 
   async firstUpdated() {
@@ -38,6 +70,17 @@ export class MenuMobile extends LitElement {
     } catch (e) {
       console.error('[ThemeToggle] Failed to load styles', e);
     }
+  }
+
+  private async _showMenu(open: boolean) {
+    this._blockAnim = true;
+    await animator.animate(
+      this._menuWrapper,
+      open
+      ? [{ transform: 'translateY(0)', opacity: 1, pointerEvents: 'initial' }]
+      : [{ transform: 'translateY(-999px)', opacity: 0,  pointerEvents: 'none' }],
+      { duration: 500, easing: 'ease-in-out', fill: 'both' }
+    ).then(() => this._blockAnim = false);
   }
 
   _lockBody(lock = true) {
@@ -57,7 +100,7 @@ export class MenuMobile extends LitElement {
       </button>
       <div
         id="mobile-menu"
-        class="sw:fixed sw:inset-0 sw:z-100 sw:bg-warm-bg sw:transition-all sw:duration-500 sw:ease-in-out sw:md:hidden sw:flex sw:flex-col ${open ? 'sw:opacity-100 sw:translate-y-0' : 'sw:opacity-0 sw:-translate-y-full sw:pointer-events-none'}"
+        class="sw:inset-0 sw:z-99 sw:bg-warm-bg sw:transition-all sw:duration-500 sw:ease-in-out sw:md:hidden sw:flex sw:flex-col "
         role="dialog"
         aria-modal="true"
         aria-label="Navigation Menu"
@@ -74,12 +117,11 @@ export class MenuMobile extends LitElement {
         </div>
 
         <nav 
-          class="sw:overflow-hidden sw:pb-6 sw:grow sw:flex sw:flex-col sw:justify-center" 
+          class="sw:overflow-hidden sw:pb-6 sw:grow sw:flex sw:flex-col sw:justify-center sw:z-50" 
           @click="${this._handleClickLink}">
           <slot name="content"></slot>
-          <div class="sw:pt-12 sw:px-8 sw:gap-8 sw:border-t sw:border-accent-red/5 sw:transition-all sw:duration-500 sw:delay-600 ${
-            open ? 'sw:opacity-100 sw:translate-x-0' : 'sw:opacity-0 sw:-translate-x-4'
-          }">
+          <div class="sw:pt-12 sw:px-8 sw:gap-8 sw:border-t sw:border-accent-red/5 sw:transition-transform sw:transition-opacity sw:duration-500 sw:delay-600 ${open ? 'sw:opacity-100 sw:translate-x-0' : 'sw:opacity-0 sw:-translate-x-4'
+      }">
             <div class="sw:flex sw:flex-col sw:gap-3">
               <a
                 href="https://www.linkedin.com/in/thamy-helaysa"

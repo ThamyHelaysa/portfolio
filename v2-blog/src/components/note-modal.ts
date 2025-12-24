@@ -1,110 +1,145 @@
+import { LitElement, html, PropertyValues } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from '../_helpers/animationManager.ts';
 
-const CHARS_PER_PAGE = 500 as const;
+// const CHARS_PER_PAGE = 500 as const;
 
-class NoteModal extends HTMLElement implements EventListenerObject {
-  static get observedAttributes(): string[] {
-    return ['node-tmpl'];
-  }
+@customElement('note-modal')
+export class NoteModal extends LitElement {
 
-  private _isReady: boolean = false;
-  private _pages: string[] = [];
-  private _currentPageIndex: number = 0;
+  // 1. Attributes & Properties
+  @property({ attribute: 'node-tmpl' }) nodeTmpl: string | null = null;
+
+  // 2. Internal State
+  @state() private _pages: string[] = [];
+  @state() private _currentPageIndex: number = 0;
+  @state() private _isReady: boolean = false;
+  
+  // Track specific sheet index to detect "page flips" vs "new sheets"
   private _lastSheetIndex: number = -1;
 
-  private _dialog!: HTMLDialogElement | null;
-  private _btnClose: HTMLButtonElement | null = null;
-  private _btnNext: HTMLButtonElement | null = null;
-  private _btnPrev: HTMLButtonElement | null = null;
-  private _frontContentArea: HTMLParagraphElement | null = null;
-  private _backContentArea: HTMLParagraphElement | null = null;
-  private _pageIndicator: HTMLSpanElement | null = null;
-  private _navigationIndicator: HTMLDivElement | null = null;
-  private _sheetWrapper: HTMLDivElement | null = null;
-  private _sheetFlipper: HTMLDivElement | null = null;
+  // 3. DOM Queries (Replaces _cacheDOM)
+  @query('dialog') private _dialog!: HTMLDialogElement;
+  @query('#sheetWrapper') private _sheetWrapper!: HTMLDivElement;
+  @query('#innerFlipper') private _sheetFlipper!: HTMLDivElement;
+  @query('#frontContent') private _frontContentArea!: HTMLParagraphElement;
+  @query('#backContent') private _backContentArea!: HTMLParagraphElement;
+  // We query buttons mainly to check disabled state if needed, though Lit handles binding
+  @query('#btn-prev') private _btnPrev!: HTMLButtonElement;
+  @query('#btn-next') private _btnNext!: HTMLButtonElement;
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback(): void {
-    this._render();
-    this._cacheDOM();
-
-    // 3. Load Styles
-    adoptTailwind(this.shadowRoot!, "note-modal-shadow.css").then(() => {
+  // 4. Lifecycle
+  async firstUpdated() {
+    // Load Tailwind into the Shadow Root
+    try {
+      await adoptTailwind(this.renderRoot as ShadowRoot, "note-modal-shadow.css");
       this._isReady = true;
 
-      // Logic: If attribute was set before styles loaded
-      if (this.hasAttribute('node-tmpl') && !this._dialog!.open) {
-        // Re-trigger load to ensure pages are calculated/rendered
-        this._loadTemplate(this.getAttribute('node-tmpl')!);
+      // If attribute was set before styles loaded, load content now
+      if (this.nodeTmpl && !this._dialog.open) {
+        this._loadTemplate(this.nodeTmpl);
       }
-
-    });
-    // this._bindEvents();
-    // ✅ 1. Bind to 'this' directly
-    // The component itself acts as the listener object.
-    // Events bubble up from Shadow DOM, so 'this' catches them.
-    this.addEventListener('click', this);
-    this.addEventListener('keydown', this);
-
-  }
-
-  disconnectedCallback(): void {
-    // ✅ 2. Clean up is trivial
-    this.removeEventListener('click', this);
-    this.removeEventListener('keydown', this);
-  }
-
-  // 2. The signature MUST use 'Event', not 'MouseEvent' or 'KeyboardEvent' directly
-  // The interface defines: handleEvent(object: Event): void;
-  handleEvent(e: Event): void {
-    switch (e.type) {
-      case 'click':
-        // 3. Cast inside the method
-        this._routeClick(e as MouseEvent);
-        break;
-      case 'keydown':
-        this._routeKey(e as KeyboardEvent);
-        break;
+    } catch (e) {
+      console.error('[NoteModal] Failed to load styles', e);
     }
   }
 
-  private _routeClick(e: MouseEvent) {
-    // 1. Get the "True" target from inside the Shadow DOM
-    const path = e.composedPath();
-    const originalTarget = path[0] as HTMLElement;
+  connectedCallback() {
+    super.connectedCallback();
+    // Bind Key events globally or to host
+    this.addEventListener('keydown', this._handleKeydown);
+  }
 
-    // A. Check for Close Button
-    if (originalTarget.closest('#btn-close')) {
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('keydown', this._handleKeydown);
+  }
+
+  // Handle prop changes (like attributeChangedCallback)
+  updated(changedProperties: PropertyValues) {
+    if (changedProperties.has('nodeTmpl') && this.nodeTmpl) {
+      this._loadTemplate(this.nodeTmpl);
+    }
+  }
+
+  // 5. Render
+  render() {
+    // Calculated view state
+    const total = this._pages.length;
+    const pageIndicatorText = total > 0 ? `${this._currentPageIndex + 1} / ${total}` : '';
+    const isPrevDisabled = this._currentPageIndex === 0;
+    const isNextDisabled = this._currentPageIndex >= total - 1;
+
+    // Get content for current *Sheet* (Index / 2)
+    // Note: We bind content directly here, but _updatePageContent handles the visual flip logic
+    const sheetIndex = Math.floor(this._currentPageIndex / 2);
+    const frontText = this._pages[sheetIndex * 2] || "";
+    const backText = this._pages[sheetIndex * 2 + 1] || "";
+
+    return html`
+      <dialog @click=${this._handleBackdropClick} 
+              class="nm:open:top-[50%] nm:open:left-[50%] nm:open:-translate-x-[50%] nm:open:-translate-y-[50%] nm:open:flex nm:open:items-center nm:open:justify-center nm:open:bg-transparent nm:open:flex-col nm:open:p-4 nm:open:overflow-hidden nm:open:min-w-[90vw] nm:open:perspective-[1000px]">
+        
+        <div id="containerStack" class="nm:relative nm:w-full nm:max-w-2xl nm:max-h-[90vh] nm:aspect-3/5">
+          
+          <div id="sheetWrapper" class="nm:absolute nm:inset-0 nm:z-20 nm:opacity-0 nm:flex nm:flex-col">
+            
+            <div class="nm:w-full nm:h-fit nm:z-1 nm:text-center">
+              <button id="btn-close" type="button" @click=${this._close}
+                class="nm:text-paper-text/40 nm:hover:text-accent-red nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
+                Close Note
+              </button>
+            </div>
+
+            <div id="innerFlipper"
+              class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:transform-3d">
+              
+              <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                    <p id="frontContent" class="nm:transition-opacity">${frontText}</p>
+                </div>
+              </div>
+
+              <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                    <p id="backContent" class="nm:transition-opacity">${backText}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-red/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
+            <button id="btn-prev" type="button" @click=${this._prev} ?disabled=${isPrevDisabled}
+              class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99">
+                &larr; Prev
+            </button>
+            
+            <span id="pageIndicator">${pageIndicatorText}</span>
+            
+            <button id="btn-next" type="button" @click=${this._next} ?disabled=${isNextDisabled}
+              class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99">
+                Next &rarr;
+            </button>
+          </div>
+
+        </div>
+      </dialog>
+    `;
+  }
+
+  // 6. Event Handlers
+
+  private _handleBackdropClick(e: MouseEvent) {
+    // Native dialog background click check
+    if (e.target === this._dialog) {
       this._close();
-      return;
-    }
-
-    // B. Check for Backdrop Click
-    // In a native <dialog>, clicking the ::backdrop is often registered 
-    // as clicking the dialog element itself.
-    if (originalTarget === this._dialog) {
-      this._close();
-    }
-
-    // C. Check for next button
-    if (originalTarget.closest('#btn-next')) {
-      this._next();
-      return;
-    }
-
-    // D. Check for prev button
-    if (originalTarget.closest('#btn-prev')) {
-      this._prev();
-      return;
     }
   }
 
-  private _routeKey(e: KeyboardEvent) {
+  private _handleKeydown(e: KeyboardEvent) {
+    if (!this._dialog?.open) return;
+    
     switch (e.key) {
       case 'ArrowRight':
         this._next();
@@ -113,18 +148,18 @@ class NoteModal extends HTMLElement implements EventListenerObject {
         this._prev();
         break;
       case 'Escape':
-        // Native dialog handles Escape automatically, 
-        // but just in case
         this._close();
         break;
     }
   }
 
+  // 7. Logic & Methods
+
   private _open() {
     if (!this._dialog) return;
     if (!this._dialog.open) {
       this._dialog.showModal();
-      this._lockBody();
+      this._lockBody(true);
     };
   }
 
@@ -132,185 +167,58 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     if (this._dialog && this._dialog.open) this._dialog.close();
 
     // Reset State
-    //this.innerHTML = ''; 
-    this.replaceChildren();
-    this.removeAttribute('node-tmpl');
+    this.nodeTmpl = null;
     this._pages = [];
     this._currentPageIndex = 0;
     this._lastSheetIndex = -1;
-    this._updatePageContent(); // Clear UI
     this._lockBody(false);
     this._resetAnimations();
   }
 
-  _getCharsLimit() {
-    // Option A: Check Window Width (Simpler, works for full-screen modals)
-    // const width = window.innerWidth;
-    
-    // Option B: Check Element Width (More robust if modal size varies)
-    const width = this._sheetWrapper?.offsetWidth || window.innerWidth;
-
-    if (width < 460) return 250;  // Petitte mobile
-    if (width < 640) return 350;  // Mobile (Tailwind 'sm')
-    if (width < 768) return 450;  // Tablet (Tailwind 'md')
-    if (width < 1024) return 550; // Laptop (Tailwind 'lg')
-    return 650;                   // Desktop
-  }
-
-  private _paginateText(text: string): string[] {
-    if (!text) return [];
-
-    const result: string[] = [];
-    let currentIndex = 0;
-
-    while (currentIndex < text.length) {
-      let sliceEnd = currentIndex + this._getCharsLimit();
-
-      // Case 1: We reached the end of the text
-      if (sliceEnd >= text.length) {
-        result.push(text.slice(currentIndex));
-        break;
-      }
-
-      // Case 2: Find the nearest previous space to avoid cutting words
-      const lastSpace = text.lastIndexOf(' ', sliceEnd);
-      let nextIndex = sliceEnd;
-
-      // Safety: If a word is huge, force split instead of infinite loop
-      if (lastSpace > currentIndex) {
-        sliceEnd = lastSpace;
-        // Start the next page AFTER the space
-        nextIndex = lastSpace + 1;
-      }
-
-      result.push(text.slice(currentIndex, sliceEnd).trim());
-      currentIndex = sliceEnd;
-    }
-    return result;
-  }
-
-  private _loadTemplate(id: string): void {
-    // 🛡️ Safety: Stop if element is not attached (prevents phantom updates)
-    if (!this.isConnected) return;
-
-    // 1. Get and Cast Template
-    // We cast to HTMLTemplateElement to access .content
-    const template = document.getElementById(id) as HTMLTemplateElement | null;
-
-    if (!template) {
-      console.warn(`[NoteModal] Template #${id} not found.`);
-      return;
-    }
-
-    // 2. Clone the content
-    // returns a DocumentFragment
-    const contentFrag = template.content.cloneNode(true) as DocumentFragment;
-
-    // Extract slots
-    const titleEl = contentFrag.querySelector('[slot="title"]');
-    const dateEl = contentFrag.querySelector('[slot="date"]');
-
-    // Fallback logic: Look for explicit content slot -> specific div -> or entire fragment
-    const bodyEl = contentFrag.querySelector('[slot="content"]') ||
-      contentFrag.querySelector('div') ||
-      contentFrag;
-
-    // 3. Move to Light DOM
-    // replaceChildren() is faster/cleaner than innerHTML = ''
-    this.replaceChildren();
-
-    if (titleEl) this.appendChild(titleEl.cloneNode(true));
-    if (dateEl) this.appendChild(dateEl.cloneNode(true));
-
-    // B. Extract text for page content
-    const rawText = bodyEl.textContent || "";
-
-    // C. Calculate pages
-    this._pages = this._paginateText(rawText);
-    this._currentPageIndex = 0;
-
-    // D. Update Shadow DOM UI
-    this._updatePageContent(id);
-
-    // E. Open
-    if (this._isReady && this._dialog?.open === false) {
-      this._open();
+  private async _next() {
+    if (this._currentPageIndex < this._pages.length - 1) {
+      this._currentPageIndex++;
+      await this.updateComplete; // Ensure index is updated before animation calculation
+      this._updatePageContent();
     }
   }
 
-  private _resetAnimations() {
-    // 1. Get Elements
-    // const flipper = this.sheetFlipperRef.value;
-    // const wrapper = this.sheetWrapperRef.value;
-
-    // 2. The Modern Way: Cancel All
-    // .getAnimations() returns all WAAPI animations on the element
-    this._sheetFlipper?.getAnimations().forEach((anim: any) => anim.cancel());
-    this._sheetWrapper?.getAnimations().forEach((anim: any) => anim.cancel());
-
-    // 3. Clean Inline Styles
-    // This removes the "fill: forwards" persistence manually
-    if (this._sheetFlipper) {
-      this._sheetFlipper.style.transform = '';
-      this._sheetFlipper.style.opacity = '';
-    }
-    if (this._sheetWrapper) {
-      this._sheetWrapper.style.transform = '';
-      this._sheetWrapper.style.opacity = '';
+  private async _prev() {
+    if (this._currentPageIndex > 0) {
+      this._currentPageIndex--;
+      await this.updateComplete;
+      this._updatePageContent();
     }
   }
 
+  /**
+   * Core Logic: Handles the 3D flip or "New Sheet" drop animation.
+   * We keep this imperative because it orchestrates complex WAAPI sequences.
+   */
   private async _updatePageContent(newId: string | undefined = undefined): Promise<void> {
-    // Check ALL potentially null elements here so we don't need '!' or '?' later.
-    if (
-      !this._frontContentArea ||
-      !this._backContentArea ||
-      !this._sheetWrapper ||
-      !this._sheetFlipper ||
-      !this._pageIndicator ||
-      !this._btnPrev ||
-      !this._btnNext
-    ) return;
+    // Safety check for elements
+    if (!this._sheetWrapper || !this._sheetFlipper) return;
 
     const sheetIndex = Math.floor(this._currentPageIndex / 2);
     const isBackSide = this._currentPageIndex % 2 !== 0;
     const hasSheetChanged = this._lastSheetIndex !== sheetIndex;
 
     // --- CASE A: NEW PHYSICAL SHEET (The "Drop") ---
-    // Priority: High. Overrides/Cancels any flip.
     if (hasSheetChanged || newId) {
-
-      // 1. Stop the flip if it's currently moving
+      // 1. Stop existing animations
       animator.cancel(this._sheetFlipper);
 
-      // 2. Update data
-      const frontContent = this._pages[sheetIndex * 2] || "";
-      const backContent = this._pages[sheetIndex * 2 + 1] || "";
-      this._frontContentArea.innerText = frontContent;
-      this._backContentArea.innerText = backContent;
-
-      // 2. CANCEL FLIP ANIMATION (The "Snap")
-      // We disable transitions temporarily so the rotation resets INSTANTLY
+      // 2. Snap Logic (Instant Reset)
+      // We manually set transforms to prepare for the "Drop"
+      // Note: We disable transition momentarily to prevent "swinging" into place
       this._sheetFlipper.style.transition = 'none';
-      this._sheetFlipper.style.transform = isBackSide ? 'rotateY(180deg)' : 'rotateY(0deg)';
-      // this._frontContentArea.style.opacity = isBackSide ? "0" : "1";
-      // this._backContentArea.style.opacity = isBackSide ? "1" : "0";
-
-      // this._frontContentArea.style.zIndex = isBackSide ? "30" : "31";
-      // this._backContentArea.style.zIndex = isBackSide ? "31" : "30";
-      // this._transitionContents(isBackSide);
-
-      // 3. Snap to State (Instant Reset)
-      // We manually set the transforms so the element is in position for the "Drop"
       const targetRot = isBackSide ? 180 : 0;
       this._sheetFlipper.style.transform = `perspective(1000px) rotateY(${targetRot}deg)`;
 
-      // Snap Opacity
+      // 3. Update Opacity/Visibility
       this._transitionContents(isBackSide);
 
-      // 4. Run "Drop In" Animation via JS
-      // Logic: Wait for the drop to finish before allowing interaction? 
-      // (Optional: await here if you want to block input)
+      // 4. Run "Drop In" Animation
       const isFirstSheet = sheetIndex === 0;
 
       await animator.animate(
@@ -325,118 +233,115 @@ class NoteModal extends HTMLElement implements EventListenerObject {
     }
     // --- CASE B: SAME SHEET, JUST FLIPPING ---
     else {
-      // 1. Update Content Visibility (Crossfade)
-      // We can animate this too if we want perfect sync, but simple toggle works for 3D
+      // 1. Update Content Visibility (Crossfade logic)
       this._transitionContents(isBackSide);
 
-      // 2. Calculate Destination
+      // 2. Animate Flip
       const endRot = isBackSide ? 180 : 0;
-
+      
       await animator.animate(
         this._sheetFlipper,
-        [
-          // implicitly 'from: currentComputedStyle'
-          { transform: `rotateY(${endRot}deg)` }
-        ],
+        [{ transform: `rotateY(${endRot}deg)` }],
         {
           duration: 600,
           easing: 'cubic-bezier(0.37, 0, 0.63, 1)',
-          fill: 'forwards' // Keeps the state at 180deg after finishing
+          fill: 'forwards'
         }
       );
     }
-    // Updates
-    const total = this._pages.length;
-    this._pageIndicator.textContent = total > 0 ? `${this._currentPageIndex + 1} / ${total}` : '';
-    this._btnPrev.disabled = this._currentPageIndex === 0;
-    this._btnNext.disabled = this._currentPageIndex >= total - 1;
-
-  }
-
-  private async _next() {
-    if (this._currentPageIndex < this._pages.length - 1) {
-      // this._isAnimating = true;
-      this._currentPageIndex++;
-      this._updatePageContent();
-    }
-  }
-
-  private async _prev() {
-    if (this._currentPageIndex > 0) {
-      this._currentPageIndex--;
-      this._updatePageContent();
-    }
-  }
-
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "node-tmpl" && newValue && newValue !== oldValue) {
-      this._loadTemplate(newValue);
-    }
-  }
-
-  _lockBody(lock = true) {
-    if (!document.body) return;
-    document.body.style.overflow = lock ? 'hidden' : 'initial'
   }
 
   private _transitionContents(backOrFront: boolean): void {
-    this._frontContentArea!.style.opacity = backOrFront ? "0" : "1";
-    this._backContentArea!.style.opacity = backOrFront ? "1" : "0";
+    if(this._frontContentArea) this._frontContentArea.style.opacity = backOrFront ? "0" : "1";
+    if(this._backContentArea) this._backContentArea.style.opacity = backOrFront ? "1" : "0";
   }
 
-  _render(): void {
-    if (!this.shadowRoot) return;
-    this.shadowRoot.innerHTML = `
-      <dialog class="nm:open:top-[50%] nm:open:left-[50%] nm:open:-translate-x-[50%] nm:open:-translate-y-[50%] nm:open:flex nm:open:items-center nm:open:justify-center nm:open:bg-transparent nm:open:flex-col nm:open:p-4 nm:open:overflow-hidden nm:open:min-w-[90vw] nm:open:perspective-[1000px]">
-        <div id="containerStack" class="nm:relative nm:w-full nm:max-w-2xl nm:max-h-[90vh] nm:aspect-3/5">
-          <div id="sheetWrapper" class="nm:absolute nm:inset-0 nm:z-20 nm:opacity-0 nm:flex nm:flex-col">
-            <div class="nm:w-full nm:h-fit nm:z-1 nm:text-center">
-              <button id="btn-close" type="button"
-                class="nm:text-paper-text/40 nm:hover:text-accent-red nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
-                Close Note
-              </button>
-            </div>
-            <div id="innerFlipper"
-              class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:transform-3d">
-              <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
-                    <p id="frontContent" class="nm:transition-opacity"></p>
-                </div>
-              </div>
+  private _resetAnimations() {
+    this._sheetFlipper?.getAnimations().forEach((anim: any) => anim.cancel());
+    this._sheetWrapper?.getAnimations().forEach((anim: any) => anim.cancel());
 
-              <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
-                    <p id="backContent" class="nm:transition-opacity"></p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-red/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
-            <button id="btn-prev" class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99" type="button">
-                &larr; Prev
-            </button>
-            <span id="pageIndicator"></span>
-            <button id="btn-next" class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99" type="button">
-                Next &rarr;
-            </button>
-          </div>
-        </div>
-      </dialog>
-    `;
+    if (this._sheetFlipper) {
+      this._sheetFlipper.style.transform = '';
+      this._sheetFlipper.style.opacity = '';
+    }
+    if (this._sheetWrapper) {
+      this._sheetWrapper.style.transform = '';
+      this._sheetWrapper.style.opacity = '';
+    }
   }
 
-  _cacheDOM() {
-    this._dialog = this.shadowRoot!.querySelector('dialog');
-    this._btnClose = this.shadowRoot!.querySelector('#btn-close');
-    this._btnNext = this.shadowRoot!.querySelector('#btn-next');
-    this._btnPrev = this.shadowRoot!.querySelector('#btn-prev');
-    this._frontContentArea = this.shadowRoot!.querySelector('#frontContent');
-    this._backContentArea = this.shadowRoot!.querySelector('#backContent');
-    this._navigationIndicator = this.shadowRoot!.querySelector('#containerNavigation');
-    this._pageIndicator = this.shadowRoot!.querySelector('#pageIndicator');
-    this._sheetWrapper = this.shadowRoot!.querySelector('#sheetWrapper');
-    this._sheetFlipper = this.shadowRoot!.querySelector('#innerFlipper');
+  // --- Parsing Logic (Kept mostly as-is) ---
+
+  private _loadTemplate(id: string): void {
+    if (!this.isConnected) return;
+
+    // We query the Light DOM (document) for the template
+    const template = document.getElementById(id) as HTMLTemplateElement | null;
+    if (!template) {
+      console.warn(`[NoteModal] Template #${id} not found.`);
+      return;
+    }
+
+    const contentFrag = template.content.cloneNode(true) as DocumentFragment;
+    
+    // Simple text extraction strategy
+    const bodyEl = contentFrag.querySelector('[slot="content"]') ||
+      contentFrag.querySelector('div') ||
+      contentFrag;
+
+    const rawText = bodyEl.textContent || "";
+    this._pages = this._paginateText(rawText);
+    this._currentPageIndex = 0;
+    
+    // Trigger initial "New Sheet" update
+    this.updateComplete.then(() => {
+        this._updatePageContent(id);
+        if (this._isReady && !this._dialog.open) {
+            this._open();
+        }
+    });
+  }
+
+  private _paginateText(text: string): string[] {
+    if (!text) return [];
+    const result: string[] = [];
+    let currentIndex = 0;
+
+    while (currentIndex < text.length) {
+      let sliceEnd = currentIndex + this._getCharsLimit();
+
+      if (sliceEnd >= text.length) {
+        result.push(text.slice(currentIndex));
+        break;
+      }
+
+      const lastSpace = text.lastIndexOf(' ', sliceEnd);
+      if (lastSpace > currentIndex) {
+        sliceEnd = lastSpace;
+        // Skip the space for the next page
+        result.push(text.slice(currentIndex, sliceEnd).trim());
+        currentIndex = sliceEnd + 1;
+      } else {
+        // Force split if no space found
+        result.push(text.slice(currentIndex, sliceEnd).trim());
+        currentIndex = sliceEnd;
+      }
+    }
+    return result;
+  }
+
+  private _getCharsLimit() {
+    const width = this._sheetWrapper?.offsetWidth || window.innerWidth;
+    if (width < 460) return 250;
+    if (width < 640) return 350;
+    if (width < 768) return 450;
+    if (width < 1024) return 550;
+    return 650;
+  }
+
+  private _lockBody(lock: boolean) {
+    if (document.body) {
+      document.body.style.overflow = lock ? 'hidden' : 'initial';
+    }
   }
 }
-
-customElements.define('note-modal', NoteModal);

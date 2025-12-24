@@ -8,8 +8,8 @@ export class MenuMobile extends LitElement {
   @property({ type: Boolean, reflect: true })
   isOpen: boolean = false;
 
-  @queryAssignedElements({ slot: 'trigger' })
-  private _triggers!: HTMLElement[];
+  // @queryAssignedElements({ slot: 'trigger' })
+  // private _triggers!: HTMLElement[];
 
   static styles = css`
     button {

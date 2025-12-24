@@ -23,6 +23,7 @@ export class MenuMobile extends LitElement {
       transform: translateY(-999px);
       pointer-events: none;
       z-index: 999;
+      contain: layout;
     }
 
     button {
@@ -100,7 +101,7 @@ export class MenuMobile extends LitElement {
       </button>
       <div
         id="mobile-menu"
-        class="sw:inset-0 sw:z-99 sw:bg-warm-bg sw:transition-all sw:duration-500 sw:ease-in-out sw:md:hidden sw:flex sw:flex-col "
+        class="sw:inset-0 sw:z-99 sw:bg-warm-bg sw:transition-colors sw:duration-500 sw:ease-in-out sw:md:hidden sw:flex sw:flex-col "
         role="dialog"
         aria-modal="true"
         aria-label="Navigation Menu"

@@ -19,53 +19,14 @@
 
 @layer base {
 
-  body {
-    color: var(--color-gray-700);
-    transition: color 300ms ease 0ms;
-    .dark & {
-      color: var(--color-gray-400);
-    }
-  }
-
-  main {
-    view-transition-name: post;
-  }
-
-  h1, h2, h3, h4 {
-    display: inline-block;
-    max-width: var(--container-5xl);
-    margin-bottom: calc(var(--spacing) * 16);
-    font-family: var(--font-serif);
-    text-wrap: balance;
-    letter-spacing: 1.5px;
-    line-height: 1.1;
-  }
-
-  h1 {
-    @apply text-4xl md:text-6xl lg:text-6xl 
-    font-black text-accent-red
-    md:leading-tight tracking-wide;
-  }
-
   h2 {
-    @apply text-3xl md:text-4xl lg:text-4xl 
-    text-red-950 dark:text-pink-400
-    font-bold
-    md:leading-[1.2];
-    font-style: italic;
+    @apply text-red-950 dark:text-pink-400;
   }
 
   a {
     padding-block: calc(var(--spacing)*2.5);
   }
 
-  p {
-    text-wrap: pretty;
-  }
-
-  button {
-    font-family: inherit;
-  }
 }
 
 @layer theme {
@@ -114,10 +75,6 @@
     --color-paper-text: var(--color-gray-400);
   }
 
-}
-
-theme-toggle {
-  min-width: 85px;
 }
 
 @utility dotted-bg {

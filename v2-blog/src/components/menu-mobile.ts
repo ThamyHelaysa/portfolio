@@ -20,10 +20,16 @@ export class MenuMobile extends LitElement {
     #mobile-menu {
       position: fixed;
       opacity: 0;
-      transform: translateY(-999px);
+      transform: translateY(-100%) translateZ(0px);
       pointer-events: none;
-      z-index: 999;
+      z-index: 99;
       contain: layout;
+      will-change: transform, opacity;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding-bottom: env(safe-area-inset-bottom);
+
+      /* border: 2px solid blue; */
     }
 
     button {
@@ -48,7 +54,7 @@ export class MenuMobile extends LitElement {
     if (!link) return;
 
     console.log(target, link, link?.target);
-    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0 || link.target === '_blank'){
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0 || link.target === '_blank') {
       this._handleOpen();
       return;
     }
@@ -58,7 +64,7 @@ export class MenuMobile extends LitElement {
 
     this._handleOpen();
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const delay = prefersReducedMotion ? 0 : 300;
+    const delay = prefersReducedMotion ? 0 : 200;
 
     await new Promise(resolve => setTimeout(resolve, delay));
 
@@ -75,13 +81,29 @@ export class MenuMobile extends LitElement {
 
   private async _showMenu(open: boolean) {
     this._blockAnim = true;
-    await animator.animate(
-      this._menuWrapper,
-      open
-      ? [{ transform: 'translateY(0)', opacity: 1, pointerEvents: 'initial' }]
-      : [{ transform: 'translateY(-999px)', opacity: 0,  pointerEvents: 'none' }],
-      { duration: 500, easing: 'ease-in-out', fill: 'both' }
-    ).then(() => this._blockAnim = false);
+
+    console.log(open)
+
+    const keyframes = open
+      ? [
+        { transform: 'translateY(-100%) translateZ(0px)', opacity: 0, pointerEvents: 'none' }, // Start
+        { transform: 'translateY(0) translateZ(0px)', opacity: 1, pointerEvents: 'initial' }   // End
+      ]
+      : [
+        { transform: 'translateY(0) translateZ(0px)', opacity: 1, pointerEvents: 'initial' },  // Start
+        { transform: 'translateY(-100%) translateZ(0px)', opacity: 0, pointerEvents: 'none' }  // End
+      ];
+
+    try {
+      await animator.animate(
+        this._menuWrapper,
+        keyframes,
+        { duration: 650, easing: 'cubic-bezier(.37,.79,.14,.93)', fill: 'both' }
+      ).catch((e) => console.log(e)).then(() => this._blockAnim = false);
+
+    } catch (e) {
+      console.log('Animation interrupted:', e);
+    }
   }
 
   _lockBody(lock = true) {

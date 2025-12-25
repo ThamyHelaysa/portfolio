@@ -21,7 +21,7 @@ class AnimationManager {
    */
   public async animate(
     element: HTMLElement,
-    keyframes: Keyframe[] | PropertyIndexedKeyframes,
+    keyframes: Keyframe[],
     options: KeyframeAnimationOptions
   ): Promise<void> {
 
@@ -51,7 +51,20 @@ class AnimationManager {
       animation.onfinish = () => {
         try {
           // KEY STEP: Write the final state to inline styles
-          animation.commitStyles();
+          // animation.commitStyles();
+
+          const finalFrame = keyframes[keyframes.length - 1];
+
+          // 2. Apply each property individually to element.style
+          if (finalFrame) {
+            Object.keys(finalFrame).forEach((prop) => {
+              // Skip animation-specific keys
+              if (prop !== 'offset' && prop !== 'easing' && prop !== 'composite') {
+                // @ts-ignore - Dynamic access is fine here
+                element.style[prop] = finalFrame[prop];
+              }
+            });
+          }
 
           // KEY STEP: Kill the heavy animation object
           animation.cancel();

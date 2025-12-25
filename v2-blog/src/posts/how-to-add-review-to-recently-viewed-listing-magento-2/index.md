@@ -17,23 +17,23 @@ You take your time to realize just one thing: the recently viewed listing have o
 To add the ratings you will have to change a few files and add anothers. The files are all available in the Catalog module.
 
 
-## 📔 First steps
+## First steps
 
 Start by adding the required files to your custom theme, with the path being: `app/design/frontend/<vendor>/<theme>/Magento_Catalog`.
 
-1. [Magento_Catalog/web/template/product/list/listing.html](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/template/product/list/listing.html)  (opcional)
-2. [Magento_Catalog/web/js/product/list/listing.js](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/js/product/list/listing.js) (opcional)
+1. [Magento_Catalog/web/template/product/list/listing.html](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/template/product/list/listing.html)  *(opcional)*
+2. [Magento_Catalog/web/js/product/list/listing.js](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/base/web/js/product/list/listing.js) *(opcional)*
 3. [Magento_Catalog/ui_component/widget_recently_viewed.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Catalog/view/frontend/ui_component/widget_recently_viewed.xml)
 
 > **Note:** The files marked as optional are not required for the ratings to appear in the listing, but you can change them as needed.
 
-## 📄 listing.html
+## listing.html
 
 The first one has the template for the products listing itself, you can add more containers (like a `div`), another areas (with the getRegion)  or new attributes. Some files were "cuted" for brevity, but you can see the original in the provided link.
 
 
+
 ```
-<pre>
 <div if="hasData()"
      class="block" css="additionalClasses">
     <div class="block-title">
@@ -64,11 +64,11 @@ The first one has the template for the products listing itself, you can add more
         </div>
     </div>
 </div>
-</pre>
 ```
 
 
-## 📄 listing.js
+
+## listing.js
 
 The second file is responsible for initialize the data in each row - in this case each row represents every product item.
 
@@ -108,7 +108,7 @@ define([
 </pre>
 ```
 
-## 📄 widget_recently_viewed.xml
+## widget_recently_viewed.xml
 
 You will need this file. In here we will insert a new column, wich is a new info about the product, that will make the ratings show on the product card. You dont need to copy the hole file, just add the code below with the new `<columns>` declaration.
 
@@ -139,9 +139,9 @@ Declare the `<column>` attributes: `name`, `component`, `displayArea` and `sortO
 
 In the `<settings>` you will need to set its label (the name that will appear in the admin settings) and wich html template to use (bodyTmpl).
 
-## 📄 summary.js
+## summary.js
 
-Create a file called *`summary.js`* in *Magento_Catalog/web/js/product*
+Create a file called `summary.js` in `Magento_Catalog/web/js/product`
 
 ```
 <pre>
@@ -217,12 +217,14 @@ The final result:
 </pre>
 ```
 
-You may be thinking *"Where did this extension_attributes an review_html are comming from?"*. The review_html attribute is added by the Review Module in [extension_attributes.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/etc/extension_attributes.xml). The `extension_attributes` are used to extend functionality and often use more complex data types than custom attributes.
+You may be thinking *"Where did this extension_attributes an review_html are comming from?"*.
+
+The review_html attribute is added by the Review Module in [extension_attributes.xml](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Review/etc/extension_attributes.xml). The `extension_attributes` are used to extend functionality and often use more complex data types than custom attributes.
 
 There is an item on `localStorage` that shows the attributes used, you can check it out *`product_data_storage`* for more info.
 
 
-## 📄 summary.html
+## summary.html
 
 Now we can add an template and pass on our new function, create a new `.html` file in `Magento_Catalog/web/template/product` called `summary.html` and add the code below like this:
 
@@ -290,7 +292,9 @@ How about adding a bit of motion to the listing? To use `slick-slider` you just 
 </pre>
 ```
 
+
 After that you need to pass it to the *`afterRender`* of a `div` in the end of the *`listing.html`* file.
+
 
 ```
 <pre>

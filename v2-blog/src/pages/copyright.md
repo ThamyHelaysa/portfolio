@@ -2,6 +2,8 @@
 layout: base.njk
 title: The thing with copyrights
 description: My open-source psalm for disillusioned creatives.
+inlineStyles: 
+  - "css/markdown.css"
 permalink: /copyrighty/
 ---
 
@@ -16,11 +18,7 @@ Let’'s get this straight:
 
 Im not saying that art, music or even your 3-year-old daughter’s poem aren’t theirs to be proud of.
 
-I’m saying ideas aren’t property in the way most people think they are.
-
-Im a dev. Every single contribution I’ve made on the internet isn’t mine anymore. And that’s okay - for me.
-
-As a dev, my drive is to have faith in common sense. That’s all.
+I’m saying ideas aren’t property in the way most people think they are. Im a dev. Every single contribution I’ve made on the internet isn’t mine anymore. And that’s okay - for me. As a dev, my drive is to have faith in common sense. That’s all.
 
 You can - and of course i will be immensily flattered about it - give some credit over something that you think is worth noting. **But I still won’t demand it**. Why? Not because I’m the next Mother Teresa. But because I don't claim something that doesn't need to be claimed.
 
@@ -28,9 +26,7 @@ If you "steal" something from me?
 
 Thats proof it was worth taking it.
 
-You wouldn’t even care about something worthless. And if you do... that's a shame for both of us.
-
-This is not a call to chaos. I’m not saying "steal everything and give nothing". I’m saying that before we assign value, rights, or price tags to a *thought*, We need to ask if it’s something beyond price.
+You wouldn’t even care about something worthless. And if you do... that's a shame for both of us. This is not a call to chaos. I’m not saying "steal everything and give nothing". I’m saying that before we assign value, rights, or price tags to a *thought*, We need to ask if it’s something beyond price.
 
 And here?
 
@@ -48,17 +44,12 @@ What about the time and effort i put into this? The love I poured into it? it do
 
 For me love isn’t an emotion, **It’s effort**.
 
-So is writing. </br>
-So is coding. </br>
-So is singing. </br>
-So is remixing a symphony or shaping a watercolor brushstroke or crying at Toy Story because they figured out how to rip your heart out using plastic figurines and "You’ve Got a Friend in Me".
+So is writing. So is coding. So is singing. So is remixing a symphony or shaping a watercolor brushstroke or crying at Toy Story because they figured out how to rip your heart out using plastic figurines and "You’ve Got a Friend in Me".
 
 I don't love things. </br>
 I love people. </br>
 
-The only effort worth bragging about - the only time I want to "waste" - is my love toward those who deserve it. Those who earn it.
-
-And then I caught myself thinking:
+The only effort worth bragging about - the only time I want to "waste" - is my love toward those who deserve it. Those who earn it. And then I caught myself thinking:
 
 *Why do we care so much and love so much the things we put in this world?*
 
@@ -70,23 +61,19 @@ Why does it all loop back to you? Not <sub>you</sub>
 
 Are you going to get mad because some burned-out adult took your three-line poem and turned it into merch to make a profit?
 
-I would.
-
-And not for justice. For revenge. Capitalism revenge. No one’s trying to copyright a meme for clout... until a megacorp slaps it on a bilboard and makes millions.
+I would. And not for justice. For revenge. Capitalism revenge. No one’s trying to copyright a meme for clout... until a megacorp slaps it on a bilboard and makes millions.
 
 ***They better pay me, for fuck's sake. Even the keyboard owes me money.***
 
 I know that felling.
 
-Its not about *the thing* you made, is about this: **(Me + Idea = Identity)**.
+Its not about the thing you made, is about this: **(Me + Idea = Identity)**.
 
 **I** matter because **I** made it. </br>
 If it matters than **I** exist. </br>
 If **I** exist then **I'm** *complete*. </br>
 
-And that is wild - mostly because who you are is just a blender of influences, instincts, and panic responses. 
-
-And when someone takes that? It’s not theft of property. 
+And that is wild - mostly because who you are is just a blender of influences, instincts, and panic responses. And when someone takes that? It’s not theft of property. 
 
 *It’s theft of self*.
 
@@ -94,11 +81,7 @@ It’s not about ownership anymore.
 
 *It’s about power*.
 
-And here I am selling the most precious, sacred thing I have: *my time*. Not bacause I love it. But because I need to survive.
-
-Because capitalism is louder than choice (Thanks, Rockefellers). 
-
-And now Im told I must also protect, monetize, litigate... What? **My thoughts**? Really? My entire life is being rented out by the hour.
+And here I am selling the most precious, sacred thing I have: *my time*. Not bacause I love it. But because I need to survive. Because capitalism is louder than choice (Thanks, Rockefellers). And now Im told I must also protect, monetize, litigate... What? **My thoughts**? Really? My entire life is being rented out by the hour.
 
 That's not ownership. </br>
 That's hollow. </br>
@@ -126,13 +109,7 @@ I hear artists, writers, devs, musicians… all holding onto their contributions
 
 And if you made this far, I'm impressed. It all started as a provoking joke. And finished as a mediocre essay.
 
-But I cried over it. And I post it. That's how it works.
-
-I will continue to write. </br>
-I will continue to cry. </br>
-I will continue to rant and reshape my thoughts.
-
-Not because they’ll make me rich. But because they matter to me. And for a moment... they're mine.
+But I cried over it. And I post it. That's how it works. I will continue to write. I will continue to cry. I will continue to rant and reshape my thoughts. Not because they’ll make me rich. But because they matter to me. And for a moment... they're mine.
 
 If they steal it. That's the proof it mattered.
 If they credit it. That's grace.

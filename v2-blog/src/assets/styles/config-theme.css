@@ -21,6 +21,9 @@
   --color-paper: var(--color-paper);
   --color-paper-text: var(--color-paper-text);
 
+  --color-border-code: var(--color-border-code);
+  --color-bg-code: var(--color-bg-code);
+
   /* Fonts */
   --font-serif: "Playfair Display", serif;
   --font-sans: "Lato", sans-serif;

@@ -19,6 +19,8 @@ h1, h2, h3, h4 {
   text-wrap: balance;
   letter-spacing: 1.5px;
   line-height: 1.1;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 h1 {
@@ -55,12 +57,10 @@ p {
 }
 
 em {
-  color: var(--color-accent-pink, #f7446d);
   letter-spacing: .5px;
 }
 
 b, strong {
-  color: var(--color-gray-300, #d6d3d1);
   letter-spacing: .5px;
 }
 

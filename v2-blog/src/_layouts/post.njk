@@ -1,18 +1,28 @@
 ---
 layout: base.njk
-description: A semi-functioning human's blog featuring some dark humor, unsolicited opinions, and occasional insights. Updated whenever existential dread takes a coffee break.
+inlineStyles: 
+  - "css/markdown.css"
 ---
 
 <div class="max-w-4xl mx-auto">
   <h1>{{ title }}</h1>
 
-  {% if date %}
-    <p><small class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">{{ date }}</small></p>
-  {% endif %}
+  <article class="bg-warm-bg py-4 px-2 md:py-16 md:px-10">
+    <p class="flex flex-col gap-y-2 mb-20!">
+      {% if date %}
+      {% set formatedDate = date | formatDatefull(date) %}
+        <small class="text-xs font-mono text-accent-red/60 uppercase tracking-widest group-hover:text-accent-red transition-colors">
+        Posted on: {{ formatedDate }}</small>
+      {% endif %}
 
-  <article class="bg-warm-bg py-4 px-2 md:py-12 md:px-6">
-    
-      {{ content | safe }}
+      {% if updateDate %}
+      {% set formatedLastUpDate = updateDate | formatDatefull(updateDate) %}
+        <small class="text-xs font-mono text-accent-red/60 uppercase tracking-widest group-hover:text-accent-red transition-colors">
+        Last update: {{ formatedLastUpDate }}</small>
+      {% endif %}
+    </p>
+
+    {{ content | safe }}
     
   </article>
 

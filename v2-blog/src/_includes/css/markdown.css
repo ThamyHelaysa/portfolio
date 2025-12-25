@@ -1,0 +1,62 @@
+em {
+  color: var(--color-accent-pink);
+  letter-spacing: .5px;
+}
+
+blockquote {
+  margin-block: calc(var(--spacing) * 10);
+  padding-block: calc(var(--spacing) * 5);
+  padding-inline: calc(var(--spacing) * 5);
+  border: 1px solid var(--color-accent-red);
+  color: var(--color-accent-red);
+  p { margin: 0 }
+}
+
+h2 {
+  margin-block-start: calc(var(--spacing) * 12);
+  margin-block-end: calc(var(--spacing) * 7)!important;
+}
+
+article a {
+  font-weight: bolder;
+  text-decoration: underline;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+code {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+
+p > code,
+span > code {
+  padding-inline: calc(var(--spacing) * 2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  background-color: var(--color-bg-code);
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+pre {
+  display: block;
+  padding-block: calc(var(--spacing) * 5);
+  padding-inline: calc(var(--spacing) * 5);
+  border: 1px solid var(--color-border-code);
+  overflow-y: hidden;
+  overflow-x: scroll;
+  white-space: break-spaces;
+  max-width: calc(100vw - 65px); /* inline padding from main and article */
+  &:not(:last-child){
+    margin-block-end: calc(var(--spacing) * 10);
+  }
+}
+
+ol, ul {
+  li {
+    margin-block-end: calc(var(--spacing) * 2);
+  }
+}

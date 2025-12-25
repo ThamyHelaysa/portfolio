@@ -49,7 +49,19 @@ a {
 }
 
 p {
+  margin-bottom: calc(var(--spacing, .25rem) * 4);
+  font-size: var(--text-lg, 1.25rem);
   text-wrap: pretty;
+}
+
+em {
+  color: var(--color-accent-pink, #f7446d);
+  letter-spacing: .5px;
+}
+
+b, strong {
+  color: var(--color-gray-300, #d6d3d1);
+  letter-spacing: .5px;
 }
 
 button {

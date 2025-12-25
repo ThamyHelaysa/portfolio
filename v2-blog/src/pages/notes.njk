@@ -2,6 +2,7 @@
 layout: base.njk
 permalink: /notes/
 title: Random Notes
+description: A chaotic drawer of stray thoughts, half-baked ideas, and emotionally neglected content. Too weird for main pages, too stubborn to delete. Proceed with low expectations and an open browser tab.
 inlineScripts:
   - "inline-modal-listener.js"
 pageModules: 
@@ -13,34 +14,35 @@ pagination:
   alias: notes
 ---
 
-
-<h1>My Digital Garden</h1>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  
-  {% for note in collections.notesPublished | reverse %}
-    {% set modalId = 'noteModal' + loop.index %}
+<div class="max-w-4xl mx-auto">
+  <h1>Here are content that are too small to have their own page or further analysis</h1>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     
-    <button
-      teste="{{modalId}}"
-      is="open-modal"
-      name="{{ modalId }}"
-      class="cursor-pointer group relative flex flex-col items-start text-left p-6 bg-paper rounded-sm shadow-sm hover:shadow-md transition-all duration-300 w-full"
-    >
-      <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 bg-accent-red/10 opacity-70 -rotate-2 backdrop-blur-sm"></div>
-      <span class="font-serif text-lg text-paper-text font-medium mb-2 group-hover:text-accent-red transition-colors">{{ note.data.title }}</span>
-      <span class="text-xs font-sans text-paper-text/50 uppercase tracking-wider">{{ note.date | formatDatefull(note.date) }}</span>
-    </button>
+    {% for note in collections.notesPublished | reverse %}
+      {% set modalId = 'noteModal' + loop.index %}
+      
+      <button
+        teste="{{modalId}}"
+        is="open-modal"
+        name="{{ modalId }}"
+        class="cursor-pointer group relative flex flex-col items-start text-left p-6 bg-paper rounded-sm shadow-sm hover:shadow-md transition-all duration-300 w-full"
+      >
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 bg-accent-red/10 opacity-70 -rotate-2 backdrop-blur-sm"></div>
+        <span class="font-serif text-lg text-paper-text font-medium mb-2 group-hover:text-accent-red transition-colors">{{ note.data.title }}</span>
+        <span class="text-xs font-sans text-paper-text/50 uppercase tracking-wider">{{ note.date | formatDatefull(note.date) }}</span>
+      </button>
 
-    <template id="{{ modalId }}">
-      {# <span slot="title" class="text-3xl md:text-4xl font-serif text-accent-red">{{ note.data.title | escape }}</span>
-      <span slot="date" class="font-sans text-paper-text/40 text-sm uppercase tracking-widest mt-2">{{ note.date | formatDatefull(note.date) }}</span> #}
-      <div slot="content" class="grow overflow-y-auto font-mono text-paper-text/90 text-lg md:text-xl leading-relaxed whitespace-pre-line tw:font-serif italic">
-        {{ note.content | safe }}
-      </div>
-    </template>
+      <template id="{{ modalId }}">
+        {# <span slot="title" class="text-3xl md:text-4xl font-serif text-accent-red">{{ note.data.title | escape }}</span>
+        <span slot="date" class="font-sans text-paper-text/40 text-sm uppercase tracking-widest mt-2">{{ note.date | formatDatefull(note.date) }}</span> #}
+        <div slot="content" class="grow overflow-y-auto font-mono text-paper-text/90 text-lg md:text-xl leading-relaxed whitespace-pre-line tw:font-serif italic">
+          {{ note.content | safe }}
+        </div>
+      </template>
 
-  {% endfor %}
+    {% endfor %}
 
+  </div>
+
+  <note-modal id="mainNoteModal"></note-modal>
 </div>
-
-<note-modal id="mainNoteModal"></note-modal>

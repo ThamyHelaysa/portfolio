@@ -3,21 +3,21 @@ layout: base.njk
 description: A semi-functioning human's blog featuring some dark humor, unsolicited opinions, and occasional insights. Updated whenever existential dread takes a coffee break.
 ---
 
-<div class="max-w-5xl">
+<div class="max-w-4xl mx-auto">
   <h1>{{ title }}</h1>
+
+  {% if date %}
+    <p><small class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">{{ date }}</small></p>
+  {% endif %}
+
+  <article class="bg-warm-bg py-4 px-2 md:py-12 md:px-6">
+    
+      {{ content | safe }}
+    
+  </article>
+
+  <nav>
+    {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
+    {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
+  </nav>
 </div>
-
-{% if date %}
-  <p><small class="text-xs font-sans text-accent-red/60 uppercase tracking-widest mb-3 group-hover:text-accent-red transition-colors">{{ date }}</small></p>
-{% endif %}
-
-<article class="bg-warm-bg py-4 px-2 md:py-12 md:px-6">
-  <div>
-    {{ content | safe }}
-  </div>
-</article>
-
-<nav>
-  {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
-  {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
-</nav>

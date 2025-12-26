@@ -25,40 +25,37 @@ class AnimationManager {
     options: KeyframeAnimationOptions
   ): Promise<void> {
 
-    // 1. Respect Reduced Motion preferences
+    // Respect Reduced Motion 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       // Instantly jump to the end state without animating
       options.duration = 0;
     }
 
-    // 2. Clean up any existing animation on this element to prevent conflicts
+    // Clean up any existing animation
     this.cancel(element);
 
-    // 3. Wait for visual readiness (prevents FOUC on new elements)
+    // Wait for visual readiness 
     await waitForVisual();
 
-    // 4. Create and store the animation
+    // Create and store the animation
     const animation = element.animate(keyframes, {
       ...options,
-      fill: 'forwards', // Needed temporarily to hold state before commit
+      fill: 'forwards', // Hold state before commit
     });
 
     this.activeAnimations.set(element, animation);
 
-    // 5. Return a promise that resolves when the animation is done & cleaned up
+    // Return a promise that resolves when the animation is done & cleaned up
     return new Promise((resolve) => {
       animation.onfinish = () => {
         try {
-          // KEY STEP: Write the final state to inline styles
-          // animation.commitStyles();
-
           const finalFrame = keyframes[keyframes.length - 1];
 
-          // 2. Apply each property individually to element.style
+          // FIX: Apply each property individually to element.style
+          // commitStyles broke the CSP on IOS :(
           if (finalFrame) {
             Object.keys(finalFrame).forEach((prop) => {
-              // Skip animation-specific keys
               if (prop !== 'offset' && prop !== 'easing' && prop !== 'composite') {
                 // @ts-ignore - Dynamic access is fine here
                 element.style[prop] = finalFrame[prop];
@@ -66,20 +63,19 @@ class AnimationManager {
             });
           }
 
-          // KEY STEP: Kill the heavy animation object
+          // Kill the animation so fill forwards dont break anything
           animation.cancel();
 
-          // Remove from our tracker
+          // Remove it
           this.activeAnimations.delete(element);
 
         } catch (error) {
-          // Safety catch if element was removed from DOM during animation
           console.warn('Animation cleanup failed:', error);
         }
         resolve();
       };
 
-      // Handle interruptions (e.g., if we cancel it manually)
+      // Handle interruptions 
       animation.oncancel = () => {
         this.activeAnimations.delete(element);
         resolve();

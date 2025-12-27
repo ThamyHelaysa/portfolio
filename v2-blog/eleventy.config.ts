@@ -3,6 +3,10 @@ import path from 'node:path';
 import esbuild from "esbuild";
 import { createHash } from 'node:crypto';
 
+import MarkdownIt from "markdown-it";
+import markdownItAnchor from "markdown-it-anchor";
+import slugifyCM from "slugify";
+
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
@@ -47,6 +51,29 @@ export default function (eleventyConfig: any) {
 
   eleventyConfig.addTemplateFormats("ts");
 
+  const moduleSlug = slugifyCM as any;
+  const linkSlugify = (s: string) => moduleSlug(s, {
+    lower: true,
+    strict: true,
+    remove: /["]/g,
+  });
+
+  const mdLib = MarkdownIt({ html: true })
+    .use(markdownItAnchor, {
+      slugify: linkSlugify,
+      permalink: markdownItAnchor.permalink.linkInsideHeader({
+        symbol: "#",
+        placement: "after",
+        class: "header-anchor",
+        ariaHidden: false, // Keep visible for screen readers
+        // @ts-ignore
+        assistiveText: (title) => `Direct link to “${title}”`,
+        visuallyHiddenClass: "visually-hidden",
+      }),
+    });
+
+  eleventyConfig.setLibrary("md", mdLib);
+
   eleventyConfig.addFilter("cspHash", (rawString: string) => {
     const hash = createHash("sha256").update(rawString).digest("base64");
     return `'sha256-${hash}'`;
@@ -57,7 +84,7 @@ export default function (eleventyConfig: any) {
     // INPUT: Where your source CSS lives
     // const tailwindInputPath = path.resolve('./src/assets/styles/global.css');
     // 1. Define your compilation targets
-    
+
     const targets = [
       {
         input: './src/assets/styles/global.css',

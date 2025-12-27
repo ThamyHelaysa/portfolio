@@ -207,3 +207,28 @@
 #mediaPreview video.visible {
   opacity: 1;
 }
+
+/* Standard accessible hiding class */
+.visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+/* Optional: Fade in the anchor on hover */
+.header-anchor {
+  margin-left: 0.25rem;
+  color: var(--color-gray-700);
+  text-decoration: none;
+  opacity: 0;
+}
+
+h2:hover .header-anchor,
+h3:hover .header-anchor {
+  opacity: 1;
+}

@@ -22,7 +22,7 @@ The steps into it where mostly odd:
 
 You read right. The freaking CSP was screaming like a child for its mom. So I had to respond to it.
 
-> **Note:** You can skip the rambling early just going into ["The fix"](/#).
+> **Note:** You can skip the rambling early just going into [The fix](#the-fix).
 
 
 ## Debugging
@@ -233,5 +233,3 @@ To have your animations (using WAAPI) CSP safe, consider this:
 2. Also don't trust trust implicit keyframes on mobile Safari.
 3. And manually apply your final styles.
 
-
-> tesyahcnksd calsd ck asdkc aks dc slak dck

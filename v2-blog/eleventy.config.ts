@@ -121,12 +121,13 @@ export default function (eleventyConfig: any) {
   // Shortcodes
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
   eleventyConfig.addPairedShortcode("blogSectionBlock", shortcodes.blogSectionBlock);
+  eleventyConfig.addPairedShortcode("videoContainer", shortcodes.videoContainer);
 
   // Passthrough
   eleventyConfig.addPassthroughCopy("src/assets/images");
   eleventyConfig.addPassthroughCopy("src/assets/fonts");
   eleventyConfig.addPassthroughCopy({
-    "src/assets/video-previews": "assets/video-previews"
+    "src/assets/videos": "assets/videos"
   });
 
   return {

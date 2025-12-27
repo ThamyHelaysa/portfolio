@@ -1,4 +1,3 @@
-// utils/AnimationManager.ts
 import waitForVisual from "./waitForVisuals.ts";
 
 class AnimationManager {
@@ -25,10 +24,9 @@ class AnimationManager {
     options: KeyframeAnimationOptions
   ): Promise<void> {
 
-    // Respect Reduced Motion 
+    // Respect reduced Motion 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
-      // Instantly jump to the end state without animating
       options.duration = 0;
     }
 
@@ -41,7 +39,7 @@ class AnimationManager {
     // Create and store the animation
     const animation = element.animate(keyframes, {
       ...options,
-      fill: 'forwards', // Hold state before commit
+      fill: 'forwards', // Hooooold \o.
     });
 
     this.activeAnimations.set(element, animation);

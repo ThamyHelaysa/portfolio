@@ -21,8 +21,7 @@ export default {
                 class="text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider">
                 ${tag}
               </span>
-              `
-            )).join("") : ""}
+              `)).join("") : ""}
           </div>
         </div>
       </div>
@@ -47,5 +46,17 @@ export default {
         </div>
       </div>
     `;
+  },
+
+  videoContainer: function (content, desktopSrc, mobileSrc, props) {
+    return `
+    <figure class="video-wrapper">
+      <video controls ${props ? props : ""}>
+        <source src="/assets/videos/${mobileSrc}" media="(max-width: 425px)" type="video/mp4">
+        <source src="/assets/videos/${desktopSrc}" type="video/mp4">
+      </video>
+      <figcaption>${content}</figcaption>
+    </figure>
+  `;
   }
 }

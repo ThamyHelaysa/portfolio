@@ -1,5 +1,5 @@
 ---
-layout: post.njk
+layout: base.njk
 title: Nice stuff I wrote
 description: A semi-functioning human's blog featuring some dark humor, unsolicited opinions, and occasional insights. Updated whenever existential dread takes a coffee break.
 permalink: /blog/
@@ -9,19 +9,23 @@ pagination:
   alias: posts
 ---
 
+<div class="max-w-4xl mx-auto">
 
-<ul class="space-y-6">
-  {% for post in collections.published | reverse %}
-    {% set formatedDate = post.date | formatDatefull(post.date) %}
-    {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
-      <p>{{ post.data.description }}</p>
-    {% endblogSectionBlock %}
-  {% endfor %}
-</ul>
+  <ul class="space-y-6">
+    {% for post in collections.published | reverse %}
+      {% set formatedDate = post.date | formatDatefull(post.date) %}
+      {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
+        <p>{{ post.data.description }}</p>
+      {% endblogSectionBlock %}
+    {% endfor %}
+  </ul>
 
-<nav>
-  {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
-  {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
-</nav>
+  <nav>
+    {% if pagination.href.previous %}<a href="{{ pagination.href.previous }}">Previous</a>{% endif %}
+    {% if pagination.href.next %}<a href="{{ pagination.href.next }}">Next</a>{% endif %}
+  </nav>
+
+</div>
+
 
 

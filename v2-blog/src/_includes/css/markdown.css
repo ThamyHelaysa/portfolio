@@ -12,7 +12,7 @@ blockquote {
   p { margin: 0 }
 }
 
-h2 {
+h2, h3 {
   margin-block-start: calc(var(--spacing) * 12);
   margin-block-end: calc(var(--spacing) * 7)!important;
 }
@@ -30,6 +30,7 @@ code {
   line-height: var(--text-xs--line-height);
 }
 
+li > code,
 p > code,
 span > code {
   padding-inline: calc(var(--spacing) * 2);
@@ -56,7 +57,58 @@ pre {
 }
 
 ol, ul {
+  padding-inline-start: calc(var(--spacing) * 7);
+  margin-block-end: calc(var(--spacing) * 7);
   li {
     margin-block-end: calc(var(--spacing) * 2);
   }
+}
+
+ol ul {
+  padding-block-start: calc(var(--spacing) * 2);
+}
+ol li {list-style: decimal;}
+ul li {list-style: disc;}
+
+figure,
+.video-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing)*2);
+  margin-block-end: calc(var(--spacing) * 10);
+  figcaption {
+    text-align: center;
+    font-size: var(--text-sm);
+    font-style: italic;
+  }
+  .dark & {
+    filter: invert(1) hue-rotate(180deg) grayscale(50%);
+  }
+}
+
+.block {
+  margin-block-end: calc(var(--spacing) * 10);
+  padding-block: calc(var(--spacing) * 3);
+  padding-inline: calc(var(--spacing) * 4);
+  border: 1px solid currentColor;
+  .dark & {
+    background-color: color-mix(in oklab, currentColor 25%, var(--color-gray-950) 95%);
+  }
+}
+
+.error-block {
+  background-color: #FFBABA;
+  /* color: hsl(hue, saturation, lightness); */
+  color: hsl(357, 60%, 42%);
+}
+
+.warning-block {
+  background-color: #FEEFB3;
+  color: #9F6000;
+}
+
+.success-block {
+  color: #4F8A10;
+  background-color: #DFF2BF;
 }

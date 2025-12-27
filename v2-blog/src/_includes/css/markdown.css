@@ -1,6 +1,5 @@
 em {
   color: var(--color-accent-pink);
-  letter-spacing: .5px;
 }
 
 blockquote {
@@ -18,7 +17,7 @@ h2, h3 {
 }
 
 article a {
-  font-weight: bolder;
+  font-weight: 900;
   text-decoration: underline;
   hyphens: auto;
   overflow-wrap: anywhere;

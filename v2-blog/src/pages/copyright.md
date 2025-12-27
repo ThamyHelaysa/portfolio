@@ -20,7 +20,7 @@ Im not saying that art, music or even your 3-year-old daughter’s poem aren’t
 
 Im a dev. Every single contribution I’ve made on the internet isn’t mine anymore. And that’s okay - for me. As a dev, my drive is to have faith in common sense. That’s all.
 
-You can - and of course i will be immensily flattered about it - give some credit over something that you think is worth noting. **But I still won’t demand it**. Why? Not because I’m the next Mother Teresa. But because I don’t claim something that doesn’t need to be claimed.
+You can - and of course i will be immensily flattered about it - give some credit over something that you think is worth noting. But I still won’t demand it. Why? Not because I’m the next Mother Teresa. But because I don’t claim something that doesn’t need to be claimed.
 
 If you "steal" something from me?
 

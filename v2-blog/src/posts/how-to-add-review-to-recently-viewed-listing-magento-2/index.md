@@ -1,7 +1,7 @@
 ---
 title: "How to add ratings to recently viewed listing Magento 2"
 date: "2023-01-16"
-updateDate: "2015-12-09"
+updateDate: "2025-12-28"
 permalink: /blog/how-to-add-review-to-recently-viewed-listing-magento-2/
 description: "Did you notice that the default recently viewed magento 2 listing just have a few components? Here I show you how you can add the product review and more."
 tags: 
@@ -74,7 +74,6 @@ The second file is responsible for initialize the data in each row - in this cas
 
 
 ```
-<pre>
 define([
     'ko',
     'underscore',
@@ -105,7 +104,6 @@ define([
                         .
     });
 });
-</pre>
 ```
 
 ## widget_recently_viewed.xml
@@ -114,7 +112,6 @@ You will need this file. In here we will insert a new column, wich is a new info
 
 
 ```
-<pre>
 <?xml version="1.0" encoding="UTF-8"?>
 
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -132,7 +129,6 @@ You will need this file. In here we will insert a new column, wich is a new info
         </column>
     </columns>
 </listing>
-</pre>
 ```
 
 Declare the `<column>` attributes: `name`, `component`, `displayArea` and `sortOrder`. Here you are setting the ratings by telling its name (watever you choose just dont forget it), witch js to use (component), where to add the new column (displayArea) and its position (sortOrder).
@@ -144,8 +140,7 @@ In the `<settings>` you will need to set its label (the name that will appear in
 Create a file called `summary.js` in `Magento_Catalog/web/js/product`
 
 ```
-<pre>
- define([
+define([
     'Magento_Ui/js/grid/columns/column',
     'Magento_Catalog/js/product/list/column-status-validator'
 ], function (Column, columnStatusValidator, escaper) {
@@ -162,7 +157,6 @@ Create a file called `summary.js` in `Magento_Catalog/web/js/product`
         },
     });
 });
-</pre>
 ```
 
 > **Note:** The isAllowed function is validating the admin config (included in the `widget_recently_viewed.xml`) to show or not the ratings.
@@ -171,17 +165,14 @@ Add a new function called getRatingsItem that takes as a parameter the product a
 
 
 ```
-<pre>
- getRatingsItem: function (item) {
+getRatingsItem: function (item) {
     return item.extension_attributes.review_html
- }
-</pre>
+}
 ```
 
 The final result:
 
 ```
-<pre>
 /**
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
@@ -214,7 +205,6 @@ The final result:
         }
     });
 });
-</pre>
 ```
 
 You may be thinking *"Where did this extension_attributes an review_html are comming from?"*.
@@ -229,12 +219,10 @@ There is an item on `localStorage` that shows the attributes used, you can check
 Now we can add an template and pass on our new function, create a new `.html` file in `Magento_Catalog/web/template/product` called `summary.html` and add the code below like this:
 
 ```
-<pre>
 <div if="isAllowed()"
     class="product-summary"
     html="getRatingsItem($row())">
 </div>
-</pre>
 ```
 
 Thats it! You now have the ratings apearing on the product card on the Recently Viewed Widget.
@@ -242,13 +230,11 @@ Thats it! You now have the ratings apearing on the product card on the Recently 
 If the product don't have any reviews, the ratings will still apear. You can make then "invisible" by adding a bit of `CSS`:
 
 ```
-<pre>
 .product-reviews-summary.empty {
     .block-viewed-products-grid & {
         display: none;
     }
 }
-</pre>
 ```
 
 
@@ -258,38 +244,36 @@ How about adding a bit of motion to the listing? To use `slick-slider` you just 
 
 
 ```
-<pre>
-  /**
-    * Init Slick Slider to listing
-    */
-  prodRecentlyViewedInit: function(){
-      jQuery('.block-viewed-products-grid .product-items').slick({
-          dots: true,
-          infinite: false,
-          speed: 300,
-          slidesToShow: 5,
-          slidesToScroll: 1,
-          arrows: true,
-          responsive: [
-              {
-                  breakpoint: 767,
-                  settings: {
-                      slidesToScroll: 3,
-                      slidesToShow: 3
-                  }
-              },
-              {
-                  breakpoint: 639,
-                  settings: {
-                      arrows: false,
-                      slidesToScroll: 2,
-                      slidesToShow: 2
-                  }
-              },
-          ]
-      });
-  }
-</pre>
+/**
+* Init Slick Slider to listing
+*/
+prodRecentlyViewedInit: function(){
+    jQuery('.block-viewed-products-grid .product-items').slick({
+        dots: true,
+        infinite: false,
+        speed: 300,
+        slidesToShow: 5,
+        slidesToScroll: 1,
+        arrows: true,
+        responsive: [
+            {
+                breakpoint: 767,
+                settings: {
+                    slidesToScroll: 3,
+                    slidesToShow: 3
+                }
+            },
+            {
+                breakpoint: 639,
+                settings: {
+                    arrows: false,
+                    slidesToScroll: 2,
+                    slidesToShow: 2
+                }
+            },
+        ]
+    });
+}
 ```
 
 
@@ -297,7 +281,6 @@ After that you need to pass it to the *`afterRender`* of a `div` in the end of t
 
 
 ```
-<pre>
 <!--
 /**
  * Copyright © Magento, Inc. All rights reserved.
@@ -305,7 +288,7 @@ After that you need to pass it to the *`afterRender`* of a `div` in the end of t
  */
 -->
 <div if="hasData()"
-     class="block" css="additionalClasses">
+    class="block" css="additionalClasses">
     <div class="block-title grid-title">
         <p role="heading"
             aria-level="2"
@@ -317,8 +300,7 @@ After that you need to pass it to the *`afterRender`* of a `div` in the end of t
               .
     </div>
     <div class="afterRenderInit"
-         data-bind="afterRender: prodRecentlyViewedInit"></div>
+        data-bind="afterRender: prodRecentlyViewedInit"></div>
 </div>
-</pre>
 ```
 

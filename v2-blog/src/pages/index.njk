@@ -1,6 +1,7 @@
 ---
 title: Home
 layout: base.njk
+description: "A modern lament in markdown, featuring code, emotion, messy ideas, and the occasional spiritual crisis. Come for the sarcasm, stay for the feelings."
 permalink: /
 pageModules: 
   - "/components/media-preview.js"
@@ -19,7 +20,10 @@ pageModules:
 
   <div class="mt-16 max-w-2xl">
     <p class="inline bg-warm-bg text-xl md:text-2xl text-accent-red/80 font-serif italic leading-relaxed">
-    {{personal.info.summary}}
+      Despite being in the field for almost a decade, my interests remain delightfully unoriginal: 
+      Frontend & Design I got started in e-commerce and slowly evolved into a full-time web romantic.
+      As lucky as I consider myself to be, it wasn't always like that. There was a time that a very wise 
+      wobiwan-kenobi once told me, "Frontend is lame. Dont do it". Naturally, I ignored him and joined the rebellion. And now I fight daily battles on the dark side of the DOM.
     </p>
   </div>
 
@@ -28,14 +32,16 @@ pageModules:
 {# As of now #}
 {% include "partials/favorites.njk" %}
 
-<h2 class="">Last published</h2>
+<h2>Last published</h2>
 {# Last published #}
 <ul class="space-y-6">
-    {% set postslist = collections.published | reverse %}
-    {% for post in postslist.slice(0,5) %}
-      {% set formatedDate = post.date | formatDatefull(post.date) %}
+  {% set postslist = collections.published | reverse %}
+  {% for post in postslist.slice(0,5) %}
+    {% set formatedDate = post.date | formatDatefull(post.date) %}
+    <li>
       {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
-        <p>{{ post.data.description }}{{post.data.updateDate}}</p>
+        <p>{{ post.data.description }}</p>
       {% endblogSectionBlock %}
-    {% endfor %}
-  </ul>
+    </li>
+  {% endfor %}
+</ul>

@@ -33,6 +33,7 @@
     "ws": "^8.17.1"
   },
   "dependencies": {
+    "@11ty/eleventy-img": "^6.0.4",
     "lit": "^3.3.1"
   }
 }

@@ -1,9 +1,10 @@
 
 body {
-  color: var(--color-gray-700, #44403c);
+  color: var(--color-text, #44403c);
+  font-weight: 400;
   transition: color 300ms ease 0ms;
   .dark & {
-    color: var(--color-gray-400, #a8a29e);
+    color: var(--color-text, #a8a29e);
   }
 }
 
@@ -24,7 +25,6 @@ h1, h2, h3, h4 {
 }
 
 h1 {
-  color: var(--color-accent-red);
   font-size: var(--text-3xl, 1.875rem);
   font-weight: var(--font-weight-black, 900);
   letter-spacing: var(--tracking-wide, 0.025em);
@@ -53,6 +53,17 @@ h3 {
   font-weight: 700;
   @media (width >= 768px) {
     font-size: var(--text-3xl, 1.875rem);
+    line-height: 1.1;
+  }
+}
+
+h4 {
+  font-size: var(--text-lg, 1.125rem);
+  line-height: var(--tw-leading, var(--text-lg--line-height), 1.4);
+  font-style: italic;
+  font-weight: 700;
+  @media (width >= 768px) {
+    font-size: var(--text-xl, 1.25rem);
     line-height: 1.1;
   }
 }

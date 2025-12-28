@@ -2,7 +2,6 @@
 title: "The iOS WAAPI trap: Why commitStyles breaks CSP and how to fix it"
 date: "2025-12-25"
 updateDate: "2025-12-27"
-permalink: /blog/fixing-waapi-csp-ios-safari/
 description: "A deep dive into a specific Web Animations API bug on iOS Safari involving Content Security Policy and commitStyles, and how to fix it."
 tags: 
     - dev
@@ -41,11 +40,11 @@ Basicaly I had to:
 4. Open the url on iphone in safari;
 5. Then open safari on mac > Develop > My Iphone > Select the tab;
 
-"Thats it" :)
+Thats it :)
 
-Just a hundred hours of tweaking later, and *then* I could get to work properly. And when I say "work" is actually crying over my code asking why the gods of web hated me so much to punish me this way.
+Just a hundred hours of tweaking later, and then I could get to work properly. And when I say "work" is actually crying over my code asking why the gods of web hated me so much to punish me this way.
 
-> **Note:** Despite using the localhost to debug and develop, for this case the ngrok proved to be very helpful to the resolution of this bug - as I did not had to wait Netlify to build my site on every commit to test it. If you want to know more you can see [the whole setup in this blog post](/using-ngrok/).
+> **Note:** Despite using the localhost to debug and develop, for this case the ngrok proved to be very helpful to the resolution of this bug - as I did not had to wait Netlify to build my site on every commit to test it. If you want to know more you can see [the whole setup in this blog post](/blog/2025/using-ngrok-to-test-some-web-things/).
 
 ### The problem
 
@@ -123,7 +122,7 @@ This helped the logic, but the error persisted, so the animation still crashed.
 
 Nop. None of those worked. And the <a rel="noreferrer" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/env">last one</a> didnt make sense based on the problem. Then I actually saw the error tab...
 
-### Symptoms
+## Symptoms
 
 With my super iOS developer setup ready I forgot that I could check in real time the quirks of the ios. So I began my journey to the vast terrain of Safari. And finally the oracle asked:
 
@@ -187,18 +186,16 @@ To fix it I had a few options:
 
 1. Compromise my security and allow `'unsafe-inline'` (out of question);
 2. Abandon my abstraction with the `AnimationManager` (also out of question);
-3. *Or bypass `commitStyles` writing the final state by hand &larr;*
+3. Or bypass `commitStyles` writing the final state by hand. &larr;
 
 
-### The fix
+## The fix
 
 So instead of asking the browser: "Can you please commit the styles so the animation dont feel janky" (which would trigger the CSP check for 🍎) we can manually read the final keyframe and apply the properties to the element using our good ol' vanilla JS.
 
 As CSP will not block modifications in CSS Object Model (CSSOM) as stated here:
 
-***<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src" rel="noreferrer" target="_blank">
-styles properties that are set directly on the element's style property will not be blocked, allowing users to safely manipulate styles via JavaScript
-</a>***
+**<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src" rel="noreferrer" target="_blank">styles properties that are set directly on the element's style property will not be blocked, allowing users to safely manipulate styles via JavaScript</a>**
 
 We can continue with the logic, setting the styles using `element.style`:
 
@@ -233,3 +230,14 @@ To have your animations (using WAAPI) CSP safe, consider this:
 2. Also don't trust trust implicit keyframes on mobile Safari.
 3. And manually apply your final styles.
 
+
+## The end
+
+So here we go, the end of the line.
+
+After so much stress and coffee turned cold I fixed this goddamn bug. I will probably change the whole thing and not use WAAPI? Maybe. But lessons were learned and I can relax for some time.
+
+If you got this far: thanks for reading.  
+I know it’s not a revolutionary tutorial, but it helped me and maybe it’ll help someone else screaming at the console. Thanks.
+
+[**I was here.**](/copyrighty/)

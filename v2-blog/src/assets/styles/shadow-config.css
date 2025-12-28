@@ -23,6 +23,7 @@
 
   /* Fonts */
   --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
   --animate-dialog: fade-in 300ms ease-out both;

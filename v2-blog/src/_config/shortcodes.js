@@ -18,7 +18,7 @@ export default {
           <div class="flex flex-wrap gap-2 mt-6">
             ${tags ? tags.map((tag) => (
               `<span
-                class="text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider">
+                class="font-mono leading-4 text-xs border border-accent-red/30 text-accent-red/80 px-2 py-1 rounded-full uppercase tracking-wider">
                 ${tag}
               </span>
               `)).join("") : ""}
@@ -32,9 +32,9 @@ export default {
     return `
       <div class="bg-warm-bg flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-t border-accent-red/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
-          <h3 class="text-2xl md:text-3xl text-accent-red mb-2 leading-tight">
+          <h2 class="text-2xl md:text-3xl text-accent-red mb-2 leading-tight">
             ${title}
-          </h3>
+          </h2>
           ${subtitle ? `
             <p class="text-sm font-sans text-accent-red/60 uppercase tracking-widest mt-2">
               ${subtitle}
@@ -52,7 +52,7 @@ export default {
     return `
     <figure class="video-wrapper">
       <video controls ${props ? props : ""}>
-        <source src="/assets/videos/${mobileSrc}" media="(max-width: 425px)" type="video/mp4">
+        <source src="/assets/videos/${mobileSrc || desktopSrc}" media="(max-width: 425px)" type="video/mp4">
         <source src="/assets/videos/${desktopSrc}" type="video/mp4">
       </video>
       <figcaption>${content}</figcaption>

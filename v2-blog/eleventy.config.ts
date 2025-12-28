@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import MarkdownIt from "markdown-it";
 import markdownItAnchor from "markdown-it-anchor";
 import slugifyCM from "slugify";
+import Image, { ImageMetadata, ImageEntry } from "@11ty/eleventy-img";
 
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
@@ -149,9 +150,114 @@ export default function (eleventyConfig: any) {
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
   eleventyConfig.addPairedShortcode("blogSectionBlock", shortcodes.blogSectionBlock);
   eleventyConfig.addPairedShortcode("videoContainer", shortcodes.videoContainer);
+  // eleventyConfig.addPairedShortcode("imageContainer", shortcodes.imageContainer);
+
+  eleventyConfig.addAsyncShortcode("imageContainer", async function (
+    content: string,
+    desktopSrc: string,
+    mobileSrc: string | null | undefined,
+    alt: string
+  ) {
+
+    const srcDir = "./src/assets/images/";
+    const desktopPath = path.join(srcDir, desktopSrc);
+
+    const commonOptions = {
+      urlPath: "/assets/images/",
+      outputDir: "./dist/assets/images/",
+      formats: ["webp", "jpeg"],
+    };
+
+    // Generate Desktop Metadata
+    const desktopStats = await Image(desktopPath, {
+      ...commonOptions,
+      widths: [800, "auto"], // Desktop width + original
+    }) as ImageMetadata; // <--- Force TS to use our Interface
+
+    // Generate Mobile Metadata (Square Crop)
+    let mobileStats: ImageMetadata;
+
+    if (mobileSrc) {
+      // Manual file provided
+      mobileStats = await Image(path.join(srcDir, mobileSrc), {
+        ...commonOptions,
+        widths: [425],
+      }) as ImageMetadata;
+    } else {
+      // Auto-crop center using Sharp
+      mobileStats = await Image(desktopPath, {
+        ...commonOptions,
+        widths: [425],
+        sharpOptions: {
+          animated: true,
+          resize: {
+            width: 425,
+            height: 425,
+            fit: "cover",
+            position: "center",
+          },
+        },
+      }) as ImageMetadata;
+    }
+
+    // Prepare HTML Parts
+    const jpegEntries = desktopStats["jpeg"];
+
+    if (!jpegEntries || jpegEntries.length === 0) {
+      throw new Error(`No JPEG generated for ${desktopSrc}`);
+    }
+    const fallbackSrc = jpegEntries[jpegEntries.length - 1];
+    let sourceHTML = "";
+
+    // A. Mobile Sources (Square, max-width 425px)
+    for (const [format, entries] of Object.entries(mobileStats)) {
+      if (!entries || entries.length === 0) continue;
+      const entry = entries[0];
+
+      sourceHTML += `<source 
+        media="(max-width: 425px)" 
+        srcset="${entry.srcset}" 
+        type="${entry.sourceType}"
+        width="${entry.width}" 
+        height="${entry.height}">`; // <--- Prevents CLS on mobile
+    }
+
+    // B. Desktop Sources (Landscape, min-width 426px)
+    for (const [format, entries] of Object.entries(desktopStats)) {
+      if (!entries || entries.length === 0) continue;
+      const entry = entries[0];
+
+      // Only use WebP for source (JPEG is fallback)
+      if (entry.format === 'webp') {
+        const srcset = entries.map(e => e.srcset).join(", ");
+        sourceHTML += `<source 
+                media="(min-width: 426px)" 
+                srcset="${srcset}" 
+                type="${entry.sourceType}"
+                sizes="100vw">`;
+      }
+    }
+
+    // 4. Return HTML
+    return `
+    <figure class="image-wrapper">
+      <picture>
+        ${sourceHTML}
+        <img 
+            src="${fallbackSrc.url}" 
+            width="${fallbackSrc.width}" 
+            height="${fallbackSrc.height}" 
+            alt="${alt}"
+            loading="lazy"
+            decoding="async">
+      </picture>
+      <figcaption>${content}</figcaption>
+    </figure>
+    `;
+  });
 
   // Passthrough
-  eleventyConfig.addPassthroughCopy("src/assets/images");
+  eleventyConfig.addPassthroughCopy({ "src/assets/images": "assets/images" });
   eleventyConfig.addPassthroughCopy("src/assets/fonts");
   eleventyConfig.addPassthroughCopy({
     "src/assets/videos": "assets/videos"

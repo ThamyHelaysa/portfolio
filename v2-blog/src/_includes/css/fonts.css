@@ -68,3 +68,10 @@
   font-weight: 400;
   src: url('/assets/fonts/lato-v25-latin/lato-v25-latin-regular.woff2') format('woff2'); 
 }
+@font-face {
+  font-display: swap;
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/assets/fonts/lato-v25-latin/lato-v25-latin-700.woff2') format('woff2');
+}

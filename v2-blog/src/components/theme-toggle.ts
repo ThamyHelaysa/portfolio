@@ -13,6 +13,8 @@ const STORAGE_KEY = "theme";
 @customElement('theme-toggle')
 export class ThemeToggle extends LitElement {
 
+  @property({ attribute: 'data-type' }) 
+  dataType: "terminal" | null = null;
   @property({ type: String, reflect: true })
   theme: Theme = THEMES.pinky;
 
@@ -45,6 +47,9 @@ export class ThemeToggle extends LitElement {
       justify-content: center;
       width: calc(var(--sw-spacing) * 4);
     }
+    .hidden {
+      display: none!important;
+    }
   `;
 
   connectedCallback() {
@@ -76,8 +81,10 @@ export class ThemeToggle extends LitElement {
   render() {
     const isDark = this.theme === THEMES.dark;
     const selTheme = this.theme;
+    const isTerminal = this.dataType;
 
-    return html`
+    return !isTerminal 
+    ? html`
       <button type="button"
         aria-label=${isDark ? "Switch to light theme" : "Switch to dark theme"}
         aria-pressed=${String(isDark)}
@@ -85,8 +92,20 @@ export class ThemeToggle extends LitElement {
         @click=${this._handleUserToggle}>
         
         <span 
-          class="dot-container ${isDark ? 'sw:before:scale-100' : 'sw:before:scale-0'} sw:before:content-[''] sw:before:w-2 sw:before:h-2 sw:before:rounded-full sw:before:bg-accent-red sw:before:transition-transform sw:before:duration-300">
+          class="${isTerminal === "terminal" ? "hidden" : ""} dot-container ${isDark ? 'sw:before:scale-100' : 'sw:before:scale-0'} sw:before:content-[''] sw:before:w-2 sw:before:h-2 sw:before:rounded-full sw:before:bg-accent-red sw:before:transition-transform sw:before:duration-300">
         </span>
+        
+        <span class="theme-text">
+          ${selTheme}
+        </span>
+      </button>
+    `
+    : html`
+      <button type="button"
+        aria-label=${isDark ? "Switch to light theme" : "Switch to dark theme"}
+        aria-pressed=${String(isDark)}
+        class="sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-red sw:transition-colors sw:cursor-pointer"
+        @click=${this._handleUserToggle}>
         
         <span class="theme-text">
           ${selTheme}

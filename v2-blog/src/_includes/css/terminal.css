@@ -1,0 +1,108 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  background-color: var(--color-warm-bg);
+  overflow: hidden;
+}
+
+:root,
+:host,
+html {
+  --color-gray-50: #fafaf9;
+  --color-gray-100: #f5f5f4;
+  --color-gray-200: #e7e5e4;
+  --color-gray-300: #d6d3d1;
+  --color-gray-400: #a8a29e;
+  --color-gray-500: #78716c;
+  --color-gray-600: #57534e;
+  --color-gray-700: #44403c;
+  --color-gray-800: #292524;
+  --color-gray-900: #1c1917;
+  --color-gray-950: #0c0a09;
+
+  /* Pink colors */
+  --color-pink-50: #FFFBFC;
+  --color-pink-100: #FDCFDA;
+  --color-pink-200: #FBA7BB;
+  --color-pink-300: #F9839F;
+  --color-pink-400: #F86285;
+  --color-pink-500: #F7446D;
+  --color-pink-600: #F62655;
+  --color-pink-700: #F50B40;
+  --color-red-800: #DD0939;
+  --color-red-900: #C70833;
+  --color-red-950: #B3072E;
+
+  /* Pinky Vars */
+  --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%);
+  --color-accent-red: var(--color-red-900);
+  --color-accent-pink: var(--color-pink-400);
+  --color-text: var(--color-gray-600);
+  --color-border-code: var(--color-gray-400);
+
+  --font-mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+}
+
+html.dark {
+  /* Dark Vars */
+  --color-warm-bg: var(--color-gray-900); 
+  --color-accent-red: var(--color-pink-200);
+  --color-accent-pink: var(--color-pink-300);
+  --color-text: var(--color-gray-400);
+  --color-border-code: var(--color-gray-800);
+}
+
+#raw-book-data {
+  display: none;
+}
+
+.hidden {
+  display: none!important;
+}
+
+.border-path {
+  /* This 'hides' the line by making the gaps as long as the line itself */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  stroke: red;
+  fill: none;
+}
+
+main.terminal {
+  height: 100%;
+}
+
+.wrapper {
+  height: inherit;
+  padding: 1rem;
+}
+
+terminal-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 0;
+  height: 100%;
+  padding: 1rem;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  border: 1px solid var(--color-border-code);
+}
+
+#terminal-output {
+}
+
+#terminal-input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+}

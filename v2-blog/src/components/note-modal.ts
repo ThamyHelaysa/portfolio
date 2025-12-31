@@ -1,4 +1,4 @@
-import { LitElement, html, PropertyValues } from 'lit';
+import { LitElement, html, PropertyValues, css } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from '../_helpers/animationManager.ts';

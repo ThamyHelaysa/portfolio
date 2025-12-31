@@ -1,772 +1,842 @@
 [
   {
     "id": 1,
-    "title": "100 Things Every Designer Needs to Know About People",
-    "author": "Susan Weinschenk",
-    "language": "English",
-    "description": "Applying psychology and behavioral science to design to create more intuitive and effective products.",
-    "isbn": "9780321767530",
-    "type": "Design / Psychology",
-    "cover_image": "Yellow spine with bold black text"
+    "title": "Morte no Seminário",
+    "author": "P. D. James",
+    "language": "Portuguese",
+    "isbn": "9788535902181",
+    "category": "Fiction / Mystery"
   },
   {
     "id": 2,
-    "title": "1984",
-    "author": "George Orwell",
+    "title": "O Herói e o Fora-da-Lei",
+    "author": "Margaret Mark, Carol S. Pearson",
     "language": "Portuguese",
-    "description": "A dystopian novel about a totalitarian regime that employs omnipresent surveillance.",
-    "isbn": "[]",
-    "type": "Dystopian / Classics",
-    "cover_image": "Iridescent/Silver spine"
+    "isbn": "9788531608094",
+    "category": "Business / Marketing"
   },
   {
     "id": 3,
-    "title": "1Q84 (Livro 1)",
-    "author": "Haruki Murakami",
-    "language": "Portuguese",
-    "description": "The first volume of a surrealist journey involving two characters who find themselves in a parallel world.",
-    "isbn": "9788579621048",
-    "type": "Magical Realism",
-    "cover_image": "Grey spine with pink accents"
-  },
-  {
-    "id": 4,
-    "title": "1Q84 (Livro 2)",
-    "author": "Haruki Murakami",
-    "language": "Portuguese",
-    "description": "The continuation of Murakami's epic tale of fate and mystery.",
-    "isbn": "9788579621048",
-    "type": "Magical Realism",
-    "cover_image": "Teal spine"
-  },
-  {
-    "id": 5,
-    "title": "A Dama das Camélias",
-    "author": "Alexandre Dumas Filho",
-    "language": "Portuguese",
-    "description": "The tragic romance that inspired the opera La Traviata.",
-    "isbn": "[]",
-    "type": "Romance / Classics",
-    "cover_image": "Dark red leather-style spine with gold text"
-  },
-  {
-    "id": 6,
-    "title": "A Firma",
-    "author": "John Grisham",
-    "language": "Portuguese",
-    "description": "A legal thriller about a young lawyer who discovers his prestigious law firm is a front for the mob.",
-    "isbn": "[]",
-    "type": "Legal Thriller",
-    "cover_image": "Black spine with white text"
-  },
-  {
-    "id": 7,
-    "title": "A Garota no Gelo",
-    "author": "Robert Bryndza",
-    "language": "Portuguese",
-    "description": "Detective Erika Foster investigates the body of a woman found frozen in a South London lake.",
-    "isbn": "9788582353721",
-    "type": "Crime / Thriller",
-    "cover_image": "Blue textured background with a woman's face"
-  },
-  {
-    "id": 8,
-    "title": "A Montanha e o Rio",
-    "author": "Da Chen",
-    "language": "Portuguese",
-    "description": "An epic story of brotherhood and conflict set against the backdrop of the Chinese Revolution.",
-    "isbn": "[]",
-    "type": "Historical Fiction",
-    "cover_image": "Red spine with gold and black borders"
-  },
-  {
-    "id": 9,
-    "title": "A Origem das Espécies",
-    "author": "Charles Darwin",
-    "language": "Portuguese",
-    "description": "The foundational work of evolutionary biology.",
-    "isbn": "9788521001157",
-    "type": "Science / Classics",
-    "cover_image": "Beige spine with a butterfly illustration"
-  },
-  {
-    "id": 10,
-    "title": "A Psicologia das Cores",
-    "author": "Eva Heller",
-    "language": "Portuguese",
-    "description": "A study on how colors affect our emotions and decision-making processes.",
-    "isbn": "9788584520534",
-    "type": "Psychology / Design",
-    "cover_image": "Rainbow colored spine"
-  },
-  {
-    "id": 11,
-    "title": "A Revolução dos Bichos",
-    "author": "George Orwell",
-    "language": "Portuguese",
-    "description": "A satirical allegorical novella about the Soviet Union and the corruption of power.",
-    "isbn": "9788535909555",
-    "type": "Political Satire / Classics",
-    "cover_image": "Yellow spine with black text"
-  },
-  {
-    "id": 12,
-    "title": "A Seca",
-    "author": "Jane Harper",
-    "language": "Portuguese",
-    "description": "A federal agent returns to his hometown to investigate a murder-suicide during a devastating drought.",
-    "isbn": "[]",
-    "type": "Mystery / Thriller",
-    "cover_image": "Black spine with white and gold text"
-  },
-  {
-    "id": 13,
-    "title": "A Vida Invisível de Addie LaRue",
-    "author": "V.E. Schwab",
-    "language": "Portuguese",
-    "description": "A woman makes a bargain to live forever but is cursed to be forgotten by everyone she meets.",
-    "isbn": "9786555600292",
-    "type": "Fantasy / Historical Fiction",
-    "cover_image": "Black with gold constellations"
-  },
-  {
-    "id": 14,
-    "title": "Aparelho de Coração",
-    "author": "Corita Kent & Jan Steward",
-    "language": "Portuguese",
-    "description": "A celebrated guide to creative process and finding inspiration in the everyday.",
-    "isbn": "[]",
-    "type": "Art / Design",
-    "cover_image": "Yellow spine with red text"
-  },
-  {
-    "id": 15,
-    "title": "Aprendendo Node",
-    "author": "Shelley Powers",
-    "language": "Portuguese",
-    "description": "A practical guide to server-side JavaScript development with Node.js.",
-    "isbn": "[]",
-    "type": "Technology / Programming",
-    "cover_image": "Blue spine with white text"
-  },
-  {
-    "id": 16,
     "title": "Articulando Decisões de Design",
     "author": "Tom Greever",
     "language": "Portuguese",
-    "description": "A guide for designers on how to communicate with stakeholders and explain design choices.",
-    "isbn": "[]",
-    "type": "Design / Business",
-    "cover_image": "White spine with red and black text"
+    "isbn": "9786586057461",
+    "category": "Design / UX"
   },
   {
-    "id": 17,
-    "title": "As Luzes de Setembro",
-    "author": "Carlos Ruiz Zafón",
-    "language": "Portuguese",
-    "description": "A gothic mystery set in a coastal village involving a toy maker and shadows from the past.",
-    "isbn": "[]",
-    "type": "Young Adult / Mystery",
-    "cover_image": "Orange spine with black text"
-  },
-  {
-    "id": 18,
-    "title": "Auto da Barca do Inferno e outras histórias",
-    "author": "Gil Vicente",
-    "language": "Portuguese",
-    "description": "Classic Portuguese satirical plays exploring morality and society.",
-    "isbn": "[]",
-    "type": "Classics / Theater",
-    "cover_image": "Black spine with white and red text"
-  },
-  {
-    "id": 19,
-    "title": "Babel",
-    "author": "R.F. Kuang",
-    "language": "Portuguese",
-    "description": "An exploration of student revolutions and the power of language in 1830s Oxford.",
-    "isbn": "9786555605488",
-    "type": "Dark Academia / Fantasy",
-    "cover_image": "Ornate black and silver spine"
-  },
-  {
-    "id": 20,
-    "title": "Before the coffee gets cold",
-    "author": "Toshikazu Kawaguchi",
-    "language": "English",
-    "description": "In a small back alley in Tokyo, there is a café that offers its customers the chance to travel back in time.",
-    "isbn": "[]",
-    "type": "Literary Fiction / Fantasy",
-    "cover_image": "Light blue/teal spine"
-  },
-  {
-    "id": 21,
-    "title": "Blood Meridian",
-    "author": "Cormac McCarthy",
-    "language": "English Edition",
-    "description": "The epic story of the Kid and the Glanton gang in the American West.",
-    "isbn": "[]",
-    "type": "Western / Literary Fiction",
-    "cover_image": "Black spine with red text"
-  },
-  {
-    "id": 22,
-    "title": "Briefing: A Gestão do Projeto de Design",
-    "author": "Peter L. Phillips",
-    "language": "Portuguese",
-    "description": "A guide to managing the communication and strategic side of design projects.",
-    "isbn": "9788521204541",
-    "type": "Design / Business",
-    "cover_image": "White spine with green and black text"
-  },
-  {
-    "id": 23,
-    "title": "Censurado",
-    "author": "Léo Lins",
-    "language": "Portuguese",
-    "description": "A collection of controversial jokes and the legal documents from the author's legal battles.",
-    "isbn": "[]",
-    "type": "Comedy / Non-fiction",
-    "cover_image": "Black spine with red text"
-  },
-  {
-    "id": 24,
-    "title": "Comece pelo Porquê",
-    "author": "Simon Sinek",
-    "language": "Portuguese",
-    "description": "How great leaders inspire everyone to take action by starting with 'Why'.",
-    "isbn": "[]",
-    "type": "Business / Self-Help",
-    "cover_image": "Pink/Red spine with white text"
-  },
-  {
-    "id": 25,
-    "title": "Como Fazer Amigos e Influenciar Pessoas",
-    "author": "Dale Carnegie",
-    "language": "Portuguese",
-    "description": "One of the best-selling self-help books of all time regarding communication and networking.",
-    "isbn": "9788575422397",
-    "type": "Self-Help / Business",
-    "cover_image": "Blue spine with white text"
-  },
-  {
-    "id": 26,
-    "title": "Contos de Suspense e Terror",
-    "author": "Edgar Allan Poe",
-    "language": "Portuguese",
-    "description": "A collection of macabre and gothic stories from the master of the genre.",
-    "isbn": "[]",
-    "type": "Horror / Classics",
-    "cover_image": "Black spine with white and red text"
-  },
-  {
-    "id": 27,
-    "title": "Criança 44",
-    "author": "Tom Rob Smith",
-    "language": "Portuguese",
-    "description": "A thriller set in the Soviet Union during the Stalin era following a security officer investigating child murders.",
-    "isbn": "9788501081124",
-    "type": "Historical Thriller",
-    "cover_image": "Red and black spine"
-  },
-  {
-    "id": 28,
-    "title": "Crime e Castigo",
-    "author": "Fiódor Dostoiévski",
-    "language": "Portuguese",
-    "description": "The psychological struggle and moral dilemmas of Rodion Raskolnikov.",
-    "isbn": "[]",
-    "type": "Classics / Philosophy",
-    "cover_image": "Blue spine with illustrated candle"
-  },
-  {
-    "id": 29,
-    "title": "Cyrano de Bergerac",
-    "author": "Edmond Rostand",
-    "language": "Portuguese Edition",
-    "description": "The classic play about a poet-soldier with a large nose who uses his wit to help another man win the woman he loves.",
-    "isbn": "[]",
-    "type": "Drama / Classics",
-    "cover_image": "Red spine with white text"
-  },
-  {
-    "id": 30,
-    "title": "Design de Interação",
-    "author": "Rogers, Sharp & Preece",
-    "language": "Portuguese",
-    "description": "A comprehensive textbook on the principles and practices of human-computer interaction.",
-    "isbn": "[]",
-    "type": "Design / Technology",
-    "cover_image": "Light blue spine with white text"
-  },
-  {
-    "id": 31,
-    "title": "Dez Argumentos para Você Deletar Agora suas Redes Sociais",
-    "author": "Jaron Lanier",
-    "language": "Portuguese",
-    "description": "A manifesto on the negative impacts of social media on the individual and society.",
-    "isbn": "9788551003664",
-    "type": "Non-fiction / Technology",
-    "cover_image": "Beige spine with red and black text"
-  },
-  {
-    "id": 32,
-    "title": "Dicionário de Símbolos",
-    "author": "Jean Chevalier & Alain Gheerbrant",
-    "language": "Portuguese",
-    "description": "A vast reference work exploring the myths, dreams, and meanings of symbols across cultures.",
-    "isbn": "[]",
-    "type": "Reference / Mythology",
-    "cover_image": "Thick black spine with orange text"
-  },
-  {
-    "id": 33,
-    "title": "Drácula",
-    "author": "Bram Stoker",
-    "language": "Portuguese",
-    "description": "The definitive vampire novel told through journals and letters.",
-    "isbn": "[]",
-    "type": "Horror / Classics",
-    "cover_image": "Black spine with white and red accents"
-  },
-  {
-    "id": 34,
-    "title": "Factfulness",
-    "author": "Hans Rosling",
-    "language": "Portuguese",
-    "description": "A data-driven look at the world that explains why things are better than we think.",
-    "isbn": "[]",
-    "type": "Non-fiction / Science",
-    "cover_image": "White spine with bold red text"
-  },
-  {
-    "id": 35,
-    "title": "Great Expectations",
-    "author": "Charles Dickens",
-    "language": "English",
-    "description": "The story of Pip, an orphan who comes into a fortune from a mysterious benefactor.",
-    "isbn": "[]",
-    "type": "Classics / Literary Fiction",
-    "cover_image": "Cream spine with black text (Vintage)"
-  },
-  {
-    "id": 36,
-    "title": "Gyo",
-    "author": "Junji Ito",
-    "language": "English",
-    "description": "A horror manga about fish with metal legs that emerge from the sea to infest Japan.",
-    "isbn": "[]",
-    "type": "Horror / Manga",
-    "cover_image": "White spine with red 'Gyo' logo"
-  },
-  {
-    "id": 37,
-    "title": "HTML & CSS",
-    "author": "Jon Duckett",
-    "language": "English",
-    "description": "A highly visual guide to learning web design and development.",
-    "isbn": "[]",
-    "type": "Design / Technology",
-    "cover_image": "Black spine with green and white text"
-  },
-  {
-    "id": 38,
-    "title": "Impostora (Yellowface)",
-    "author": "R.F. Kuang",
-    "language": "Portuguese",
-    "description": "A satirical thriller about cultural appropriation and the dark side of the publishing industry.",
-    "isbn": "9786555606621",
-    "type": "Literary Thriller / Satire",
-    "cover_image": "Bright yellow spine with white text"
-  },
-  {
-    "id": 39,
-    "title": "Jogo Perigoso",
-    "author": "Stephen King",
-    "language": "Portuguese",
-    "description": "A woman is left handcuffed to a bed in a remote lake house after her husband dies suddenly.",
-    "isbn": "9788539005512",
-    "type": "Horror / Thriller",
-    "cover_image": "Black spine with white and orange text"
-  },
-  {
-    "id": 40,
-    "title": "Jogos Mentais",
-    "author": "Nora Roberts",
-    "language": "Portuguese",
-    "description": "The story of a woman with a photographic memory who must catch a killer from her past.",
-    "isbn": "9788525068477",
-    "type": "Romance / Suspense",
-    "cover_image": "Pink spine with white text"
-  },
-  {
-    "id": 41,
-    "title": "Linguagens do Design",
-    "author": "Steven Heller",
-    "language": "Portuguese",
-    "description": "An exploration of graphic design through its various visual languages and histories.",
-    "isbn": "[]",
-    "type": "Design / Art History",
-    "cover_image": "Light blue spine with black text"
-  },
-  {
-    "id": 42,
-    "title": "Lolita",
-    "author": "Vladimir Nabokov",
-    "language": "English/Portuguese Edition",
-    "description": "The controversial classic about obsessed middle-aged professor Humbert Humbert.",
-    "isbn": "[]",
-    "type": "Literary Fiction / Classics",
-    "cover_image": "Light blue spine with black text"
-  },
-  {
-    "id": 43,
-    "title": "Mapas do Significado",
-    "author": "Jordan B. Peterson",
-    "language": "Portuguese",
-    "description": "An investigation into the architecture of belief and the connection between mythology and neuroscience.",
-    "isbn": "[]",
-    "type": "Psychology / Philosophy",
-    "cover_image": "Black spine with white text"
-  },
-  {
-    "id": 44,
-    "title": "Meridiano de Sangue",
-    "author": "Cormac McCarthy",
-    "language": "Portuguese",
-    "description": "A brutal and poetic Western about the Glanton gang's scalp-hunting expedition.",
-    "isbn": "9788535914627",
-    "type": "Literary Fiction / Western",
-    "cover_image": "Yellow spine with red splatter"
-  },
-  {
-    "id": 45,
-    "title": "Mindset",
-    "author": "Carol S. Dweck",
-    "language": "Portuguese",
-    "description": "Explores the power of our beliefs and how a growth mindset can lead to success.",
-    "isbn": "9788576841198",
-    "type": "Self-Help / Psychology",
-    "cover_image": "White spine with black bold text"
-  },
-  {
-    "id": 46,
-    "title": "Mongrels",
-    "author": "Stephen Graham Jones",
-    "language": "English",
-    "description": "A coming-of-age story about a boy growing up in a family of werewolves.",
-    "isbn": "9780062412690",
-    "type": "Horror / Literary Fiction",
-    "cover_image": "Yellow spine with red hand-drawn text"
-  },
-  {
-    "id": 47,
-    "title": "Não me Faça Pensar",
-    "author": "Steve Krug",
-    "language": "Portuguese",
-    "description": "A common sense approach to web usability and interface design.",
-    "isbn": "9788576088509",
-    "type": "Design / Technology",
-    "cover_image": "Red spine with white text"
-  },
-  {
-    "id": 48,
-    "title": "No Longer Human",
-    "author": "Junji Ito",
-    "language": "English",
-    "description": "A manga adaptation of Osamu Dazai's classic novel about a man's descent into alienation.",
-    "isbn": "[]",
-    "type": "Horror / Manga",
-    "cover_image": "White spine with black and red text"
-  },
-  {
-    "id": 49,
-    "title": "O Buraco da Agulha",
-    "author": "Ken Follett",
-    "language": "Portuguese",
-    "description": "A WWII spy thriller about a German agent who discovers the secret of the Allied invasion.",
-    "isbn": "[]",
-    "type": "Thriller / Historical Fiction",
-    "cover_image": "Black spine with red text"
-  },
-  {
-    "id": 50,
-    "title": "O Conde de Monte Cristo",
-    "author": "Alexandre Dumas",
-    "language": "Portuguese",
-    "description": "A classic story of betrayal and calculated revenge in post-Napoleonic France.",
-    "isbn": "9788537809655",
-    "type": "Classics / Adventure",
-    "cover_image": "Two red hardback volumes"
-  },
-  {
-    "id": 51,
-    "title": "O Enigma do Quarto 622",
-    "author": "Joël Dicker",
-    "language": "Portuguese",
-    "description": "A police procedural set in a luxury hotel in the Swiss Alps involving an unsolved murder.",
-    "isbn": "9788551006733",
-    "type": "Mystery / Crime",
-    "cover_image": "Beige/Grey spine with orange accents"
-  },
-  {
-    "id": 52,
-    "title": "O Hobbit (Anotado)",
-    "author": "J.R.R. Tolkien",
-    "language": "Portuguese",
-    "description": "An annotated edition of Bilbo Baggins' adventure, with extensive notes and illustrations.",
-    "isbn": "[]",
-    "type": "Fantasy / Classics",
-    "cover_image": "Green spine with gold text"
-  },
-  {
-    "id": 53,
-    "title": "O Impulso",
-    "author": "Ashley Audrain",
-    "language": "Portuguese",
-    "description": "A psychological drama exploring the dark side of motherhood.",
-    "isbn": "9786555601565",
-    "type": "Psychological Thriller",
-    "cover_image": "Black spine with blurred image"
-  },
-  {
-    "id": 54,
-    "title": "O Médico e o Monstro",
-    "author": "Robert Louis Stevenson",
-    "language": "Portuguese",
-    "description": "A scientist transforms into a monstrous alter ego in this classic gothic novella.",
-    "isbn": "[]",
-    "type": "Horror / Classics",
-    "cover_image": "Purple spine"
-  },
-  {
-    "id": 55,
-    "title": "O Nome da Rosa",
-    "author": "Umberto Eco",
-    "language": "Portuguese",
-    "description": "A historical murder mystery set in a 14th-century Italian monastery.",
-    "isbn": "9788501019622",
-    "type": "Historical Mystery / Classics",
-    "cover_image": "Black with gold floral patterns"
-  },
-  {
-    "id": 56,
-    "title": "O Quarto em Chamas",
-    "author": "Michael Connelly",
-    "language": "Portuguese",
-    "description": "Detective Harry Bosch investigates a cold case that turns out to be much warmer than expected.",
-    "isbn": "[]",
-    "type": "Crime / Thriller",
-    "cover_image": "Blue spine with red and white text"
-  },
-  {
-    "id": 57,
-    "title": "O Rei de Amarelo",
-    "author": "Robert W. Chambers",
-    "language": "Portuguese",
-    "description": "A collection of supernatural short stories connected by a forbidden play that causes madness.",
-    "isbn": "[]",
-    "type": "Horror / Weird Fiction",
-    "cover_image": "Gold/Bronze spine"
-  },
-  {
-    "id": 58,
-    "title": "O Senhor dos Anéis",
-    "author": "J.R.R. Tolkien",
-    "language": "Portuguese",
-    "description": "The epic fantasy masterpiece following the quest to destroy the One Ring.",
-    "isbn": "[]",
-    "type": "Fantasy",
-    "cover_image": "Thick spine with landscape illustration and gold ring logo"
-  },
-  {
-    "id": 59,
-    "title": "O Silmarillion",
-    "author": "J.R.R. Tolkien",
-    "language": "Portuguese",
-    "description": "The mythology and ancient history of Middle-earth.",
-    "isbn": "[]",
-    "type": "Fantasy / Mythology",
-    "cover_image": "Black spine with white and gold text"
-  },
-  {
-    "id": 60,
-    "title": "O Último Homem na Torre",
-    "author": "Aravind Adiga",
-    "language": "Portuguese",
-    "description": "A story of greed and resistance in a Mumbai apartment building.",
-    "isbn": "9788501092687",
-    "type": "Literary Fiction",
-    "cover_image": "Red spine with bold black and white text"
-  },
-  {
-    "id": 61,
-    "title": "Orgulho e Preconceito",
-    "author": "Jane Austen",
-    "language": "Portuguese",
-    "description": "The classic comedy of manners following Elizabeth Bennet and Mr. Darcy.",
-    "isbn": "[]",
-    "type": "Classics / Romance",
-    "cover_image": "White spine with floral patterns"
-  },
-  {
-    "id": 62,
-    "title": "Os Irmãos Karamázov",
-    "author": "Fiódor Dostoiévski",
-    "language": "Portuguese",
-    "description": "A complex philosophical novel about faith, free will, and the murder of a father.",
-    "isbn": "[]",
-    "type": "Classics / Philosophy",
-    "cover_image": "Blue and gold ornate spine"
-  },
-  {
-    "id": 63,
-    "title": "Os Mistérios de Udolpho (Volume I)",
-    "author": "Ann Radcliffe",
-    "language": "Portuguese",
-    "description": "A quintessential gothic novel involving a remote castle and supernatural occurrences.",
-    "isbn": "[]",
-    "type": "Gothic Fiction / Classics",
-    "cover_image": "Beige/Tan spine"
-  },
-  {
-    "id": 64,
-    "title": "Os Mistérios de Udolpho (Volume II)",
-    "author": "Ann Radcliffe",
-    "language": "Portuguese",
-    "description": "The conclusion of Emily St. Aubert's harrowing journey.",
-    "isbn": "[]",
-    "type": "Gothic Fiction / Classics",
-    "cover_image": "Beige/Tan spine"
-  },
-  {
-    "id": 65,
-    "title": "Os Três Mosqueteiros",
-    "author": "Alexandre Dumas",
-    "language": "Portuguese",
-    "description": "The adventures of d'Artagnan and his companions in the service of the King.",
-    "isbn": "[]",
-    "type": "Classics / Adventure",
-    "cover_image": "Dark green leather-style spine with gold detailing"
-  },
-  {
-    "id": 66,
-    "title": "Pachinko",
-    "author": "Min Jin Lee",
-    "language": "Portuguese",
-    "description": "A multi-generational saga following a Korean family living in Japan.",
-    "isbn": "9788571236546",
-    "type": "Historical Fiction",
-    "cover_image": "Light blue spine with vertical bold text"
-  },
-  {
-    "id": 67,
-    "title": "Padrões de Projeto",
-    "author": "Gamma, Helm, Johnson & Vlissides",
-    "language": "Portuguese",
-    "description": "The 'Gang of Four' guide to reusable object-oriented software design patterns.",
-    "isbn": "[]",
-    "type": "Technology / Software Engineering",
-    "cover_image": "White spine with blue and purple text"
-  },
-  {
-    "id": 68,
-    "title": "Ring",
-    "author": "Koji Suzuki",
-    "language": "English",
-    "description": "The original Japanese horror novel that inspired the famous 'The Ring' movie franchise.",
-    "isbn": "9781932234046",
-    "type": "Horror / Mystery",
-    "cover_image": "Blue spine with eye illustration"
-  },
-  {
-    "id": 69,
-    "title": "Romeo and Juliet",
-    "author": "William Shakespeare",
-    "language": "English Edition",
-    "description": "The classic tragedy of star-crossed lovers in Verona.",
-    "isbn": "[]",
-    "type": "Classics / Drama",
-    "cover_image": "Blue and white spine"
-  },
-  {
-    "id": 70,
-    "title": "Sapiens",
-    "author": "Yuval Noah Harari",
-    "language": "Portuguese",
-    "description": "A brief history of humankind, from the Stone Age to the modern day.",
-    "isbn": "[]",
-    "type": "Non-fiction / History",
-    "cover_image": "White spine with red text and fingerprint logo"
-  },
-  {
-    "id": 71,
-    "title": "Smashed",
-    "author": "Junji Ito",
-    "language": "English",
-    "description": "A collection of short horror stories including 'Haunted Wood Mansion'.",
-    "isbn": "[]",
-    "type": "Horror / Manga",
-    "cover_image": "Red and black spine with illustrative art"
-  },
-  {
-    "id": 72,
-    "title": "Stardew Valley Guidebook",
-    "author": "Kari Fry",
-    "language": "English",
-    "description": "An illustrated guide to everything in the Pelican Town valley.",
-    "isbn": "[]",
-    "type": "Games / Reference",
-    "cover_image": "White and blue spine with game art"
-  },
-  {
-    "id": 73,
+    "id": 4,
     "title": "The Elements of User Experience",
     "author": "Jesse James Garrett",
     "language": "English",
-    "description": "A foundational text on user-centered design and the five planes of UX.",
     "isbn": "9780321683687",
-    "type": "Design / Technology",
-    "cover_image": "White spine with orange and black text"
+    "category": "Design / UX"
   },
   {
-    "id": 74,
-    "title": "The Moving Finger",
-    "author": "Agatha Christie",
+    "id": 5,
+    "title": "100 Things Every Designer Needs to Know About People",
+    "author": "Susan Weinschenk",
     "language": "English",
-    "description": "A Miss Marple mystery involving poison pen letters in a small English village.",
-    "isbn": "9780007120895",
-    "type": "Mystery / Detective",
-    "cover_image": "Navy blue spine with a pink flower icon"
+    "isbn": "9780136746911",
+    "category": "Design / Psychology"
   },
   {
-    "id": 75,
+    "id": 6,
+    "title": "Como Fazer Amigos e Influenciar Pessoas",
+    "author": "Dale Carnegie",
+    "language": "Portuguese",
+    "isbn": "9788543108681",
+    "category": "Self-Help"
+  },
+  {
+    "id": 7,
+    "title": "Mindset",
+    "author": "Carol S. Dweck",
+    "language": "Portuguese",
+    "isbn": "9788547000240",
+    "category": "Psychology / Self-Help"
+  },
+  {
+    "id": 8,
+    "title": "Judas, o Obscuro",
+    "author": "Thomas Hardy",
+    "language": "Portuguese",
+    "isbn": "9788531907913",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 9,
+    "title": "Moderna Gramática Portuguesa",
+    "author": "Evanildo Bechara",
+    "language": "Portuguese",
+    "isbn": "9788520923184",
+    "category": "Education / Reference"
+  },
+  {
+    "id": 10,
+    "title": "Sou Péssimo em Português",
+    "author": "Cíntia Chagas",
+    "language": "Portuguese",
+    "isbn": "9788595083110",
+    "category": "Education / Humor"
+  },
+  {
+    "id": 11,
+    "title": "Pachinko",
+    "author": "Min Jin Lee",
+    "language": "Portuguese",
+    "isbn": "9788580579765",
+    "category": "Historical Fiction"
+  },
+  {
+    "id": 12,
+    "title": "Do Fundo dos Seus Olhos",
+    "author": "Dean Koontz",
+    "language": "Portuguese",
+    "isbn": "9788556511515",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 13,
+    "title": "O Clube do Crime das Quintas-Feiras",
+    "author": "Richard Osman",
+    "language": "Portuguese",
+    "isbn": "9786555601954",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 14,
+    "title": "Cabal",
+    "author": "Clive Barker",
+    "language": "Portuguese",
+    "isbn": "9788594541307",
+    "category": "Horror"
+  },
+  {
+    "id": 15,
+    "title": "Blood Meridian",
+    "author": "Cormac McCarthy",
+    "language": "English",
+    "isbn": "9780330510943",
+    "category": "Fiction"
+  },
+  {
+    "id": 16,
+    "title": "Escuridão Total, Sem Estrelas",
+    "author": "Stephen King",
+    "language": "Portuguese",
+    "isbn": "9788535918731",
+    "category": "Horror / Short Stories"
+  },
+  {
+    "id": 17,
+    "title": "A Psicologia das Cores",
+    "author": "Eva Heller",
+    "language": "Portuguese",
+    "isbn": "9788521206101",
+    "category": "Design / Psychology"
+  },
+  {
+    "id": 18,
+    "title": "A Metamorfose",
+    "author": "Franz Kafka",
+    "language": "Portuguese",
+    "isbn": "9788574880556",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 19,
+    "title": "O Médico e o Monstro",
+    "author": "Robert Louis Stevenson",
+    "language": "Portuguese",
+    "isbn": "9788535916027",
+    "category": "Classic Literature / Horror"
+  },
+  {
+    "id": 20,
+    "title": "Como ser um designer gráfico sem vender sua alma",
+    "author": "Adrian Shaughnessy",
+    "language": "Portuguese",
+    "isbn": "9788521204206",
+    "category": "Design"
+  },
+  {
+    "id": 21,
+    "title": "Censurado",
+    "author": "Léo Lins",
+    "language": "Portuguese",
+    "isbn": "9786500201642",
+    "category": "Humor / Biography"
+  },
+  {
+    "id": 22,
+    "title": "Não Me Faça Pensar",
+    "author": "Steve Krug",
+    "language": "Portuguese",
+    "isbn": "9788576088486",
+    "category": "Design / UX"
+  },
+  {
+    "id": 23,
+    "title": "House of Leaves",
+    "author": "Mark Z. Danielewski",
+    "language": "English",
+    "isbn": "9780375703768",
+    "category": "Fiction / Horror"
+  },
+  {
+    "id": 24,
+    "title": "O Bebê de Rosemary",
+    "author": "Ira Levin",
+    "language": "Portuguese",
+    "isbn": "9788594540416",
+    "category": "Horror"
+  },
+  {
+    "id": 25,
+    "title": "Briefing: A Gestão do Projeto de Design",
+    "author": "Peter L. Phillips",
+    "language": "Portuguese",
+    "isbn": "9788521204558",
+    "category": "Design / Management"
+  },
+  {
+    "id": 26,
+    "title": "O Design do Dia a Dia",
+    "author": "Donald A. Norman",
+    "language": "Portuguese",
+    "isbn": "9788532215888",
+    "category": "Design / Psychology"
+  },
+  {
+    "id": 27,
+    "title": "Os Homens que Encaravam Cabras",
+    "author": "Jon Ronson",
+    "language": "Portuguese",
+    "isbn": "9788522010264",
+    "category": "Non-Fiction"
+  },
+  {
+    "id": 28,
+    "title": "21 Lições para o Século 21",
+    "author": "Yuval Noah Harari",
+    "language": "Portuguese",
+    "isbn": "9788535930917",
+    "category": "Non-Fiction / Philosophy"
+  },
+  {
+    "id": 29,
+    "title": "O Dilema do Porco-Espinho",
+    "author": "Leandro Karnal",
+    "language": "Portuguese",
+    "isbn": "9788542214437",
+    "category": "Philosophy"
+  },
+  {
+    "id": 30,
+    "title": "As Sete Mortes de Evelyn Hardcastle",
+    "author": "Stuart Turton",
+    "language": "Portuguese",
+    "isbn": "9788580578492",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 31,
+    "title": "A Certain Hunger",
+    "author": "Chelsea G. Summers",
+    "language": "English",
+    "isbn": "9781951213442",
+    "category": "Fiction"
+  },
+  {
+    "id": 32,
     "title": "The Secret History",
     "author": "Donna Tartt",
     "language": "English",
-    "description": "A group of classics students at a Vermont college are involved in a murder.",
     "isbn": "9780140167771",
-    "type": "Dark Academia / Literary Fiction",
-    "cover_image": "Black spine with gold emblem"
+    "category": "Fiction"
   },
   {
-    "id": 76,
+    "id": 33,
+    "title": "O Morro dos Ventos Uivantes",
+    "author": "Emily Brontë",
+    "language": "Portuguese",
+    "isbn": "9788582850404",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 34,
+    "title": "Drácula",
+    "author": "Bram Stoker",
+    "language": "Portuguese",
+    "isbn": "9788582850022",
+    "category": "Classic Literature / Horror"
+  },
+  {
+    "id": 35,
+    "title": "Uma Canção de Natal",
+    "author": "Charles Dickens",
+    "language": "Portuguese",
+    "isbn": "9788520932209",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 36,
+    "title": "Hamlet",
+    "author": "William Shakespeare",
+    "language": "Portuguese",
+    "isbn": "9788582850220",
+    "category": "Classic Literature / Drama"
+  },
+  {
+    "id": 37,
+    "title": "A Outra Volta do Parafuso",
+    "author": "Henry James",
+    "language": "Portuguese",
+    "isbn": "9788582850558",
+    "category": "Classic Literature / Horror"
+  },
+  {
+    "id": 38,
+    "title": "O Mundo Assombrado pelos Demônios",
+    "author": "Carl Sagan",
+    "language": "Portuguese",
+    "isbn": "9788535908343",
+    "category": "Science / Philosophy"
+  },
+  {
+    "id": 39,
+    "title": "Doctor Death",
+    "author": "Jonathan Kellerman",
+    "language": "English",
+    "isbn": "9780345413925",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 40,
+    "title": "Um Estudo em Vermelho",
+    "author": "Arthur Conan Doyle",
+    "language": "Portuguese",
+    "isbn": "9788537810354",
+    "category": "Classic / Mystery"
+  },
+  {
+    "id": 41,
+    "title": "As Virgens Suicidas",
+    "author": "Jeffrey Eugenides",
+    "language": "Portuguese",
+    "isbn": "9788535921861",
+    "category": "Fiction"
+  },
+  {
+    "id": 42,
+    "title": "Mentiras Fatais",
+    "author": "Frank Tallis",
+    "language": "Portuguese",
+    "isbn": "9788501083463",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 43,
+    "title": "O Bom Filho",
+    "author": "You-Jeong Jeong",
+    "language": "Portuguese",
+    "isbn": "9788551004128",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 44,
+    "title": "Cyrano de Bergerac",
+    "author": "Edmond Rostand",
+    "language": "Portuguese",
+    "isbn": "9788525405449",
+    "category": "Classic / Drama"
+  },
+  {
+    "id": 45,
+    "title": "O Quarto em Chamas",
+    "author": "Michael Connelly",
+    "language": "Portuguese",
+    "isbn": "9788580415391",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 46,
+    "title": "Sobre os Ossos dos Mortos",
+    "author": "Olga Tokarczuk",
+    "language": "Portuguese",
+    "isbn": "9788580419993",
+    "category": "Fiction"
+  },
+  {
+    "id": 47,
+    "title": "As Luzes de Setembro",
+    "author": "Carlos Ruiz Zafón",
+    "language": "Portuguese",
+    "isbn": "9788539003884",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 48,
+    "title": "The Tartar Steppe",
+    "author": "Dino Buzzati",
+    "language": "English",
+    "isbn": "9781841957241",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 49,
+    "title": "Auto da Compadecida",
+    "author": "Ariano Suassuna",
+    "language": "Portuguese",
+    "isbn": "9788520931554",
+    "category": "Classic / Drama"
+  },
+  {
+    "id": 50,
+    "title": "In the Woods",
+    "author": "Tana French",
+    "language": "English",
+    "isbn": "9780143113492",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 51,
+    "title": "The Winter People",
+    "author": "Jennifer McMahon",
+    "language": "English",
+    "isbn": "9780385538497",
+    "category": "Horror / Mystery"
+  },
+  {
+    "id": 52,
+    "title": "Por que os Homens fazem Sexo e as Mulheres fazem Amor?",
+    "author": "Allan & Barbara Pease",
+    "language": "Portuguese",
+    "isbn": "9788575420317",
+    "category": "Self-Help / Psychology"
+  },
+  {
+    "id": 53,
+    "title": "Bem-vindos à Livraria Hyunam-dong",
+    "author": "Hwang Bo-reum",
+    "language": "Portuguese",
+    "isbn": "9786555607062",
+    "category": "Fiction"
+  },
+  {
+    "id": 54,
+    "title": "Lolita",
+    "author": "Vladimir Nabokov",
+    "language": "Portuguese",
+    "isbn": "9788535911428",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 55,
+    "title": "Romeo and Juliet",
+    "author": "William Shakespeare",
+    "language": "English",
+    "isbn": "9780743477123",
+    "category": "Classic Literature / Drama"
+  },
+  {
+    "id": 56,
+    "title": "Before the Coffee Gets Cold",
+    "author": "Toshikazu Kawaguchi",
+    "language": "English",
+    "isbn": "9781529029581",
+    "category": "Fiction / Fantasy"
+  },
+  {
+    "id": 57,
+    "title": "Um Teto Todo Seu",
+    "author": "Virginia Woolf",
+    "language": "Portuguese",
+    "isbn": "9788582850046",
+    "category": "Non-Fiction / Essay"
+  },
+  {
+    "id": 58,
+    "title": "Suicide Club",
+    "author": "Usamaru Furuya",
+    "language": "Portuguese",
+    "isbn": "9788576161494",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 59,
+    "title": "Panorama do Inferno",
+    "author": "Hideshi Hino",
+    "language": "Portuguese",
+    "isbn": "9788576161821",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 60,
+    "title": "O Silmarillion",
+    "author": "J. R. R. Tolkien",
+    "language": "Portuguese",
+    "isbn": "9788595084377",
+    "category": "Fantasy"
+  },
+  {
+    "id": 61,
+    "title": "O Diário de Bridget Jones",
+    "author": "Helen Fielding",
+    "language": "Portuguese",
+    "isbn": "9788501048639",
+    "category": "Fiction / Romance"
+  },
+  {
+    "id": 62,
     "title": "Tomie",
     "author": "Junji Ito",
     "language": "English",
-    "description": "A horror story about an immortal girl who drives her admirers into murderous fits of jealousy.",
-    "isbn": "[]",
-    "type": "Horror / Manga",
-    "cover_image": "White spine with red splatter"
+    "isbn": "9781421590561",
+    "category": "Manga / Horror"
   },
   {
-    "id": 77,
+    "id": 63,
+    "title": "Gyo",
+    "author": "Junji Ito",
+    "language": "English",
+    "isbn": "9781421579153",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 64,
     "title": "Uzumaki",
     "author": "Junji Ito",
     "language": "English",
-    "description": "A town becomes obsessed and haunted by spiral patterns in this surreal horror masterpiece.",
-    "isbn": "[]",
-    "type": "Horror / Manga",
-    "cover_image": "White spine with red spiral logo"
+    "isbn": "9781421561325",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 65,
+    "title": "No Longer Human",
+    "author": "Junji Ito / Osamu Dazai",
+    "language": "English",
+    "isbn": "9781974707096",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 66,
+    "title": "A Invenção de Hugo Cabret",
+    "author": "Brian Selznick",
+    "language": "Portuguese",
+    "isbn": "9788535910940",
+    "category": "Fiction"
+  },
+  {
+    "id": 67,
+    "title": "Dossiê Drácula",
+    "author": "James Reese",
+    "language": "Portuguese",
+    "isbn": "9788501083906",
+    "category": "Fiction / Horror"
+  },
+  {
+    "id": 68,
+    "title": "By the Light of the Moon",
+    "author": "Dean Koontz",
+    "language": "English",
+    "isbn": "9780553582772",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 69,
+    "title": "The Girl on the Train",
+    "author": "Paula Hawkins",
+    "language": "English",
+    "isbn": "9781594633669",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 70,
+    "title": "Ao Farol",
+    "author": "Virginia Woolf",
+    "language": "Portuguese",
+    "isbn": "9788582850428",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 71,
+    "title": "The Wind-Up Bird Chronicle",
+    "author": "Haruki Murakami",
+    "language": "English",
+    "isbn": "9780679775430",
+    "category": "Fiction"
+  },
+  {
+    "id": 72,
+    "title": "Great Expectations",
+    "author": "Charles Dickens",
+    "language": "English",
+    "isbn": "9780141439518",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 73,
+    "title": "A Revolução dos Bichos",
+    "author": "George Orwell",
+    "language": "Portuguese",
+    "isbn": "9788535909555",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 74,
+    "title": "Dez Argumentos para você deletar agora suas redes sociais",
+    "author": "Jaron Lanier",
+    "language": "Portuguese",
+    "isbn": "9788551003770",
+    "category": "Non-Fiction"
+  },
+  {
+    "id": 75,
+    "title": "Aquarela na Prática",
+    "author": "Curtis Tappenden",
+    "language": "Portuguese",
+    "isbn": "9788521203926",
+    "category": "Art / Instruction"
+  },
+  {
+    "id": 76,
+    "title": "1933 foi um ano ruim",
+    "author": "John Fante",
+    "language": "Portuguese",
+    "isbn": "9788501072979",
+    "category": "Fiction"
+  },
+  {
+    "id": 77,
+    "title": "Babel",
+    "author": "R. F. Kuang",
+    "language": "English",
+    "isbn": "9780063021426",
+    "category": "Fantasy"
+  },
+  {
+    "id": 78,
+    "title": "O Nome da Rosa",
+    "author": "Umberto Eco",
+    "language": "Portuguese",
+    "isbn": "9788501090331",
+    "category": "Classic Fiction / Mystery"
+  },
+  {
+    "id": 79,
+    "title": "Meridiano de Sangue",
+    "author": "Cormac McCarthy",
+    "language": "Portuguese",
+    "isbn": "9788573027815",
+    "category": "Fiction"
+  },
+  {
+    "id": 80,
+    "title": "Living with Our Genes",
+    "author": "Dean Hamer & Peter Copeland",
+    "language": "English",
+    "isbn": "9780385485845",
+    "category": "Science / Genetics"
+  },
+  {
+    "id": 81,
+    "title": "1Q84 (Livro 1 e 2)",
+    "author": "Haruki Murakami",
+    "language": "Portuguese",
+    "isbn": "9788579621680",
+    "category": "Fiction / Surrealism"
+  },
+  {
+    "id": 82,
+    "title": "Outsider",
+    "author": "Stephen King",
+    "language": "Portuguese",
+    "isbn": "9788581053127",
+    "category": "Horror / Mystery"
+  },
+  {
+    "id": 83,
+    "title": "Linguagens do Design",
+    "author": "Steven Heller",
+    "language": "Portuguese",
+    "isbn": "9788588864986",
+    "category": "Design"
+  },
+  {
+    "id": 84,
+    "title": "Orgulho e Preconceito",
+    "author": "Jane Austen",
+    "language": "Portuguese",
+    "isbn": "9788582850381",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 85,
+    "title": "Um Cavalheiro em Moscou",
+    "author": "Amor Towles",
+    "language": "Portuguese",
+    "isbn": "9788551001851",
+    "category": "Fiction"
+  },
+  {
+    "id": 86,
+    "title": "O Bazar dos Sonhos Ruins",
+    "author": "Stephen King",
+    "language": "Portuguese",
+    "isbn": "9788535928808",
+    "category": "Horror / Short Stories"
+  },
+  {
+    "id": 87,
+    "title": "Os Mistérios de Udolpho",
+    "author": "Ann Radcliffe",
+    "language": "Portuguese",
+    "isbn": "9788520942475",
+    "category": "Gothic Literature"
+  },
+  {
+    "id": 88,
+    "title": "Smashed",
+    "author": "Junji Ito",
+    "language": "English",
+    "isbn": "9781421598468",
+    "category": "Manga / Horror"
+  },
+  {
+    "id": 89,
+    "title": "A Garota no Gelo",
+    "author": "Robert Bryndza",
+    "language": "Portuguese",
+    "isbn": "9788582463970",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 90,
+    "title": "A Vida Invisível de Addie LaRue",
+    "author": "V. E. Schwab",
+    "language": "Portuguese",
+    "isbn": "9786555321302",
+    "category": "Fantasy"
+  },
+  {
+    "id": 91,
+    "title": "Jogo Perigoso",
+    "author": "Stephen King",
+    "language": "Portuguese",
+    "isbn": "9788544101414",
+    "category": "Horror"
+  },
+  {
+    "id": 92,
+    "title": "O Enigma do Quarto 622",
+    "author": "Joël Dicker",
+    "language": "Portuguese",
+    "isbn": "9786555600469",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 93,
+    "title": "Mongrels",
+    "author": "Stephen Graham Jones",
+    "language": "English",
+    "isbn": "9780062412638",
+    "category": "Horror"
+  },
+  {
+    "id": 94,
+    "title": "Impostora",
+    "author": "R. F. Kuang",
+    "language": "Portuguese",
+    "isbn": "9786555606409",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 95,
+    "title": "The Moving Finger",
+    "author": "Agatha Christie",
+    "language": "English",
+    "isbn": "9780007208531",
+    "category": "Fiction / Mystery"
+  },
+  {
+    "id": 96,
+    "title": "O Impulso",
+    "author": "Ashley Audrain",
+    "language": "Portuguese",
+    "isbn": "9786555320954",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 97,
+    "title": "O Último Homem na Torre",
+    "author": "Aravind Adiga",
+    "language": "Portuguese",
+    "isbn": "9788520927700",
+    "category": "Fiction"
+  },
+  {
+    "id": 98,
+    "title": "Criança 44",
+    "author": "Tom Rob Smith",
+    "language": "Portuguese",
+    "isbn": "9788501083166",
+    "category": "Fiction / Thriller"
+  },
+  {
+    "id": 99,
+    "title": "Desenhe!",
+    "author": "Sam Piyasena / Beverly Philip",
+    "language": "Portuguese",
+    "isbn": "9788521206583",
+    "category": "Art / Instruction"
+  },
+  {
+    "id": 100,
+    "title": "Dom Quixote de la Mancha",
+    "author": "Miguel de Cervantes",
+    "language": "Portuguese",
+    "isbn": "9788520942444",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 101,
+    "title": "Os Três Mosqueteiros",
+    "author": "Alexandre Dumas",
+    "language": "Portuguese",
+    "isbn": "9788537803691",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 102,
+    "title": "The Prehistory of the Mind",
+    "author": "Steven Mithen",
+    "language": "English",
+    "isbn": "9780500281000",
+    "category": "Science / Anthropology"
+  },
+  {
+    "id": 103,
+    "title": "A Origem das Espécies",
+    "author": "Charles Darwin",
+    "language": "Portuguese",
+    "isbn": "9788572329316",
+    "category": "Science"
+  },
+  {
+    "id": 104,
+    "title": "O Conde de Monte Cristo",
+    "author": "Alexandre Dumas",
+    "language": "Portuguese",
+    "isbn": "9788537800683",
+    "category": "Classic Literature"
+  },
+  {
+    "id": 105,
+    "title": "Stardew Valley Guidebook",
+    "author": "Kari Fry",
+    "language": "English",
+    "isbn": "9781944801120",
+    "category": "Gaming / Reference"
   }
 ]

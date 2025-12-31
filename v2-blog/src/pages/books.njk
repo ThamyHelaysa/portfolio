@@ -2,7 +2,21 @@
 layout: books.njk
 title: Here I can brag about how cultured I am
 description: A growing list of books I’ve read (or pretended to). If you think reading makes you deep, wait 'til you read this page. Expect quotes, judgment, and meandering thoughts that smell faintly of literary superiority.
-permalink: /books-that-a-may-or-may-not-like/
+permalink: /books/
 ---
 
-<h1>{{ title }}</h1>
+
+<div id="raw-book-data">
+  {% for book in collections.books %}
+    <div class="book-template" data-title="{{ book.data.title }}">
+      <svg width="100" height="100" class="border-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="border-path" d="M0,0 L100,0 L100,100 L0,100 Z" pathLength="1" />
+      </svg>
+      <div class="book-info">
+        <h2 class="title-placeholder"></h2>
+        <p>AUTHOR: {{ book.data.author }}</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+

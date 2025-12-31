@@ -1,24 +1,88 @@
 
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="{{ description or metadata.description }}">
+    <title>{{ title or "My Portfolio" }}</title>
 
-
-<div class="books-container">
-  {% for book in collections.books %}
-  <div class="book-entry">
-    <svg class="border-svg">...</svg>
     
-    <div class="book-content">
-      <h2 class="book-title" data-title="{{ book.data.title }}"></h2>
-      <p>AUTHOR: {{ book.data.author }}</p>
+    {# Start our CSP lists with 'self' #}
+    {% set cspScriptSrc = "'self'" %}
+    {% set cspStyleSrc = "'self'" %}
+
+    {# Initialize buffers to hold the actual HTML tags we want to print later #}
+    {% set scriptsOutput = "" %}
+    {% set stylesOutput = "" %}
+
+    {% set themeContent %}{% include "inline-theme.js" %}{% endset %}
+    {% set themeHash = themeContent | trim | cspHash %}
+
+    {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
+    {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
+    
+
+    {# Handle optional page script #}
+    {% if inlineScripts %}
+      {% for path in inlineScripts %}
+        {# 1. Read file #}
+        {% set content %}{% include path %}{% endset %}
+        
+        {# 2. Hash it #}
+        {% set hash = content | trim | cspHash %}
+        {% set cspScriptSrc = cspScriptSrc + " " + hash %}
+        
+        {# 3. Store the tag for later #}
+        {% set scriptsOutput = scriptsOutput + '<script>' + (content | safe | trim) + '</script>' %}
+      {% endfor %}
+    {% endif %}
+
+    {% if inlineStyles %}
+      {% for path in inlineStyles %}
+        {# 1. Read file #}
+        {% set content %}{% include path %}{% endset %}
+        
+        {# 2. Hash it #}
+        {% set hash = content | trim | cspHash %}
+        {% set cspStyleSrc = cspStyleSrc + " " + hash %}
+        
+        {# 3. Store the tag for later #}
+        {% set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' %}
+      {% endfor %}
+    {% endif %}
+
+    {% set terminalCss %}{% include "css/terminal.css" %}{% endset %}
+
+    {% set terminalHash = terminalCss | trim | cspHash %}
+    {% set cspStyleSrc = cspStyleSrc + " " + terminalHash %}
+
+    {% set stylesOutput = stylesOutput + '<style>' + (terminalCss | safe | trim) + '</style>' %}
+
+    <meta 
+      http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }};"
+    >
+    <meta name="view-transition" content="same-origin">
+    
+    {{ stylesOutput | safe }}
+
+    {{ scriptsOutput | safe }}
+
+    <script type="module" src="/components/theme-toggle.js"></script>
+    <script type="module" src="/components/terminal-shell.js"></script>
+  </head>
+  <body>
+    <main class="terminal">
       
-      {# Only show "MORE" if there is content in the markdown file #}
-      {% if book.templateContent %}
-        <div class="dedicated-content" style="display:none;">
-          {{ book.templateContent | safe }}
-        </div>
-        <button class="cmd-btn">[ VIEW_EXTENDED_DATA ]</button>
-      {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-</div>
+      <div class="wrapper">
+        <terminal-shell>
+          <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
+          {{ content | safe }}
+        </terminal-shell>
+      </div>
+
+    </main>
+  </body>
+</html>

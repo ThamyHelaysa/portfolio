@@ -1,0 +1,24 @@
+
+
+
+
+<div class="books-container">
+  {% for book in collections.books %}
+  <div class="book-entry">
+    <svg class="border-svg">...</svg>
+    
+    <div class="book-content">
+      <h2 class="book-title" data-title="{{ book.data.title }}"></h2>
+      <p>AUTHOR: {{ book.data.author }}</p>
+      
+      {# Only show "MORE" if there is content in the markdown file #}
+      {% if book.templateContent %}
+        <div class="dedicated-content" style="display:none;">
+          {{ book.templateContent | safe }}
+        </div>
+        <button class="cmd-btn">[ VIEW_EXTENDED_DATA ]</button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>

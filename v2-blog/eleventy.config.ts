@@ -42,6 +42,7 @@ export default function (eleventyConfig: any) {
           format: "esm",
           minify: true,     // Minify for performance
           target: "es2020", // Modern JS target
+          packages: "bundle"
         });
 
         // Return the compiled code

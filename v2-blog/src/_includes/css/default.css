@@ -8,6 +8,19 @@ body {
   }
 }
 
+
+
+
+
+
+
+
+/* content-visibility: auto;
+ contain-intrinsic-size: 1000px;  */
+
+
+
+
 main {
   view-transition-name: post;
 }

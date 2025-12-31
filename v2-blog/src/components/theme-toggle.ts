@@ -104,7 +104,7 @@ export class ThemeToggle extends LitElement {
       <button type="button"
         aria-label=${isDark ? "Switch to light theme" : "Switch to dark theme"}
         aria-pressed=${String(isDark)}
-        class="sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-red sw:transition-colors sw:cursor-pointer"
+        class="sw:p-0 sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-red sw:transition-colors sw:cursor-pointer"
         @click=${this._handleUserToggle}>
         
         <span class="theme-text">

@@ -67,16 +67,12 @@ html.dark {
   display: none!important;
 }
 
-.border-path {
-  /* This 'hides' the line by making the gaps as long as the line itself */
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  stroke: red;
-  fill: none;
-}
-
 main.terminal {
   height: 100%;
+
+  /* pre styles */
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
 }
 
 .wrapper {
@@ -90,14 +86,23 @@ terminal-shell {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem 0;
+  width: 100%;
   height: 100%;
   padding: 1rem;
   color: var(--color-text);
   font-family: var(--font-mono);
+  text-transform: lowercase;
   border: 1px solid var(--color-border-code);
 }
 
+#terminal-cli {
+  width: 100%;
+}
+
 #terminal-output {
+  max-height: 30vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #terminal-input {
@@ -105,4 +110,37 @@ terminal-shell {
   border: none;
   outline: none;
   color: inherit;
+}
+
+
+
+/* Svgs */
+/* src/assets/styles/terminal.css */
+
+.book-template {
+  position: relative; /* Crucial: pins the SVG to this box */
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 600px; /* Keeps it readable on mobile */
+  min-height: 100px;
+}
+
+.border-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Stops the SVG from blocking clicks */
+  overflow: visible;
+}
+
+.border-path {
+  fill: none;
+  stroke: var(--term-green, #00ff41);
+  stroke-width: 2px;
+  /* PRIMING THE ANIMATION */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1; 
 }

@@ -79,7 +79,25 @@
       <div class="wrapper">
         <terminal-shell>
           <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
-          {{ content | safe }}
+          <div id="results-area">
+            {% if title and author %} 
+              {# This only triggers on individual book pages where frontmatter exists #}
+              <div class="book-template" data-title="{{ title }}">
+                  <svg class="border-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path class="border-path" d="M0,0 L100,0 L100,100 L0,100 Z" pathLength="1" />
+                  </svg>
+                  <div class="book-info">
+                      <h2 class="title-placeholder"></h2>
+                      <p>AUTHOR: {{ author }}</p>
+                      <div class="book-content">
+                          {{ content | safe }}
+                      </div>
+                  </div>
+              </div>
+            {% else %}
+              {{ content | safe }}
+            {% endif %}
+          </div>
         </terminal-shell>
       </div>
 

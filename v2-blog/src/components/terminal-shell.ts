@@ -15,10 +15,13 @@ export class TerminalShell extends LitElement {
   // We can use a property to track the "Boot State"
   @property({ type: Boolean }) booted = false;
 
+
   @query('#boot-log') private _bootLog!: HTMLDivElement;
-  @query('#terminal-input') private _inputCLI!: HTMLInputElement;
+  @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
   @query('#results-area') private _resultArea!: HTMLDivElement;
   @query('#terminal-output') private _outputCLI!: HTMLDivElement;
+  @query('#terminal-form') private _formCLI!: HTMLFormElement;
+  @query('#raw-book-data') private _template!: HTMLDivElement;
 
   @state() private booksDisplayed = 0;
   @state() private readonly batchSize = 10;
@@ -71,16 +74,50 @@ export class TerminalShell extends LitElement {
     });
   }
 
+  // private appendToLog(text: string) {
+  //   const log = this.querySelector('#boot-log');
+  //   if (log) {
+  //     const p = document.createElement('p');
+  //     p.className = "terminal-msg";
+  //     log.appendChild(p);
+  //     // Use GSAP to type out the help/error message
+  //     gsap.to(p, { duration: 0.5, text: `> ${text}`, ease: "none" });
+  //   }
+  // }
+
   private appendToLog(text: string) {
     const log = this.querySelector('#boot-log');
-    if (log) {
-      const p = document.createElement('p');
-      p.className = "terminal-msg";
-      log.appendChild(p);
-      // Use GSAP to type out the help/error message
-      gsap.to(p, { duration: 0.5, text: `> ${text}`, ease: "none" });
-    }
+    if (!log) return;
+
+    const p = document.createElement('p');
+    p.className = "terminal-msg";
+    p.textContent = "";
+    log.appendChild(p);
+
+    const safe = `> ${text}`;
+
+    this._typeText(p, safe, 0.5);
   }
+
+  private _typeText(el: HTMLElement, fullText: string, durationSec = 0.5) {
+    const total = fullText.length;
+    const state = { i: 0 };
+
+    // gsap timeline driving a number, we render textContent ourselves
+    gsap.to(state, {
+      i: total,
+      duration: durationSec,
+      ease: "none",
+      onUpdate: () => {
+        el.textContent = fullText.slice(0, Math.floor(state.i));
+      },
+      onComplete: () => {
+        el.textContent = fullText;
+        this.scrollToBottom();
+      }
+    });
+  }
+
 
   private _handleSubmit(e: Event) {
     // Prevent the page from refreshing
@@ -107,6 +144,85 @@ export class TerminalShell extends LitElement {
     }
 
     this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
+  }
+
+  private _handleAutoResize(e: Event) {
+    const el = e.target as HTMLTextAreaElement;
+    el.style.height = 'auto'; // Reset height to recalculate
+    el.style.height = el.scrollHeight + 'px'; // Expand based on text
+  }
+
+  private _handleInputSecurity(e: KeyboardEvent) {
+    console.log(e);
+    // Submit
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      this._formCLI.requestSubmit();
+      return;
+    }
+
+    // Block ANY modifier combos (prevents Cmd+A/C/V/X/Z etc)
+    // If you want SHIFT+Arrow selection to work, keep shiftKey allowed.
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      e.preventDefault();
+      return;
+    }
+
+    // Allow navigation keys (arrows only, per your rules)
+    if (
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown'
+    ) {
+      return;
+    }
+
+    // Allow edit keys
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      return;
+    }
+
+    // Block jump/navigation + misc
+    const blocked = new Set(['Home', 'End', 'PageUp', 'PageDown', 'Tab', 'Escape']);
+    if (blocked.has(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Allow printable characters (normal typing)
+    // Most characters come as a single-length key string
+    if (e.key.length === 1) {
+      return;
+    }
+
+    // Default deny (keeps your "only these keys" rule tight)
+    e.preventDefault();
+  }
+
+
+  private _preventMouseCaret(e: MouseEvent) {
+    // Block click/drag setting selection
+    e.preventDefault();
+
+    const el = e.currentTarget as HTMLTextAreaElement;
+    el.focus();
+
+    // Optional: always keep caret at end on mouse interaction
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
+  }
+
+  private _forceCaretRules(e: Event) {
+    // If you want to allow selection ONLY through keyboard,
+    // you can still enforce "no selection" here.
+    const el = e.currentTarget as HTMLTextAreaElement;
+
+    // Strict mode: never allow selection range (only caret)
+    if (el.selectionStart !== el.selectionEnd) {
+      const end = el.selectionEnd ?? el.value.length;
+      el.setSelectionRange(end, end);
+    }
   }
 
   private animateBook(el: HTMLElement, index: number) {
@@ -162,7 +278,7 @@ export class TerminalShell extends LitElement {
     await new Promise(resolve => setTimeout(resolve, 2000));
     loader.remove();
     // 1. Find your 'database' and your 'screen'
-    const allTemplates = document.querySelectorAll('#raw-book-data .book-template');
+    const allTemplates = this._template.querySelectorAll('.book-template');
 
     if (!resultsArea) return;
 
@@ -211,15 +327,18 @@ export class TerminalShell extends LitElement {
           </div>
         </div>
 
-        <form @submit="${this._handleSubmit}" class="input-wrapper">
+        <form id="terminal-form" @submit="${this._handleSubmit}">
           <label for="terminal-input" class="prompt">USER@BOOK_OS:~$</label>
-          <input 
-            type="text" 
+          <textarea
             id="terminal-input" 
             name="command"
+            rows="1"
+            @input="${this._handleAutoResize}"
+            @keydown="${this._handleInputSecurity}"
+            @mousedown="${this._preventMouseCaret}"
+            @selection="${this._forceCaretRules}"
             ?disabled="${!this.booted}"
-            autocomplete="off"
-            spellcheck="false">
+            spellcheck="false"></textarea>
         </form>
       </div>
     `;

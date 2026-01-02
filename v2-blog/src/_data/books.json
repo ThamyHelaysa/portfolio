@@ -146,9 +146,10 @@
   {
     "id": 19,
     "title": "O Médico e o Monstro",
+    "original_title": "The strange case of Dr. Jekyll and Mr. Hyde",
     "author": "Robert Louis Stevenson",
     "language": "Portuguese",
-    "isbn": "9788535916027",
+    "isbn": "9786559100675",
     "category": "Classic Literature / Horror"
   },
   {
@@ -292,7 +293,7 @@
     "title": "A Outra Volta do Parafuso",
     "author": "Henry James",
     "language": "Portuguese",
-    "isbn": "9788582850558",
+    "isbn": "9788563560247",
     "category": "Classic Literature / Horror"
   },
   {
@@ -316,7 +317,7 @@
     "title": "Um Estudo em Vermelho",
     "author": "Arthur Conan Doyle",
     "language": "Portuguese",
-    "isbn": "9788537810354",
+    "isbn": "9788537810873",
     "category": "Classic / Mystery"
   },
   {
@@ -348,7 +349,7 @@
     "title": "Cyrano de Bergerac",
     "author": "Edmond Rostand",
     "language": "Portuguese",
-    "isbn": "9788525405449",
+    "isbn": "8513011126",
     "category": "Classic / Drama"
   },
   {
@@ -838,5 +839,13 @@
     "language": "English",
     "isbn": "9781944801120",
     "category": "Gaming / Reference"
+  },
+  {
+    "id": 106,
+    "title": "Ring",
+    "author": "Koji Suzuki",
+    "language": "English",
+    "isbn": "9781932234411",
+    "category": "Ghost Thriller / Ghost Fiction"
   }
 ]

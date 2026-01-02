@@ -80,6 +80,10 @@
         <terminal-shell>
           <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
           <div id="results-area">
+            <table class="book-details-table">
+              <tbody id="book-tbody"></tbody>
+            </table>
+            <div id="ascii-area" class="ascii-art-container"></div>
             {% if title and author %} 
               {# This only triggers on individual book pages where frontmatter exists #}
               <div class="book-template" data-title="{{ title }}">

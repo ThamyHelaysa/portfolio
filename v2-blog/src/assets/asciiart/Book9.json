@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "exportedAt": "2026-01-02T19:43:11.267Z",
+    "exportVersion": "1.0.0",
+    "appVersion": "0.2.55",
+    "description": "ASCII Motion Animation - Human Readable Format",
+    "title": "Untitled Project",
+    "frameCount": 1,
+    "canvasSize": {
+      "width": 8,
+      "height": 21
+    }
+  },
+  "canvas": {
+    "width": 8,
+    "height": 21,
+    "backgroundColor": "#000000"
+  },
+  "typography": {
+    "fontSize": 18,
+    "characterSpacing": 1,
+    "lineSpacing": 1
+  },
+  "animation": {
+    "frameRate": 12,
+    "looping": false,
+    "currentFrame": 0
+  },
+  "frames": [
+    {
+      "title": "Frame 0",
+      "duration": 100,
+      "content": [
+        "┌────┐",
+        "│┌──┐│",
+        "││┌┐││",
+        "││  ││",
+        "││  ││",
+        "││  ││",
+        "││└┘││",
+        "│└──┘│",
+        "│    │",
+        "│    │",
+        "│    │",
+        "│    │",
+        "│    │",
+        "│    │",
+        "│    │",
+        "│┌──┐│",
+        "││┌┐││",
+        "││  ││",
+        "││└┘││",
+        "│└──┘│",
+        "└────┘"
+      ],
+      "contentString": "┌────┐\n│┌──┐│\n││┌┐││\n││  ││\n││  ││\n││  ││\n││└┘││\n│└──┘│\n│    │\n│    │\n│    │\n│    │\n│    │\n│    │\n│    │\n│┌──┐│\n││┌┐││\n││  ││\n││└┘││\n│└──┘│\n└────┘"
+    }
+  ]
+}

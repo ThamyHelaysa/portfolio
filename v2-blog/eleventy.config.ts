@@ -264,6 +264,10 @@ export default function (eleventyConfig: any) {
     "src/assets/videos": "assets/videos"
   });
 
+  eleventyConfig.addPassthroughCopy({
+    "src/assets/asciiart": "assets/asciiart"
+  });
+
   return {
     dir: {
       input: 'src',

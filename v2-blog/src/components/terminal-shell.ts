@@ -3,6 +3,8 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { TextPlugin } from 'gsap/TextPlugin';
 
+
+
 gsap.registerPlugin(TextPlugin);
 
 @customElement('terminal-shell')
@@ -15,6 +17,8 @@ export class TerminalShell extends LitElement {
   // We can use a property to track the "Boot State"
   @property({ type: Boolean }) booted = false;
 
+  private bookData: Array<{ title: string, author: string }> = [];
+
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
   @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
@@ -22,12 +26,24 @@ export class TerminalShell extends LitElement {
   @query('#terminal-output') private _outputCLI!: HTMLDivElement;
   @query('#terminal-form') private _formCLI!: HTMLFormElement;
   @query('#raw-book-data') private _template!: HTMLDivElement;
+  @query('#book-tbody') private _tbody!: HTMLTableSectionElement;
+  @query('#ascii-area') private _asciiArea!: HTMLElement;
+
 
   @state() private booksDisplayed = 0;
-  @state() private readonly batchSize = 10;
+  @state() private readonly batchSize = 3;
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
-    console.log(_changedProperties);
+    // 1. Scrape data before the div "rots"
+    if (this._template) {
+      const items = this._template.querySelectorAll('.book-template');
+      this.bookData = Array.from(items).map(el => ({
+        title: el.getAttribute('data-title') || "Unknown",
+        author: el.getAttribute('data-author') || "Unknown"
+      }));
+      // 2. Destroy the hidden container to free memory
+      this._template.remove();
+    }
     this.startBootSequence();
   }
 
@@ -74,19 +90,8 @@ export class TerminalShell extends LitElement {
     });
   }
 
-  // private appendToLog(text: string) {
-  //   const log = this.querySelector('#boot-log');
-  //   if (log) {
-  //     const p = document.createElement('p');
-  //     p.className = "terminal-msg";
-  //     log.appendChild(p);
-  //     // Use GSAP to type out the help/error message
-  //     gsap.to(p, { duration: 0.5, text: `> ${text}`, ease: "none" });
-  //   }
-  // }
-
-  private appendToLog(text: string) {
-    const log = this.querySelector('#boot-log');
+  private appendToLog(text: string, time: number) {
+    const log = this._bootLog;
     if (!log) return;
 
     const p = document.createElement('p');
@@ -96,7 +101,7 @@ export class TerminalShell extends LitElement {
 
     const safe = `> ${text}`;
 
-    this._typeText(p, safe, 0.5);
+    this._typeText(p, safe, time);
   }
 
   private _typeText(el: HTMLElement, fullText: string, durationSec = 0.5) {
@@ -131,19 +136,22 @@ export class TerminalShell extends LitElement {
     form.reset();
 
     if (command === 'list' || command === 'continue') {
-      // this.appendToLog("Commands: LIST, CONTINUE, CLEAR, HELP");
+      this.appendToLog(command, 0);
       this.displayNextBatch();
     } else if (command === 'help') {
-      this.appendToLog("COMMANDS: LIST, CONTINUE, CLEAR, HELP");
+      this.appendToLog("COMMANDS: LIST, CONTINUE, CLEAR, HELP", 0.5);
       setTimeout(() => {
         this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
       }, 100);
     } else if (command !== "") {
-      this.appendToLog(`COMMAND NOT RECOGNIZED: ${command}`);
-      this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
+      this.appendToLog(`COMMAND NOT RECOGNIZED: ${command}`, 0);
+      setTimeout(() => {
+        this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
+      }, 100);
     }
-
-    this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
+    setTimeout(() => {
+      this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
+    }, 100);
   }
 
   private _handleAutoResize(e: Event) {
@@ -200,7 +208,6 @@ export class TerminalShell extends LitElement {
     e.preventDefault();
   }
 
-
   private _preventMouseCaret(e: MouseEvent) {
     // Block click/drag setting selection
     e.preventDefault();
@@ -227,91 +234,286 @@ export class TerminalShell extends LitElement {
 
   private animateBook(el: HTMLElement, index: number) {
     // Find the path inside THIS specific book element
-    const path = el.querySelector('.border-path');
     const titlePlaceholder = el.querySelector('.title-placeholder');
     const fullTitle = el.getAttribute('data-title') || "";
 
     const tl = gsap.timeline({ delay: index * 0.15 });
 
-    // 1. Draw the SVG line
-    if (path) {
-      tl.set(path, { strokeDasharray: 1, strokeDashoffset: 1 }); // Force initial state
-      tl.to(path, {
-        strokeDashoffset: 0,
-        duration: 1,
-        ease: "power2.inOut"
-      });
-    }
-
-    // 2. Type the text
+    // Type the text
     if (titlePlaceholder) {
       tl.to(titlePlaceholder, {
-        duration: 0.6,
+        duration: 2,
         text: fullTitle,
         ease: "none"
-      }, "-=0.5"); // Start typing halfway through the line drawing
+      }, "-=0.5");
     }
   }
 
   private handleDirectAccessReveal() {
     console.log('handleDirectAccessReveal')
-    // Add a "system message" acknowledging the specific page
-    this.appendToLog("DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.");
+    this.appendToLog("DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.", 0.5);
 
-    // Since the content is already in the Light DOM, we just animate it
     const existingBook = this.querySelector('.book-template');
     if (existingBook) {
-      // Re-use your animation logic to draw the lines for this specific book
       this.animateBook(existingBook as HTMLElement, 0);
     }
   }
 
+  // private async displayNextBatch() {
+  //   this.appendToLog("", 0);
+  //   const resultsArea = this._resultArea;
+
+  //   const loader = document.createElement('p');
+  //   loader.textContent = "> ACCESSING SECTOR " + (this.booksDisplayed / 10 + 1) + "...";
+  //   resultsArea?.appendChild(loader);
+
+  //   await new Promise(resolve => setTimeout(resolve, 2000));
+  //   loader.remove();
+
+  //   const allTemplates = this._template.querySelectorAll('.book-template');
+
+  //   if (!resultsArea) return;
+
+  //   const nextBatch = Array.from(allTemplates).slice(
+  //     this.booksDisplayed,
+  //     this.booksDisplayed + this.batchSize
+  //   );
+
+  //   if (nextBatch.length === 0) {
+  //     this.appendToLog("DATABASE SCAN COMPLETE. NO FURTHER RECORDS.", 0.5);
+  //     return;
+  //   }
+
+  //   // 3. Clone and "Animate In" each book
+  //   nextBatch.forEach((template, index) => {
+  //     const clone = template.cloneNode(true) as HTMLElement;
+
+  //     // Ensure the clone is visible (since the source container is hidden)
+  //     clone.style.display = 'block';
+  //     resultsArea.appendChild(clone);
+
+  //     // Reuse your working animateBook function!
+  //     this.animateBook(clone, index);
+  //   });
+
+  //   // 4. Update the counter and scroll
+  //   this.booksDisplayed += nextBatch.length;
+  //   this.scrollToBottom();
+  // }
+
+  private async loadAscii(url: string) {
+    const res = await fetch(url, { cache: "force-cache" });
+    if (!res.ok) throw new Error("Failed to load ASCII JSON");
+    return res.json();
+  }
+
+
+  // private async displayNextBatch() {
+  //   const resultsArea = this._resultArea;
+  //   const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
+
+  //   if (batch.length === 0) {
+  //     this.appendToLog("DATABASE SCAN COMPLETE.", 0.5);
+  //     return;
+  //   }
+
+  //   const data = await this.loadAscii("/assets/asciiart/Book5.json");
+  //   const frame = data.frames[data.animation?.currentFrame ?? 0];
+
+
+  //   for (const book of batch) {
+  //     const wrapper = document.createElement('div');
+  //     wrapper.className = "book-entry-wrapper";
+
+  //     // Prepare the lines for the ASCII art
+  //     const asciiLines = frame.content;
+  //     const asciiHtml = asciiLines.map((line: any) => `<div class="ascii-line">${line}</div>`).join('');
+
+  //     wrapper.innerHTML = `
+  //           <pre class="ascii-art-container">${asciiHtml}</pre>
+  //           <table class="book-details-table">
+  //               <tr><td>[RECORD]</td><td class="type-cell" data-text="${book.title}"></td></tr>
+  //               <tr><td>[AUTHOR]</td><td class="type-cell" data-text="${book.author}"></td></tr>
+  //           </table>
+  //       `;
+  //     resultsArea.appendChild(wrapper);
+
+  //     // Run the sequence for this specific book
+  //     await this._animateEntrySequence(wrapper);
+  //     this.booksDisplayed++;
+  //     this.scrollToBottom();
+  //   }
+  // }
+
+  // private async _animateEntrySequence(wrapper: HTMLElement) {
+  //   const lines = wrapper.querySelectorAll('.ascii-line');
+  //   const cells = wrapper.querySelectorAll('.type-cell');
+
+  //   const tl = gsap.timeline();
+
+  //   // 1. Reveal ASCII lines one by one
+  //   tl.from(lines, {
+  //     opacity: 0,
+  //     x: -5,
+  //     duration: 0.05,
+  //     stagger: 0.3,
+  //     ease: "none"
+  //   });
+
+  //   // 2. Type out the table data sequentially
+  //   for (const cell of Array.from(cells)) {
+  //     const text = cell.getAttribute('data-text') || "";
+  //     await this._typeTextPromise(cell as HTMLElement, text, 0.4);
+  //   }
+  // }
+
+  private async _animateEntrySequence(wrapper: HTMLElement) {
+    const lines = Array.from(wrapper.querySelectorAll<HTMLElement>('.ascii-line'));
+    const cells = Array.from(wrapper.querySelectorAll<HTMLElement>('.type-cell'));
+
+    // Ensure cells start empty (so typing effect is consistent)
+    for (const cell of cells) cell.textContent = "";
+
+    // 1) Reveal ASCII lines
+    const tl = gsap.timeline({
+      onUpdate: () => this.scrollToBottom?.(),
+      onComplete: () => this.scrollToBottom?.(),
+    });
+
+    tl.from(lines, {
+      opacity: 0,
+      duration: 0.03,
+      stagger: 0.03, // your 0.3 was very slow; keep if intentional
+      ease: "none"
+    });
+
+    // Wait for ASCII animation to finish before typing
+    //await tl.then?.(); // if your GSAP supports tl.then()
+    // If not, use:
+    await new Promise<void>(r => tl.eventCallback("onComplete", () => r()));
+
+    // 2) Type each cell sequentially (safe)
+    for (const cell of cells) {
+      // Prefer dataset over attribute; but either is fine
+      const text = cell.dataset.text ?? cell.getAttribute('data-text') ?? "";
+      await this._typeTextPromise(cell, text, 0.4);
+    }
+  }
+
+
+  private _typeTextPromise(el: HTMLElement, fullText: string, durationSec = 0.5): Promise<void> {
+    return new Promise((resolve) => {
+      const state = { i: 0 };
+      gsap.to(state, {
+        i: fullText.length,
+        duration: durationSec,
+        ease: "none",
+        onUpdate: () => {
+          el.textContent = fullText.slice(0, Math.floor(state.i));
+        },
+        onComplete: () => {
+          el.textContent = fullText;
+          resolve();
+        }
+      });
+    });
+  }
+
+  private _appendBookRows(book: { title: string; author: string }) {
+    const makeRow = (label: string, value: string) => {
+      const tr = document.createElement("tr");
+
+      const td1 = document.createElement("td");
+      td1.textContent = label;
+
+      const td2 = document.createElement("td");
+      td2.className = "type-cell";
+      td2.dataset.text = value ?? "";   // used for typing
+      td2.textContent = "";             // start empty
+
+      tr.append(td1, td2);
+      return tr;
+    };
+
+    const r1 = makeRow("[RECORD]", book.title);
+    const r2 = makeRow("[AUTHOR]", book.author);
+
+    this._tbody.append(r1, r2);
+
+    return [r1, r2]; // return nodes so you can animate just-added content
+  }
+
+  private _asciiRendered: number[] = [];
+
+  private async _ensureAsciiBootRendered(id = 5) {
+    // if (this._asciiRendered.find(art => art === id)) return;
+
+    const data = await this.loadAscii(`/assets/asciiart/Book${id}.json`);
+    const frame = data.frames[data.animation?.currentFrame ?? 0];
+
+    //this._asciiArea.textContent = ""; // safe clear
+
+    // Create per-line nodes if you want stagger
+    const lines = frame.content as string[];
+    const nodes: HTMLElement[] = [];
+
+    const container = document.createElement("div");
+    for (const line of lines) {
+      const div = document.createElement("div");
+      div.className = "ascii-line";
+      div.textContent = line;
+      div.style.opacity = "0";
+      container.appendChild(div)
+      this._asciiArea.appendChild(container);
+      nodes.push(div);
+    }
+
+    gsap.to(nodes, { opacity: 1, duration: 0, stagger: 0.07, ease: "none" });
+    // this._asciiRendered = [id];
+  }
+
+
+
   private async displayNextBatch() {
-    const resultsArea = this._resultArea;
+    const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
 
-    // 1. Temporary loading text
-    const loader = document.createElement('p');
-    loader.textContent = "> ACCESSING SECTOR " + (this.booksDisplayed / 10 + 1) + "...";
-    resultsArea?.appendChild(loader);
-
-    // 2. Short pause for 'realism'
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    loader.remove();
-    // 1. Find your 'database' and your 'screen'
-    const allTemplates = this._template.querySelectorAll('.book-template');
-
-    if (!resultsArea) return;
-
-    // 2. Grab the next 10 books
-    const nextBatch = Array.from(allTemplates).slice(
-      this.booksDisplayed,
-      this.booksDisplayed + this.batchSize
-    );
-
-    if (nextBatch.length === 0) {
-      this.appendToLog("DATABASE SCAN COMPLETE. NO FURTHER RECORDS.");
+    if (batch.length === 0) {
+      this.appendToLog("DATABASE SCAN COMPLETE.", 0.5);
       return;
     }
 
-    // 3. Clone and "Animate In" each book
-    nextBatch.forEach((template, index) => {
-      const clone = template.cloneNode(true) as HTMLElement;
+    // Optional: render ASCII once (or once per batch)
+    
 
-      // Ensure the clone is visible (since the source container is hidden)
-      clone.style.display = 'block';
-      resultsArea.appendChild(clone);
+    // Add rows and collect the new cells to animate
+    const newCells: HTMLElement[] = [];
 
-      // Reuse your working animateBook function!
-      this.animateBook(clone, index);
-    });
+    for (const book of batch) {
+      // await this._ensureAsciiBootRendered();
+      const rows = this._appendBookRows(book);
+      console.log(book)
+      // Collect the .type-cell we just added
+      rows.forEach((r: HTMLElement) => {
+        const cell = r.querySelector<HTMLElement>(".type-cell");
+        if (cell) newCells.push(cell);
+      });
+      
+      await this._ensureAsciiBootRendered(this.booksDisplayed + 1);
+      this.booksDisplayed++;
+    }
 
-    // 4. Update the counter and scroll
-    this.booksDisplayed += nextBatch.length;
+    // Animate only the newly added cells (typing)
+    for (const cell of newCells) {
+      const text = cell.dataset.text ?? "";
+      await this._typeTextPromise(cell, text, 0.25);
+      this.scrollToBottom();
+    }
+
     this.scrollToBottom();
   }
 
+
   private scrollToBottom() {
-    // Essential for mobile so the user sees the new content
     window.scrollTo({
       top: document.body.scrollHeight,
       behavior: 'smooth'
@@ -322,15 +524,13 @@ export class TerminalShell extends LitElement {
     return html`
       <div id="terminal-cli">
         <div id="terminal-output">
-          <div id="boot-log"></div>
-          <div id="results-area">
-          </div>
+          <pre id="boot-log"></pre>
         </div>
 
         <form id="terminal-form" @submit="${this._handleSubmit}">
           <label for="terminal-input" class="prompt">USER@BOOK_OS:~$</label>
           <textarea
-            id="terminal-input" 
+            id="terminal-input"
             name="command"
             rows="1"
             @input="${this._handleAutoResize}"

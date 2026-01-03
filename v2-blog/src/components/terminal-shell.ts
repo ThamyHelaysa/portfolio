@@ -16,22 +16,29 @@ export class TerminalShell extends LitElement {
 
   // We can use a property to track the "Boot State"
   @property({ type: Boolean }) booted = false;
+  // @property({ type: String, reflect: true })
+  // private commandCLI: String = "";
 
   private bookData: Array<{ title: string, author: string }> = [];
 
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
   @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
-  @query('#results-area') private _resultArea!: HTMLDivElement;
+  // @query('#terminal-text') private _textCLI!: HTMLDivElement;
   @query('#terminal-output') private _outputCLI!: HTMLDivElement;
+  // @query('#terminal-cli') private _terminalCLI!: HTMLDivElement;
   @query('#terminal-form') private _formCLI!: HTMLFormElement;
   @query('#raw-book-data') private _template!: HTMLDivElement;
-  @query('#book-tbody') private _tbody!: HTMLTableSectionElement;
+  @query('#book-details-table') private _tableBooks!: HTMLTableElement;
+  // @query('#book-tbody') private _tbody!: HTMLTableSectionElement;
   @query('#ascii-area') private _asciiArea!: HTMLElement;
 
 
   @state() private booksDisplayed = 0;
   @state() private readonly batchSize = 3;
+  @state() private history: string[] = [];
+  @state() private histIndex = 0;
+  @state() private commandCLI = "";
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
     // 1. Scrape data before the div "rots"
@@ -90,39 +97,19 @@ export class TerminalShell extends LitElement {
     });
   }
 
-  private appendToLog(text: string, time: number) {
+  private appendToLog(text: string, time: number, type: "command" | "log") {
     const log = this._bootLog;
     if (!log) return;
 
     const p = document.createElement('p');
-    p.className = "terminal-msg";
+    p.className = type === "command" ? "command" : "log";
     p.textContent = "";
     log.appendChild(p);
 
-    const safe = `> ${text}`;
+    const safe = `${text}`;
 
-    this._typeText(p, safe, time);
+    this._typeTextPromise(p, safe, time);
   }
-
-  private _typeText(el: HTMLElement, fullText: string, durationSec = 0.5) {
-    const total = fullText.length;
-    const state = { i: 0 };
-
-    // gsap timeline driving a number, we render textContent ourselves
-    gsap.to(state, {
-      i: total,
-      duration: durationSec,
-      ease: "none",
-      onUpdate: () => {
-        el.textContent = fullText.slice(0, Math.floor(state.i));
-      },
-      onComplete: () => {
-        el.textContent = fullText;
-        this.scrollToBottom();
-      }
-    });
-  }
-
 
   private _handleSubmit(e: Event) {
     // Prevent the page from refreshing
@@ -134,34 +121,36 @@ export class TerminalShell extends LitElement {
 
     // Clear the input field
     form.reset();
+    this.commandCLI = ""
+    this.history.push(command);
+    this.histIndex = this.history.length;
 
     if (command === 'list' || command === 'continue') {
-      this.appendToLog(command, 0);
+      this.appendToLog(command, 0, "command");
       this.displayNextBatch();
     } else if (command === 'help') {
-      this.appendToLog("COMMANDS: LIST, CONTINUE, CLEAR, HELP", 0.5);
-      setTimeout(() => {
-        this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
-      }, 100);
+      this.appendToLog("COMMANDS: LIST, CONTINUE, CLEAR, HELP", 0.5, "log");
     } else if (command !== "") {
-      this.appendToLog(`COMMAND NOT RECOGNIZED: ${command}`, 0);
-      setTimeout(() => {
-        this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
-      }, 100);
+      this.appendToLog(`COMMAND NOT RECOGNIZED: ${command}`, 0, "command");
     }
+
     setTimeout(() => {
       this._outputCLI.scrollTop = this._outputCLI.scrollHeight;
     }, 100);
   }
 
-  private _handleAutoResize(e: Event) {
+  private _handleInput(e: Event) {
     const el = e.target as HTMLTextAreaElement;
+    var val = el.value;
+    // this._textCLI.textContent = val;
+    this.commandCLI = val
+    console.log(val);
+
     el.style.height = 'auto'; // Reset height to recalculate
     el.style.height = el.scrollHeight + 'px'; // Expand based on text
   }
 
-  private _handleInputSecurity(e: KeyboardEvent) {
-    console.log(e);
+  private _handleInputKeys(e: KeyboardEvent) {
     // Submit
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -176,13 +165,17 @@ export class TerminalShell extends LitElement {
       return;
     }
 
-    // Allow navigation keys (arrows only, per your rules)
-    if (
-      e.key === 'ArrowLeft' ||
-      e.key === 'ArrowRight' ||
-      e.key === 'ArrowUp' ||
-      e.key === 'ArrowDown'
-    ) {
+    // Allow navigation ArrowUp
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      this._handleHistory('ArrowUp');
+      return;
+    }
+
+    // Allow navigation ArrowDown
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      this._handleHistory('ArrowDown');
       return;
     }
 
@@ -199,25 +192,49 @@ export class TerminalShell extends LitElement {
     }
 
     // Allow printable characters (normal typing)
-    // Most characters come as a single-length key string
     if (e.key.length === 1) {
       return;
     }
 
-    // Default deny (keeps your "only these keys" rule tight)
     e.preventDefault();
+  }
+
+  private _handleHistory(type: "ArrowUp" | "ArrowDown") {
+    var histLen = this.history.length
+    
+    if (type === "ArrowUp") {
+      if (!histLen) return;
+      this.histIndex = this.histIndex === 0
+        ? 0
+        : this.histIndex - 1;
+      
+      this._inputCLI.value = this.history[this.histIndex];
+      this.commandCLI = this._inputCLI.value;
+      return;
+    } else {
+      if (!histLen) return;
+      this.histIndex = this.histIndex === histLen
+        ? this.histIndex
+        : this.histIndex + 1;
+      
+      this._inputCLI.value = this.history[this.histIndex] || "";
+      this.commandCLI = this._inputCLI.value;
+      return;
+    }
   }
 
   private _preventMouseCaret(e: MouseEvent) {
     // Block click/drag setting selection
     e.preventDefault();
 
-    const el = e.currentTarget as HTMLTextAreaElement;
+    const el = this._inputCLI; //e.currentTarget as HTMLTextAreaElement;
     el.focus();
 
     // Optional: always keep caret at end on mouse interaction
     const end = el.value.length;
     el.setSelectionRange(end, end);
+
+    this._scrollToBottom(this._outputCLI);
   }
 
   private _forceCaretRules(e: Event) {
@@ -251,7 +268,7 @@ export class TerminalShell extends LitElement {
 
   private handleDirectAccessReveal() {
     console.log('handleDirectAccessReveal')
-    this.appendToLog("DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.", 0.5);
+    this.appendToLog("DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.", 0.5, "log");
 
     const existingBook = this.querySelector('.book-template');
     if (existingBook) {
@@ -259,147 +276,11 @@ export class TerminalShell extends LitElement {
     }
   }
 
-  // private async displayNextBatch() {
-  //   this.appendToLog("", 0);
-  //   const resultsArea = this._resultArea;
-
-  //   const loader = document.createElement('p');
-  //   loader.textContent = "> ACCESSING SECTOR " + (this.booksDisplayed / 10 + 1) + "...";
-  //   resultsArea?.appendChild(loader);
-
-  //   await new Promise(resolve => setTimeout(resolve, 2000));
-  //   loader.remove();
-
-  //   const allTemplates = this._template.querySelectorAll('.book-template');
-
-  //   if (!resultsArea) return;
-
-  //   const nextBatch = Array.from(allTemplates).slice(
-  //     this.booksDisplayed,
-  //     this.booksDisplayed + this.batchSize
-  //   );
-
-  //   if (nextBatch.length === 0) {
-  //     this.appendToLog("DATABASE SCAN COMPLETE. NO FURTHER RECORDS.", 0.5);
-  //     return;
-  //   }
-
-  //   // 3. Clone and "Animate In" each book
-  //   nextBatch.forEach((template, index) => {
-  //     const clone = template.cloneNode(true) as HTMLElement;
-
-  //     // Ensure the clone is visible (since the source container is hidden)
-  //     clone.style.display = 'block';
-  //     resultsArea.appendChild(clone);
-
-  //     // Reuse your working animateBook function!
-  //     this.animateBook(clone, index);
-  //   });
-
-  //   // 4. Update the counter and scroll
-  //   this.booksDisplayed += nextBatch.length;
-  //   this.scrollToBottom();
-  // }
-
   private async loadAscii(url: string) {
     const res = await fetch(url, { cache: "force-cache" });
     if (!res.ok) throw new Error("Failed to load ASCII JSON");
     return res.json();
   }
-
-
-  // private async displayNextBatch() {
-  //   const resultsArea = this._resultArea;
-  //   const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
-
-  //   if (batch.length === 0) {
-  //     this.appendToLog("DATABASE SCAN COMPLETE.", 0.5);
-  //     return;
-  //   }
-
-  //   const data = await this.loadAscii("/assets/asciiart/Book5.json");
-  //   const frame = data.frames[data.animation?.currentFrame ?? 0];
-
-
-  //   for (const book of batch) {
-  //     const wrapper = document.createElement('div');
-  //     wrapper.className = "book-entry-wrapper";
-
-  //     // Prepare the lines for the ASCII art
-  //     const asciiLines = frame.content;
-  //     const asciiHtml = asciiLines.map((line: any) => `<div class="ascii-line">${line}</div>`).join('');
-
-  //     wrapper.innerHTML = `
-  //           <pre class="ascii-art-container">${asciiHtml}</pre>
-  //           <table class="book-details-table">
-  //               <tr><td>[RECORD]</td><td class="type-cell" data-text="${book.title}"></td></tr>
-  //               <tr><td>[AUTHOR]</td><td class="type-cell" data-text="${book.author}"></td></tr>
-  //           </table>
-  //       `;
-  //     resultsArea.appendChild(wrapper);
-
-  //     // Run the sequence for this specific book
-  //     await this._animateEntrySequence(wrapper);
-  //     this.booksDisplayed++;
-  //     this.scrollToBottom();
-  //   }
-  // }
-
-  // private async _animateEntrySequence(wrapper: HTMLElement) {
-  //   const lines = wrapper.querySelectorAll('.ascii-line');
-  //   const cells = wrapper.querySelectorAll('.type-cell');
-
-  //   const tl = gsap.timeline();
-
-  //   // 1. Reveal ASCII lines one by one
-  //   tl.from(lines, {
-  //     opacity: 0,
-  //     x: -5,
-  //     duration: 0.05,
-  //     stagger: 0.3,
-  //     ease: "none"
-  //   });
-
-  //   // 2. Type out the table data sequentially
-  //   for (const cell of Array.from(cells)) {
-  //     const text = cell.getAttribute('data-text') || "";
-  //     await this._typeTextPromise(cell as HTMLElement, text, 0.4);
-  //   }
-  // }
-
-  private async _animateEntrySequence(wrapper: HTMLElement) {
-    const lines = Array.from(wrapper.querySelectorAll<HTMLElement>('.ascii-line'));
-    const cells = Array.from(wrapper.querySelectorAll<HTMLElement>('.type-cell'));
-
-    // Ensure cells start empty (so typing effect is consistent)
-    for (const cell of cells) cell.textContent = "";
-
-    // 1) Reveal ASCII lines
-    const tl = gsap.timeline({
-      onUpdate: () => this.scrollToBottom?.(),
-      onComplete: () => this.scrollToBottom?.(),
-    });
-
-    tl.from(lines, {
-      opacity: 0,
-      duration: 0.03,
-      stagger: 0.03, // your 0.3 was very slow; keep if intentional
-      ease: "none"
-    });
-
-    // Wait for ASCII animation to finish before typing
-    //await tl.then?.(); // if your GSAP supports tl.then()
-    // If not, use:
-    await new Promise<void>(r => tl.eventCallback("onComplete", () => r()));
-
-    // 2) Type each cell sequentially (safe)
-    for (const cell of cells) {
-      // Prefer dataset over attribute; but either is fine
-      const text = cell.dataset.text ?? cell.getAttribute('data-text') ?? "";
-      await this._typeTextPromise(cell, text, 0.4);
-    }
-  }
-
 
   private _typeTextPromise(el: HTMLElement, fullText: string, durationSec = 0.5): Promise<void> {
     return new Promise((resolve) => {
@@ -419,7 +300,7 @@ export class TerminalShell extends LitElement {
     });
   }
 
-  private _appendBookRows(book: { title: string; author: string }) {
+  private _logBooks(book: { title: string; author: string }) {
     const makeRow = (label: string, value: string) => {
       const tr = document.createElement("tr");
 
@@ -438,12 +319,12 @@ export class TerminalShell extends LitElement {
     const r1 = makeRow("[RECORD]", book.title);
     const r2 = makeRow("[AUTHOR]", book.author);
 
-    this._tbody.append(r1, r2);
+    // this._tbody.append(r1, r2);
+    this.appendToLog(`[RECORD] ${book.title}`, 0.5, "log");
+    this.appendToLog(`    [AUTHOR] ${book.author}`, 0.5, "log");
 
     return [r1, r2]; // return nodes so you can animate just-added content
   }
-
-  private _asciiRendered: number[] = [];
 
   private async _ensureAsciiBootRendered(id = 5) {
     // if (this._asciiRendered.find(art => art === id)) return;
@@ -458,12 +339,13 @@ export class TerminalShell extends LitElement {
     const nodes: HTMLElement[] = [];
 
     const container = document.createElement("div");
+    container.className = "ascii-wrapper";
     for (const line of lines) {
       const div = document.createElement("div");
       div.className = "ascii-line";
       div.textContent = line;
       div.style.opacity = "0";
-      container.appendChild(div)
+      container.appendChild(div);
       this._asciiArea.appendChild(container);
       nodes.push(div);
     }
@@ -472,32 +354,27 @@ export class TerminalShell extends LitElement {
     // this._asciiRendered = [id];
   }
 
-
-
   private async displayNextBatch() {
     const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
 
     if (batch.length === 0) {
-      this.appendToLog("DATABASE SCAN COMPLETE.", 0.5);
+      this.appendToLog("Bookshelf scan complete.", 0.5, "log");
       return;
     }
 
-    // Optional: render ASCII once (or once per batch)
-    
+    this.appendToLog("Bookshelf scan complete.", 0.5, "log");
 
     // Add rows and collect the new cells to animate
     const newCells: HTMLElement[] = [];
 
     for (const book of batch) {
-      // await this._ensureAsciiBootRendered();
-      const rows = this._appendBookRows(book);
-      console.log(book)
-      // Collect the .type-cell we just added
+      const rows = this._logBooks(book);
+      // console.log(book)
       rows.forEach((r: HTMLElement) => {
         const cell = r.querySelector<HTMLElement>(".type-cell");
         if (cell) newCells.push(cell);
       });
-      
+
       await this._ensureAsciiBootRendered(this.booksDisplayed + 1);
       this.booksDisplayed++;
     }
@@ -506,23 +383,22 @@ export class TerminalShell extends LitElement {
     for (const cell of newCells) {
       const text = cell.dataset.text ?? "";
       await this._typeTextPromise(cell, text, 0.25);
-      this.scrollToBottom();
+      // this._tableBooks.scrollTop = this._tableBooks.scrollHeight;
+      // this.scrollToBottom();
     }
 
-    this.scrollToBottom();
+    this._scrollToBottom(this._tableBooks);
+    // this.scrollToBottom();
   }
 
-
-  private scrollToBottom() {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth'
-    });
+  private _scrollToBottom(el?: HTMLElement) {
+    if (!el) { return; }
+    el.scrollTop = el.scrollHeight;
   }
 
   render() {
     return html`
-      <div id="terminal-cli">
+      <div id="terminal-cli" @mousedown="${this._preventMouseCaret}">
         <div id="terminal-output">
           <pre id="boot-log"></pre>
         </div>
@@ -533,12 +409,13 @@ export class TerminalShell extends LitElement {
             id="terminal-input"
             name="command"
             rows="1"
-            @input="${this._handleAutoResize}"
-            @keydown="${this._handleInputSecurity}"
+            @input="${this._handleInput}"
+            @keydown="${this._handleInputKeys}"
             @mousedown="${this._preventMouseCaret}"
             @selection="${this._forceCaretRules}"
             ?disabled="${!this.booted}"
             spellcheck="false"></textarea>
+            <div id="terminal-text">${this.commandCLI}</div>
         </form>
       </div>
     `;

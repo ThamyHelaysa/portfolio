@@ -80,16 +80,13 @@
         <terminal-shell>
           <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
           <div id="results-area">
-            <table class="book-details-table">
+            {# <table id="book-details-table">
               <tbody id="book-tbody"></tbody>
-            </table>
+            </table> #}
             <div id="ascii-area" class="ascii-art-container"></div>
             {% if title and author %} 
               {# This only triggers on individual book pages where frontmatter exists #}
               <div class="book-template" data-title="{{ title }}">
-                  <svg class="border-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <path class="border-path" d="M0,0 L100,0 L100,100 L0,100 Z" pathLength="1" />
-                  </svg>
                   <div class="book-info">
                       <h2 class="title-placeholder"></h2>
                       <p>AUTHOR: {{ author }}</p>

@@ -1,5 +1,5 @@
-import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property, query, queryAssignedElements, state } from "lit/decorators.js";
+import { css, html, LitElement } from "lit";
+import { customElement, property, query, state } from "lit/decorators.js";
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from "../_helpers/animationManager.ts";
 
@@ -13,9 +13,6 @@ export class MenuMobile extends LitElement {
 
   @query('#mobile-menu') private _menuWrapper!: HTMLDivElement;
 
-  // @queryAssignedElements({ slot: 'trigger' })
-  // private _triggers!: HTMLElement[];
-
   static styles = css`
     #mobile-menu {
       position: fixed;
@@ -28,8 +25,6 @@ export class MenuMobile extends LitElement {
       min-height: 100vh;
       min-height: 100svh;
       padding-bottom: env(safe-area-inset-bottom);
-
-      /* border: 2px solid blue; */
     }
 
     button {

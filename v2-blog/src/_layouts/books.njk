@@ -11,7 +11,7 @@
     
     {# Start our CSP lists with 'self' #}
     {% set cspScriptSrc = "'self'" %}
-    {% set cspStyleSrc = "'self'" %}
+    {% set cspStyleSrc = "'self' https://use.typekit.net" %}
 
     {# Initialize buffers to hold the actual HTML tags we want to print later #}
     {% set scriptsOutput = "" %}
@@ -53,6 +53,13 @@
       {% endfor %}
     {% endif %}
 
+    {% set fontCss %}{% include "css/terminal-fonts.css" %}{% endset %}
+
+    {% set fontHash = fontCss | trim | cspHash %}
+    {% set cspStyleSrc = cspStyleSrc + " " + fontHash %}
+
+    {% set stylesOutput = stylesOutput + '<style>' + (fontCss | safe | trim) + '</style>' %}
+
     {% set terminalCss %}{% include "css/terminal.css" %}{% endset %}
 
     {% set terminalHash = terminalCss | trim | cspHash %}
@@ -62,11 +69,14 @@
 
     <meta 
       http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }};"
+      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }}; font-src 'self';"
     >
     <meta name="view-transition" content="same-origin">
     
     {{ stylesOutput | safe }}
+
+    <link rel="preload" href="/assets/fonts/ibm-plex-mono-v20-latin/ibm-plex-mono-v20-latin-regular.woff2" as="font" type="font/woff2" crossorigin/>
+    <link rel="preload" href="/assets/fonts/ibm-plex-mono-v20-latin/ibm-plex-mono-v20-latin-italic.woff2" as="font" type="font/woff2" crossorigin/>
 
     {{ scriptsOutput | safe }}
 
@@ -75,17 +85,16 @@
   </head>
   <body>
     <main class="terminal">
-      
       <div class="wrapper">
         <terminal-shell>
-          <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
+          <header class="terminal-header">
+            <theme-toggle data-type="terminal" data-template-id="theme-toggle-tmpl"></theme-toggle>
+            <span>Time: </span>
+          </header>
           <div id="results-area">
-            {# <table id="book-details-table">
-              <tbody id="book-tbody"></tbody>
-            </table> #}
-            <div id="ascii-area" class="ascii-art-container"></div>
+            <pre aria-label="Ascii Art" id="ascii-area" class="ascii-art-container"></pre>
             {% if title and author %} 
-              {# This only triggers on individual book pages where frontmatter exists #}
+              {# individual book pages #}
               <div class="book-template" data-title="{{ title }}">
                   <div class="book-info">
                       <h2 class="title-placeholder"></h2>

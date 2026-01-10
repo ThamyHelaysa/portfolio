@@ -123,3 +123,9 @@ menu-mobile:not(:defined) {
   max-width: 65px;
   max-height: 30px;
 }
+
+user-fakeid {
+  display: inline-block;
+  line-height: 1.1;
+  white-space: nowrap;
+}

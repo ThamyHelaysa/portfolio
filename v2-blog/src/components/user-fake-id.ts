@@ -25,6 +25,8 @@ export class UserFakeID extends LitElement {
   static styles = css`
     :host {
       display: inline-block;
+      line-height: 1.1;
+      white-space: nowrap;
     }
 
     .container {
@@ -87,8 +89,8 @@ export class UserFakeID extends LitElement {
 
     return html`
       <div class="container">
-        <span @click=${this._handleRandomID} id="userId">randomuser::666</span>
-        <span @click=${this.setRandomID} class="tooltip ${this.isRandom ? "" : "hidden"}" aria-label="Set new ID" title="Set new ID">*</span>,
+        <span @click=${this._handleRandomID} id="userId"></span>,
+        <span @click=${this.setRandomID} class="tooltip ${this.isRandom ? "" : "hidden"}" aria-label="Set new ID" title="Set new ID">*</span>
       </div>
     `;
   }

@@ -9,6 +9,7 @@ permalink: /books/
   {% for book in collections.books %}
     {% set title = book.data.title %}
     {% set author = book.data.author %}
+    {% set id = book.data.id %}
     {% set content = "" %}
     {% include "partials/book-shell.njk" %}
   {% endfor %}

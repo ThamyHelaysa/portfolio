@@ -3,6 +3,12 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { TextPlugin } from 'gsap/TextPlugin';
 
+type ParsedCommand = {
+  raw: string;                 // original command
+  cmd: string;                 // "list", "book",
+  flags: Record<string, string | boolean>;
+  positionals: string[];       // ["5"] or ["id","5"]
+};
 
 
 gsap.registerPlugin(TextPlugin);
@@ -23,7 +29,7 @@ export class TerminalShell extends LitElement {
   // @property({ type: String, reflect: true })
   // private commandCLI: String = "";
 
-  private bookData: Array<{ title: string, author: string }> = [];
+  private bookData: Array<{ title: string, author: string, id: string }> = [];
   private _asciiCache = new Map<string, string[]>();
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
@@ -44,13 +50,94 @@ export class TerminalShell extends LitElement {
   @state() private _skipAnimations =
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 
+  private readonly COMMANDS: Record<
+    string,
+    (ctx: ParsedCommand) => Promise<void> | void
+  > = {
+      help: async (ctx) => {
+        // await this.appendToLog(
+        //   "COMMANDS:\n- HELP\n- LIST [--all] [--art <id>]\n- BOOK <id>\n- CLEAR",
+        //   0.05,
+        //   "log"
+        // );
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+
+        if (this.isMobile) {
+          this._inputCLI?.blur();
+          this.sidebarOpen = true;
+        } else {
+          await this.appendToLog("commands", 0.2, "title");
+          await this.appendToLog(
+            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all",
+            0.5,
+            "logdata"
+          )
+        }
+      },
+
+      h: async (ctx) => this.COMMANDS.help(ctx),
+
+      list: async (ctx) => {
+        // boolean flag: --all
+        if (ctx.flags.all === true) {
+          await this.appendToLog("LISTING ALL RECORDS...", 0.05, "log");
+          // Todo: await this.displayAllBooks();
+          return;
+        }
+
+        // const art = typeof ctx.flags.art === "string" ? this._sanitizeArtId(ctx.flags.art) : undefined;
+        if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
+        this.appendToLog(`${ctx.raw}`, 0, "command");
+
+        await this.displayNextBatch();
+      },
+
+      continue: async (ctx) => this.COMMANDS.list(ctx),
+
+      book: async (ctx) => {
+        // supports: "book 5" or "book id 5"
+        const idToken =
+          ctx.positionals[0] === "id" ? ctx.positionals[1] : ctx.positionals[0];
+
+        const id = Number(idToken);
+        if (!Number.isFinite(id)) {
+          await this.appendToLog("USAGE: BOOK <id>  (example: BOOK 5)", 0.05, "log");
+          return;
+        }
+
+        await this.appendToLog(`OPENING BOOK ${id}...`, 0.05, "log");
+        // Todo: this.openBookById(id);
+      },
+
+      skip: async (ctx) => {
+        if (this.isMobile) {
+          this._inputCLI?.blur();
+          this.sidebarOpen = false;
+        }
+        if (ctx.positionals[0] === "animations") {
+          await this.appendToLog(`${ctx.raw} ${ctx.positionals[0]}`, 0.2, "command");
+          await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, "log");
+          this._toggleSkipAnim();
+        } else {
+          await this.appendToLog(ctx.raw, 0.2, "command");
+        }
+      },
+
+      clear: async () => {
+        // Todo: this._clearOutput();
+        await this.appendToLog("SCREEN CLEARED.", 0.05, "log");
+      },
+    };
+
+
   protected firstUpdated(_changedProperties: PropertyValues): void {
     // Get data
     if (this._template) {
       const items = this._template.querySelectorAll('.book-template');
       this.bookData = Array.from(items).map(el => ({
         title: el.getAttribute('data-title') || "Unknown",
-        author: el.getAttribute('data-author') || "Unknown"
+        author: el.getAttribute('data-author') || "Unknown",
+        id: el.getAttribute('data-id') || "Unknown"
       }));
       // Remove container
       this._template.remove();
@@ -363,8 +450,8 @@ export class TerminalShell extends LitElement {
         await this._renderAsciiForBookInstant(this.booksDisplayed + 1);
       }
 
-      await this.appendToLog(`[RECORD]\n    ${book.title}`, 0.15, "logdata");
-      await this.appendToLog(`[AUTHOR]\n    ${book.author}`, 0.15, "logdata");
+      await this.appendToLog(`[RECORD - ${book.id}]\n   ${book.title}`, 0.15, "logdata");
+      await this.appendToLog(`[AUTHOR]\n   ${book.author}`, 0.15, "logdata");
 
       this.booksDisplayed++;
       this._scrollToBottom(this._outputCLI);
@@ -390,71 +477,81 @@ export class TerminalShell extends LitElement {
     await this._executeCommand(raw);
   }
 
-  private async _executeCommand(raw: string) {
-    const normalized = raw.trim().replace(/\s+/g, " ");
-    const lower = normalized.toLowerCase();
+  private async _executeCommand(input: string) {
+    // const normalized = raw.trim().replace(/\s+/g, " ");
+    // const lower = normalized.toLowerCase();
 
+    const parsed = this._parseCommand(input);
     // Ignore empty command
-    if (!lower) {
+    if (!parsed.raw) {
       this._scrollToBottom(this._outputCLI);
       return;
     }
 
     // Push history (avoid duplicates)
-    if (this.history.length === 0 || this.history[this.history.length - 1] !== lower) {
-      this.history.push(lower);
+    if (this.history.length === 0 || this.history[this.history.length - 1] !== parsed.raw) {
+      this.history.push(parsed.raw);
     }
     this.histIndex = this.history.length;
 
-    // Parse command + args
-    const { cmd, flags, positionals  } = this._parseCommand(lower);
+    const handler = this.COMMANDS[parsed.cmd];
 
-    switch (cmd) {
-      case "list":
-      case "continue": {
-        if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
-        this.appendToLog(`${normalized}`, 0, "command");
-        await this.displayNextBatch();
-        break;
-      }
-
-      case "help":
-      case "h": {
-        await this.appendToLog(cmd, 0.2, "command");
-
-        if (this.isMobile) {
-          this._inputCLI?.blur();
-          this.sidebarOpen = true;
-        } else {
-          await this.appendToLog("commands", 0.2, "title");
-        }
-        break;
-      }
-
-      case "skip":
-        if (this.isMobile) {
-          this._inputCLI?.blur();
-          this.sidebarOpen = false;
-        }
-        if (positionals[0] === "animations"){
-          await this.appendToLog(`${cmd} ${positionals[0]}`, 0.2, "command");
-          await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, "log");
-          this._toggleSkipAnim();
-        } else {
-          await this.appendToLog(cmd, 0.2, "command");
-        }
-        break;
-
-      case "clear": {
-        this.appendToLog(`${normalized}`, 0, "command");
-        break;
-      }
-
-      default: {
-        this.appendToLog(`COMMAND NOT RECOGNIZED: ${normalized}`, 0, "command");
-        break;
-      }
+    if (!handler) {
+      this.appendToLog(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, "command");
+      this._scrollToBottom(this._outputCLI);
+      return;
     }
+
+    await handler(parsed);
+
+    // Parse command + args
+
+    // switch (cmd) {
+    //   case "list":
+    //   case "continue": {
+    //     if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
+    //     this.appendToLog(`${raw}`, 0, "command");
+    //     await this.displayNextBatch();
+    //     break;
+    //   }
+
+    //   case "help":
+    //   case "h": {
+    //     await this.appendToLog(cmd, 0.2, "command");
+
+    //     if (this.isMobile) {
+    //       this._inputCLI?.blur();
+    //       this.sidebarOpen = true;
+    //     } else {
+    //       await this.appendToLog("commands", 0.2, "title");
+    //     }
+    //     break;
+    //   }
+
+    //   case "skip":
+    //     if (this.isMobile) {
+    //       this._inputCLI?.blur();
+    //       this.sidebarOpen = false;
+    //     }
+    //     if (positionals[0] === "animations") {
+    //       await this.appendToLog(`${cmd} ${positionals[0]}`, 0.2, "command");
+    //       await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, "log");
+    //       this._toggleSkipAnim();
+    //     } else {
+    //       await this.appendToLog(cmd, 0.2, "command");
+    //     }
+    //     break;
+
+    //   // case "clear": {
+    //   //   this.appendToLog(`${normalized}`, 0, "command");
+    //   //   break;
+    //   // }
+
+    //   default: {
+    //     this.appendToLog(`COMMAND NOT RECOGNIZED: ${raw}`, 0, "command");
+    //     break;
+    //   }
+    // }
 
     this._scrollToBottom(this._outputCLI);
   }
@@ -491,39 +588,39 @@ export class TerminalShell extends LitElement {
     this._insertCommand(cmd, "replace");
   }
 
-  private _parseCommand(input: string) {
-    const tokens = input.trim().split(/\s+/);
+  private _parseCommand(input: string): ParsedCommand {
+    const raw = input.trim().replace(/\s+/g, " ");
+    const tokens = raw.length ? raw.split(" ") : [];
 
-    const cmd = tokens.shift()?.toLowerCase() ?? "";
+    const cmd = (tokens.shift() ?? "").toLowerCase();
 
     const flags: Record<string, string | boolean> = {};
     const positionals: string[] = [];
 
     for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
+      const t = tokens[i];
 
-      // Named flags
-      if (token.startsWith("--")) {
-        const name = token.slice(2);
+      if (t.startsWith("--")) {
+        const name = t.slice(2).toLowerCase();
 
-        // flag with value: --art Book5
+        // --flag value (if next token exists and isn't another flag)
         if (tokens[i + 1] && !tokens[i + 1].startsWith("--")) {
           flags[name] = tokens[i + 1];
           i++;
         } else {
-          // boolean flag: --all
+          // --flag (boolean)
           flags[name] = true;
         }
       } else {
-        // positional argument
-        positionals.push(token);
+        positionals.push(t);
       }
     }
 
-    console.log({ cmd, flags, positionals })
+    console.log({ raw, cmd, flags, positionals })
 
-    return { cmd, flags, positionals };
+    return { raw, cmd, flags, positionals };
   }
+
 
   private _sanitizeArtId(id: string) {
     // Prevent path traversal / weird characters

@@ -235,8 +235,8 @@ terminal-shell {
 }
 
 #boot-log {
-  position: absolute;
-  inset: 0;
+  /* position: absolute; */
+  /* inset: 0; */
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 
@@ -276,9 +276,14 @@ terminal-shell {
   }
 
   .command {
+    position: sticky;
+    top: 0;
+    left: 0;
     display: flex;
     justify-content: space-between;
     color: var(--color-accent-red);
+    background-color: var(--color-warm-bg);
+    z-index: 5;
   }
 
   .command::before {

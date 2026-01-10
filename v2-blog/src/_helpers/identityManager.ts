@@ -1,5 +1,5 @@
 
-class IdentityManager {
+export class IdentityManager {
   private static instance: IdentityManager;
   private readonly storageKey = 'usr_identity_seed';
   
@@ -14,13 +14,11 @@ class IdentityManager {
 
   /**
    * Main entry point. 
-   * @param elementId The ID of the DOM element to inject the name into.
+   * @param element The ID of the DOM element to inject the name into.
    */
-  public init(elementId: string): void {
-    const element = document.getElementById(elementId);
+  public init(element: HTMLElement): void {
+    // const element = document.getElementById(elementId);
     if (!element) return;
-
-    // 1. Check SessionStorage first to avoid re-calculating
     let seed = this.getCachedSeed();
     
     if (!seed) {
@@ -31,22 +29,32 @@ class IdentityManager {
 
     const identityName = this.generateIdentity(seed);
     
-    // 2. Use requestAnimationFrame for visual updates
     requestAnimationFrame(() => {
       this.animateReveal(element, identityName);
     });
   }
 
+  public getFullIdentity(): string {
+    let seed = this.getCachedSeed();
+
+    if (!seed) {
+      const soul = this.getBrowserSoul();
+      seed = this.hashSoul(soul);
+      this.cacheSeed(seed);
+    }
+
+    return this.generateIdentity(seed);
+  }
+
   private getBrowserSoul(): string {
-    // Accessing navigator properties is fast, but we do it once.
     const n = window.navigator;
     const s = window.screen;
     
-    // Create a high-entropy string from stable browser traits
+    // string from stable browser traits
     return [
       n.userAgent,
       n.language,
-      n.hardwareConcurrency || 4, // Default to 4 if undefined
+      n.hardwareConcurrency || 4,
       s.width + s.height,
       Intl.DateTimeFormat().resolvedOptions().timeZone
     ].join('::');
@@ -59,14 +67,14 @@ class IdentityManager {
     while (i) {
       hash = (hash * 33) ^ soul.charCodeAt(--i);
     }
-    return hash >>> 0; // Force positive integer
+    return hash >>> 0; // force positive integer
   }
 
   private generateIdentity(seed: number): string {
     const prefixes = ["VOID", "NULL", "XEN", "KRYPT", "CORE", "FLUX", "ZERO"];
     const suffixes = ["_WALKER", "_GHOST", "_SHELL", "_DAEMON", "_MIND"];
     
-    // Pseudo-random generator using the seed
+    // pseudo-random generator using the seed
     const rng = (mod: number, salt: number) => (seed + salt) % mod;
 
     const p = prefixes[rng(prefixes.length, 11)];
@@ -76,12 +84,11 @@ class IdentityManager {
     return `${p}${s}::${id}`;
   }
 
-  // --- Native WAAPI Animation (The "Decoder" Effect) ---
-  
-  private animateReveal(element: HTMLElement, finalText: string): void {
+  // animation
+  public animateReveal(element: HTMLElement, finalText: string): void {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
     const duration = 800; // ms
-    const frames = 20; // total steps
+    const frames = 20; // steps
     let step = 0;
 
     // We create a custom animation loop for the text scrambling effect
@@ -128,7 +135,7 @@ class IdentityManager {
     element.animate(keyframes, {
       duration: 200,
       iterations: 3,
-      easing: 'steps(2, end)', // Jerky robotic movement
+      easing: 'steps(2, end)', // robotic movement
     });
   }
 
@@ -146,4 +153,4 @@ class IdentityManager {
   }
 }
 
-export const hackersCrakers = IdentityManager.getInstance();
+// export const hackersCrakers = IdentityManager.getInstance();

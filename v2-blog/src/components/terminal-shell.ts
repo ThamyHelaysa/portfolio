@@ -20,7 +20,6 @@ export class TerminalShell extends LitElement {
     return this;
   }
 
-  // We can use a property to track the "Boot State"
   @property({ type: Boolean }) booted = false;
   @property({ type: Boolean }) sidebarOpen = false;
   @property({ type: Boolean }) isMobile = window.innerWidth <= 768;

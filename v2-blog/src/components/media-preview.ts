@@ -73,7 +73,7 @@ export class MediaPreview extends LitElement {
 
   // --- Render ---
 
-  render() {
+  protected render(): unknown {
     return html`
       <div 
         class="wrapper"

@@ -144,7 +144,7 @@ export class TerminalShell extends LitElement {
     this.startBootSequence();
   }
 
-  updated(changed: Map<string, unknown>) {
+  protected updated(changed: Map<string, unknown>) {
     if (changed.has("isMobile") && !this.isMobile) {
       this.sidebarOpen = false;
     }
@@ -620,7 +620,7 @@ export class TerminalShell extends LitElement {
     return { raw, cmd, flags, positionals };
   }
 
-
+  // Todo: decide if id can be predetermined
   private _sanitizeArtId(id: string) {
     // Prevent path traversal / weird characters
     // Allows: Book5, book_5, book-5
@@ -668,7 +668,7 @@ export class TerminalShell extends LitElement {
     this._skipAnimations = !this._skipAnimations
   }
 
-  render() {
+  protected render(): unknown {
     const anim = this._skipAnimations;
 
     return html`

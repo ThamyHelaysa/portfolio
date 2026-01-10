@@ -57,14 +57,14 @@ export class NoteModal extends LitElement {
   }
 
   // Handle prop changes (like attributeChangedCallback)
-  updated(changedProperties: PropertyValues) {
+  protected updated(changedProperties: PropertyValues) {
     if (changedProperties.has('nodeTmpl') && this.nodeTmpl) {
       this._loadTemplate(this.nodeTmpl);
     }
   }
 
   // 5. Render
-  render() {
+  protected render(): unknown {
     // Calculated view state
     const total = this._pages.length;
     const pageIndicatorText = total > 0 ? `${this._currentPageIndex + 1} / ${total}` : '';

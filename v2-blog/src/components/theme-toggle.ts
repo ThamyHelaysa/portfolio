@@ -70,7 +70,7 @@ export class ThemeToggle extends LitElement {
     }
   }
 
-  updated(changedProperties: PropertyValues) {
+  protected updated(changedProperties: PropertyValues) {
     if (changedProperties.has('theme')) {
       localStorage.setItem(STORAGE_KEY, this.theme);
 
@@ -78,7 +78,7 @@ export class ThemeToggle extends LitElement {
     }
   }
 
-  render() {
+  protected render(): unknown {
     const isDark = this.theme === THEMES.dark;
     const selTheme = this.theme;
     const isTerminal = this.dataType;

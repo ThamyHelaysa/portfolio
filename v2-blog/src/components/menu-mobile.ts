@@ -101,12 +101,12 @@ export class MenuMobile extends LitElement {
     }
   }
 
-  _lockBody(lock = true) {
+  private _lockBody(lock = true) {
     if (!document.body) return;
     document.body.style.overflow = lock ? 'hidden' : 'initial'
   }
 
-  render() {
+  protected render(): unknown {
     const open = this.isOpen;
     return html`
       <button

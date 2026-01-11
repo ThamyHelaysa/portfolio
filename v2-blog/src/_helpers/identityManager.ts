@@ -72,10 +72,6 @@ export class IdentityManager {
     return IdentityManager.instance;
   }
 
-  /**
-   * Main entry point. 
-   * @param element The ID of the DOM element to inject the name into.
-   */
   // public init(element: HTMLElement): void {
   //   // const element = document.getElementById(elementId);
   //   if (!element) return;
@@ -96,12 +92,6 @@ export class IdentityManager {
 
   public getFullIdentity(mode: IDMode): string {
     let seed = this.getCachedSeed();
-    let name = this.getCachedName();
-
-    // if (name) {
-    //   return name;
-    // }
-
     if (!seed) {
       const soul = this.getBrowserSoul();
       seed = this.hashSoul(soul);
@@ -136,8 +126,6 @@ export class IdentityManager {
   }
 
   private generateIdentity(seed: number, mode: IDMode): string {
-    // const prefixes = ["VOID", "NULL", "XEN", "KRYPT", "CORE", "FLUX", "ZERO"];
-    // const suffixes = ["_WALKER", "_GHOST", "_SHELL", "_DAEMON", "_MIND"];
     const saltPre = mode === 1 ? Date.now() % 11 : 11;
     const saltSuf = mode === 1 ? Date.now() % 22 : 22;
 
@@ -172,7 +160,7 @@ export class IdentityManager {
   //       .map((char, index) => {
   //         if (index < revealCount) return char; // Revealed char
   //         if (char === ' ') return ' '; // Preserve spaces
-  //         return chars[Math.floor(Math.random() * chars.length)]; // Random char
+  //         return chars[Math.floor(Math.random() * chars.length)]; // random char
   //       })
   //       .join('');
 
@@ -195,7 +183,6 @@ export class IdentityManager {
   public animateReveal(element: HTMLElement, finalText: string): void {
     if (!element) return;
 
-    // Respect reduced motion
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -209,14 +196,12 @@ export class IdentityManager {
     const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
     const durationMs = 800;
 
-    // Cancel any previous run on this element
     const prev = this._revealRaf.get(element);
     if (prev != null) cancelAnimationFrame(prev);
 
     const finalChars = Array.from(finalText); // handles unicode better than split('')
     const len = finalChars.length;
 
-    // Precompute which indices are spaces so we don’t branch on char value repeatedly
     const isSpace = finalChars.map(c => c === " ");
 
     let start = 0;
@@ -225,16 +210,13 @@ export class IdentityManager {
       if (!start) start = now;
       const elapsed = now - start;
 
-      // Normalized progress 0..1
+      // norm progress 0..1
       const t = Math.min(1, elapsed / durationMs);
-
-      // Easing makes it feel less linear (optional)
-      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 3); // easeoutcubic
 
       const revealCount = Math.floor(len * eased);
 
-      // Build output with minimal work
-      // (still creates one string per frame, but avoids split/map/join)
+      // creates one string per frame
       let out = "";
       for (let i = 0; i < len; i++) {
         if (i < revealCount) out += finalChars[i];
@@ -259,7 +241,6 @@ export class IdentityManager {
   }
 
 
-  // A pure WAAPI visual glitch after the text settles
   // private triggerGlitchAnimation(element: HTMLElement): void {
   //   // Tailwind specific colors: text-red-500 (#ef4444) to your specific red (#ff453a)
   //   const keyframes: Keyframe[] = [
@@ -274,7 +255,6 @@ export class IdentityManager {
   //     easing: 'steps(2, end)', // robotic movement
   //   });
   // }
-  // Class field
   private _glitchAnim = new WeakMap<HTMLElement, Animation>();
 
   private triggerGlitchAnimation(element: HTMLElement): void {
@@ -286,14 +266,12 @@ export class IdentityManager {
 
     if (reduceMotion) return;
 
-    // Cancel any previous glitch on this element
     const prev = this._glitchAnim.get(element);
     if (prev) {
       prev.cancel();
       this._glitchAnim.delete(element);
     }
 
-    // More "chaos" with minimal frames; end state explicitly resets
     const keyframes: Keyframe[] = [
       { textShadow: "2px 0 #ff453a, -2px 0 #00ffff", transform: "translate(2px, 0)" },
       { textShadow: "-2px 0 #ff453a, 2px 0 #00ffff", transform: "translate(-2px, 0)" },
@@ -303,16 +281,15 @@ export class IdentityManager {
     ];
 
     const anim = element.animate(keyframes, {
-      duration: 220,          // short burst feels more glitchy
-      iterations: 2,          // fewer loops, less “wiggle”
-      easing: "steps(2, end)",// still robotic
-      fill: "none",           // do not persist styles after finish
+      duration: 220,
+      iterations: 2,
+      easing: "steps(2, end)",
+      fill: "none",
     });
 
     this._glitchAnim.set(element, anim);
 
     const cleanup = () => {
-      // Ensure no leftover inline styles from this effect
       element.style.textShadow = "";
       element.style.transform = "";
       this._glitchAnim.delete(element);
@@ -336,7 +313,7 @@ export class IdentityManager {
     }
   }
 
-  private getCachedName(): string | null {
+  public getCachedName(): string | null {
     const stored = sessionStorage.getItem(this.storageNameKey);
     return stored ? stored : null;
   }
@@ -349,5 +326,3 @@ export class IdentityManager {
     }
   }
 }
-
-// export const hackersCrakers = IdentityManager.getInstance();

@@ -110,7 +110,8 @@ theme-toggle {
   min-width: 85px;
 }
 
-menu-mobile {
+menu-mobile,
+menu-mobile > button {
   width: 65px;
   height: 30px;
 }
@@ -126,6 +127,12 @@ menu-mobile:not(:defined) {
 
 user-fakeid {
   display: inline-block;
+  height: 40px;
   line-height: 1.1;
-  white-space: nowrap;
+  text-transform: lowercase;
+  @media (width >= 768px) {
+    display: inline-block;
+    height: auto;
+    white-space: nowrap;
+  }
 }

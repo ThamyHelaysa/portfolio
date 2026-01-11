@@ -3,24 +3,24 @@ title: "You’re not a Senior Engineer, you’re just an asshole"
 date: "2025-12-29"
 description: "An short essay about bad feedbacks and how important is to not be an a**hole"
 tags: 
-    - dev
+    - personal
 ---
 
 I was sipping my coffee and doomscrolling Linkedin like the jaded adult woman I’ve become, when I stumbled on something that left a bitter taste in my mouth (and it was not poison i swear). There it was: unsolicited, arrogant, ego-fueled feedback. Again.
 
 The post itself was simple. Just someone sharing a project — a technical workaround, an open source tool. It was rough around the edges, might need some polish. But it worked. And it had purpose. A gift for other linux nerds to enjoy, <s>even as the rest of the tech world pretends they don’t exist</s>.
 
-And then, there it was. One of the most “liked” (unironically) comments. Arrogant. Passive agressive as it can be. Phrased like a executioner’s order. With all the subtlety of a knife made of Linkedin bullets.
+And then, there it was. One of the most “liked” (unironically) comments. Arrogant. Passive agressive as it can be. Phrased like a executioner’s order. With all the subtlety of sh*ng after a good bath.
 
-Look, I know we need feedback. We need critique, thats how we grow. But we also need compassion. Because without it, you’re not helping — you’re projecting. You can’t handle seeing joy, freedom, or <a href="https://www.youtube.com/watch?v=3L5e-68Kd-I" rel="noreferrer" target="_blank">vulnerability</a> without trying to crush it.
+Look, I know we need feedback. We need critique, thats how we grow. But we also need compassion. Because without it, you’re not helping, you’re projecting. You can’t handle seeing joy, freedom, or <a href="https://www.youtube.com/watch?v=iCvmsMzlF7o" rel="noreferrer" target="_blank" title="The power of Vulnerability - Brené Brown">vulnerability</a> without trying to crush it.
 
 So let me say this clearly: If you don’t know how to give proper advice, please abstain yourself. That’s not “emotional weakness.” That’s communication literacy — and guess what? That kind of literacy makes better software. Better communities. *Better people*.
 
 ## When I was new
 
-I had this fragile, half-broken side project. The kind of thing you pray works on at least one browser. But I was more obsessed with making things than making them right. That’s when someone smarter — some actual wobiwan-kenobi — kindly showed me how it’s done. Like, properly done.
+I had this fragile, half-broken side project. The kind of thing you pray works on at least one browser. But I was more obsessed with making things than making them right. That’s when someone smarter — some actual wobiwan-kenobis — kindly showed me how it’s done. Like, properly done.
 
-To this day, I still ask them things. And they still teach. But here’s the wild part: they never mock me. No condescension. No smirking over my buggy code. They sat with me. They asked questions. They tried to figure out what weird mysteries were rattling around in my head.
+To this day, I still ask them things. And they still teach. But here’s the wild part: they never mock me. No condescension. No smirking over my buggy code. They sat with me. They ask questions. They try to figure out what weird mysteries were rattling around in my head.
 
 They invited themselves into my thought process — not to judge, but to understand. And once they understood, they shared their thoughts, gently. Respectfully. Meaningfully.
 
@@ -42,7 +42,7 @@ It’s not about being perfect. I’m not. But I try. I try to be the kind of pe
 
 ## The end
 
-That’s it? Hell no! You know the guy who posted that project? He replied to the smug comment like a real professional. Very polite. Measured. In the end he was thankful for the comment. He didn’t fight. But you and I both know — he saw the tone. He felt it. We all do.
+That’s it? Hell no! You know the guy who posted that project? He replied to the smug comment like a real professional. Very polite and reserved. In the end he was thankful for the comment. He didn’t fight. But you and I both know — he saw the tone. He felt it. We all do.
 
 If you got this far and got yourself thinking: "Is this about me?". Maybe it is. Maybe it isn’t. But if it made you pause? If it made you wonder how your words land? Then good. That means there’s something beating inside you.
 

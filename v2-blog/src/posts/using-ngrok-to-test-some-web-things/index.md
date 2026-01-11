@@ -49,7 +49,7 @@ Now you know for what ngrok is for you can start to use it!
 
 Unfortunatly I'm not a multi-plataform expert, I will show you steps that I made in mac and some I Think will work with windows and linux. I use Windows and Mac but most of my development happens in **Terminal Rat Mode™** on macOS. So… sorry in advance.
 
-If you have any questions, feel free to reach out via LinkedIn or email — but honestly, you're probably well-served by the World Wide Web. Google (or Chat) awaits your next answer. *Be curious.*
+If you have any questions, feel free to reach out via LinkedIn or email — but honestly, you're probably well-served by the World Wide Web. Google (or Chat) awaits your next question. *Be curious.*
 
 ## Steps
 
@@ -82,7 +82,7 @@ choco install ngrok
 ```
 
 <blockquote class="warning-block block">
-I’m a lover of the internet and free choice, but I have to tell you: If you want to use a package manager, you need to be cautious about security and support.
+Note: I’m a lover of the internet and free choice, but I have to tell you: If you want to use a package manager, you need to be cautious about security and support.
 
 Chocolatey is well trusted by many companies to manage packages on Windows. However, the ngrok package is maintained, moderated, and provided by the community — which means it’s not officially supported or guaranteed in any way.
 
@@ -157,7 +157,7 @@ That `https://...ngrok-free.dev` URL is your golden ticket. Its a public HTTPS U
 
 > **Note**: Using a free account gives you one static domain that can be changed like my-cool-site.ngrok-free.dev, in the dashboard and keep it forever! Also note that you can only customize your domains (like dev.yourwebsite.com) in paid plans.
 
-And that it. You are good to go and test your apps, APIs, webhooks, etc.
+And that’s it. You are good to go and test your apps, APIs, webhooks, etc.
 
 <blockquote class="error-block block">
 Hey, be cautious! When you are done, shut it down. Go to your terminal and hit Ctrl + C. This kills the tunnel. Since the URL is public, you don't want to leave a door to your computer open when you aren't using it.
@@ -240,7 +240,7 @@ I re-discovered ngrok while cursing at iOS Safari — dug it out of the back of 
 It was such a joy to see that cursed iOS bug finally disappear after hours of testing and stress.  
 Now, every time I check the site on iOS, I can rest assured that, should anything go wrong, ngrok will lend me a hand. <s>More likely, a tunnel.</s>
 
-But it also brought back memories — of when I was just a girl, wandering the web and building stuff with my gang.
+But it also brought back memories of when I was just a girl, wandering the web and building stuff with my gang.
 
 If you got this far: thanks for reading.  
 I know it’s not a revolutionary tutorial, but it helped me and maybe it’ll help someone else screaming at a white screen on mobile. Thanks.

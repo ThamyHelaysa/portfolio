@@ -1,6 +1,6 @@
 em {
   font-family: var(--font-serif);
-  color: var(--color-accent-pink);
+  color: var(--color-accent-secondary);
 }
 
 blockquote {
@@ -8,7 +8,7 @@ blockquote {
   padding-block: calc(var(--spacing) * 5);
   padding-inline: calc(var(--spacing) * 5);
   border: 1px solid currentColor;
-  color: color-mix(in oklab, var(--color-accent-red) 70%, transparent);
+  color: color-mix(in oklab, var(--color-accent-primary) 70%, transparent);
   font-family: var(--font-mono);
   font-weight: var(--font-weight-normal);
   p { margin: 0; }
@@ -42,7 +42,7 @@ span > code {
   padding-inline: calc(var(--spacing) * 2);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  background-color: var(--color-bg-code);
+  background-color: var(--color-code-bg);
   hyphens: auto;
   overflow-wrap: anywhere;
   white-space: pre-wrap;

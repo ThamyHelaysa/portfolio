@@ -51,14 +51,14 @@ html {
   --color-pink-500: #F7446D;
   --color-pink-600: #F62655;
   --color-pink-700: #F50B40;
-  --color-red-800: #DD0939;
-  --color-red-900: #C70833;
-  --color-red-950: #B3072E;
+  --color-pink-800: #DD0939;
+  --color-pink-900: #C70833;
+  --color-pink-950: #B3072E;
 
   /* Pinky Vars */
   --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%);
-  --color-accent-red: var(--color-red-900);
-  --color-accent-pink: var(--color-pink-400);
+  --color-accent-primary: var(--color-pink-900);
+  --color-accent-secondary: var(--color-pink-400);
   --color-text: var(--color-gray-600);
   --color-border-code: var(--color-gray-400);
   --color-selection: var(--color-gray-100);
@@ -73,8 +73,8 @@ html {
 html.dark {
   /* Dark Vars */
   --color-warm-bg: var(--color-gray-900);
-  --color-accent-red: var(--color-pink-200);
-  --color-accent-pink: var(--color-pink-300);
+  --color-accent-primary: var(--color-pink-200);
+  --color-accent-secondary: var(--color-pink-300);
   --color-text: var(--color-gray-400);
   --color-border-code: var(--color-gray-800);
   --color-selection: var(--color-gray-800);
@@ -98,12 +98,12 @@ html.dark {
 }
 
 ::selection {
-  background-color: var(--color-accent-red);
+  background-color: var(--color-accent-primary);
   color: var(--color-selection);
 }
 
 ::-moz-selection {
-  background-color: var(--color-accent-red);
+  background-color: var(--color-accent-primary);
   color: var(--color-selection);
 }
 
@@ -182,7 +182,7 @@ terminal-shell {
   letter-spacing: 0;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0;
-  color: var(--color-accent-red);
+  color: var(--color-accent-primary);
 
   div {
     white-space: pre;
@@ -250,7 +250,7 @@ terminal-shell {
     display: flex;
     justify-content: center;
     padding-block: 1rem;
-    color: var(--color-accent-red);
+    color: var(--color-accent-primary);
     overflow: hidden;
   }
 
@@ -281,7 +281,7 @@ terminal-shell {
     left: 0;
     display: flex;
     justify-content: space-between;
-    color: var(--color-accent-red);
+    color: var(--color-accent-primary);
     background-color: var(--color-warm-bg);
     z-index: 5;
   }
@@ -368,7 +368,7 @@ terminal-shell {
     position: absolute;
     top: 1px;
     left: 0;
-    color: var(--color-accent-red);
+    color: var(--color-accent-primary);
   }
 }
 
@@ -404,7 +404,7 @@ terminal-shell {
     display: inline-block;
     height: 1rem;
     width: .5rem;
-    background-color: var(--color-accent-red);
+    background-color: var(--color-accent-primary);
     animation: blink 1s infinite;
   }
 
@@ -418,7 +418,7 @@ terminal-shell {
     display: inline;
     padding-block: 1rem;
     padding-inline: 0;
-    color: var(--color-accent-red);
+    color: var(--color-accent-primary);
   }
 }
 

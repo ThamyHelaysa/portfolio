@@ -24,17 +24,17 @@
   }
 
   h2 {
-    /* @apply text-red-950 dark:text-pink-400; */
+    /* @apply text-pink-950 dark:text-pink-400; */
     color: var(--color-h2);
   }
 
   h3 {
-    /* @apply text-red-800 dark:text-pink-500/50; */
+    /* @apply text-pink-800 dark:text-pink-500/50; */
     color: var(--color-h3);
   }
 
   h4 {
-    /* @apply text-red-600/50 dark:text-pink-600/50; */
+    /* @apply text-pink-600/50 dark:text-pink-600/50; */
     color: var(--color-h4);
   }
 
@@ -63,51 +63,89 @@
     --color-gray-900: #1c1917;
     --color-gray-950: #0c0a09;
 
-    /* Pink colors */
-    --color-pink-50: #FFFBFC;
-    --color-pink-100: #FDCFDA;
-    --color-pink-200: #FBA7BB;
-    --color-pink-300: #F9839F;
-    --color-pink-400: #F86285;
-    --color-pink-500: #F7446D;
-    --color-pink-600: #F62655;
-    --color-pink-700: #F50B40;
-    --color-red-800: #DD0939;
-    --color-red-900: #C70833;
-    --color-red-950: #B3072E;
+    --color-pink-50: #fffbfc;
+    --color-pink-100: #fdcfda;
+    --color-pink-200: #fba7bb;
+    --color-pink-300: #f9839f;
+    --color-pink-400: #f86285;
+    --color-pink-500: #f7446d;
+    --color-pink-600: #f62655;
+    --color-pink-700: #f50b40;
+    --color-pink-800: #dd0939;
+    --color-pink-900: #c70833;
+    --color-pink-950: #b3072e;
 
-    /* Pinky Vars */
+    --color-text-primary:   var(--color-gray-800);
+    --color-text-secondary: var(--color-gray-600);
+    --color-text-muted:     var(--color-gray-500);
+    --color-text-inverse:   var(--color-gray-50);
+
+    --color-bg-default:  var(--color-pink-50);
+    --color-bg-surface:  var(--color-pink-100);
+    --color-bg-subtle:   var(--color-pink-50);
+
+    --color-border-default: var(--color-gray-400);
+    --color-border-subtle:  var(--color-gray-300);
+
+    --color-accent-primary:   var(--color-pink-900);
+    --color-accent-secondary: var(--color-pink-300);
+
+    --color-code-bg:     var(--color-pink-100);
+    --color-code-border: var(--color-gray-400);
+
+    /* legacy aliases (TEMP) — remover depois */
+    --color-paper:       var(--color-bg-default);
+    --color-paper-text:  var(--color-text-primary);
+    --color-text:        var(--color-text-secondary);
+    /* --color-bg-code:     var(--color-code-bg); */
+    /* --color-border-code: var(--color-code-border); */
+    /* --color-accent-red:  var(--color-accent-primary); */
+    /* --color-accent-pink: var(--color-accent-secondary); */
+
     --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%);
-    --color-accent-red: var(--color-red-900);
-    --color-accent-pink: var(--color-pink-400);
-    --color-paper: var(--color-pink-50); 
-    --color-paper-text: var(--color-gray-800);
-    --color-text: var(--color-gray-600);
-    --color-border-code: var(--color-gray-400);
-    --color-bg-code: var(--color-pink-100);
 
-    --color-h1: var(--color-accent-red);
-    --color-h2: color-mix(in oklab, var(--color-red-900) 90%, white 10%);
-    --color-h3: color-mix(in oklab, var(--color-red-950) 90%, white 10%);
-    --color-h4: color-mix(in oklab, var(--color-red-950) 95%, white 5%);
+    --color-h1: var(--color-accent-primary);
+    --color-h2: color-mix(in oklab, var(--color-pink-900) 90%, white 10%);
+    --color-h3: color-mix(in oklab, var(--color-pink-950) 90%, white 10%);
+    --color-h4: color-mix(in oklab, var(--color-pink-950) 95%, white 5%);
   }
-  
-  html.dark {
-    /* Dark Vars */
-    --color-warm-bg: var(--color-gray-900); 
-    --color-accent-red: var(--color-pink-200);
-    --color-accent-pink: var(--color-pink-300);
-    --color-paper: var(--color-gray-900);
-    --color-paper-text: var(--color-gray-400);
-    --color-text: var(--color-gray-400);
-    --color-border-code: var(--color-gray-800);
-    --color-bg-code: var(--color-gray-900);
 
-    --color-h1: var(--color-accent-red);
+  html.dark {
+    --color-text-primary:   var(--color-gray-400);
+    --color-text-secondary: var(--color-gray-500);
+    --color-text-muted:     var(--color-gray-600);
+    --color-text-inverse:   var(--color-gray-900);
+
+    --color-bg-default:  var(--color-gray-900);
+    --color-bg-surface:  var(--color-gray-800);
+    --color-bg-subtle:   var(--color-gray-900);
+
+    --color-border-default: var(--color-gray-800);
+    --color-border-subtle:  var(--color-gray-700);
+
+    --color-accent-primary:   var(--color-pink-200);
+    --color-accent-secondary: var(--color-pink-300);
+
+    --color-code-bg:     var(--color-gray-900);
+    --color-code-border: var(--color-gray-800);
+
+    /* legacy aliases (TEMP) */
+    --color-paper:       var(--color-bg-default);
+    --color-paper-text:  var(--color-text-primary);
+    --color-text:        var(--color-text-secondary);
+    /* --color-bg-code:     var(--color-code-bg); */
+    /* --color-border-code: var(--color-code-border); */
+    /* --color-accent-red:  var(--color-accent-primary); */
+    /* --color-accent-pink: var(--color-accent-secondary); */
+
+    --color-warm-bg: var(--color-bg-default);
+
+    --color-h1: var(--color-accent-primary);
     --color-h2: var(--color-pink-400);
     --color-h3: var(--color-gray-400);
     --color-h4: var(--color-gray-500);
   }
+
 
 }
 
@@ -120,7 +158,7 @@
       #f3e5e4); */
   background-image: radial-gradient(
       circle at 1px 1px, /* explicit position helps clarity */
-      color-mix(in oklab, var(--color-accent-red) 50%, transparent) 1px, 
+      color-mix(in oklab, var(--color-accent-primary) 50%, transparent) 1px, 
       transparent 0);
   background-color: var(--color-warm-bg);
   background-size: 20px 20px;
@@ -215,7 +253,7 @@
   justify-content: center;
   width: 100px;
   height: 100px;
-  background-color: var(--color-accent-red);
+  background-color: var(--color-accent-primary);
   border: solid white;
   border-width: 0;
   border-radius: 200px;

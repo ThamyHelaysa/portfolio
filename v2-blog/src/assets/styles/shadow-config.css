@@ -13,13 +13,14 @@
 
   /* Custom colors */
   --color-warm-bg: var(--color-warm-bg);
-  --color-accent-red: var(--color-accent-red);
+  --color-accent-primary: var(--color-accent-primary);
   --color-text-dark: var(--color-text-dark);
   --color-text-gray: var(--color-text-gray);
   --default-transition-duration: 300ms;
 
-  --color-paper: var(--color-paper);
-  --color-paper-text: var(--color-paper-text);
+  --color-paper:       var(--color-bg-default);
+  --color-paper-text:  var(--color-text-primary);
+  --color-text-primary: var(--color-text-primary);
 
   /* Fonts */
   --font-serif: var(--font-serif);

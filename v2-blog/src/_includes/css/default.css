@@ -7,20 +7,8 @@ body {
     color: var(--color-text, #a8a29e);
   }
 }
-
-
-
-
-
-
-
-
 /* content-visibility: auto;
  contain-intrinsic-size: 1000px;  */
-
-
-
-
 main {
   view-transition-name: post;
 }

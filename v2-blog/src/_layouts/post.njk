@@ -11,13 +11,13 @@ inlineStyles:
     <p class="flex flex-col gap-y-2 mb-20!">
       {% if date %}
       {% set formatedDate = date | formatDatefull(date) %}
-        <small class="text-xs font-mono text-accent-red/60 uppercase tracking-widest group-hover:text-accent-red transition-colors">
+        <small class="text-xs font-mono text-accent-primary/60 uppercase tracking-widest group-hover:text-accent-primary transition-colors">
         Posted on: {{ formatedDate }}</small>
       {% endif %}
 
       {% if updateDate %}
       {% set formatedLastUpDate = updateDate | formatDatefull(updateDate) %}
-        <small class="text-xs font-mono text-accent-red/60 uppercase tracking-widest group-hover:text-accent-red transition-colors">
+        <small class="text-xs font-mono text-accent-primary/60 uppercase tracking-widest group-hover:text-accent-primary transition-colors">
         Last update: {{ formatedLastUpDate }}</small>
       {% endif %}
     </p>

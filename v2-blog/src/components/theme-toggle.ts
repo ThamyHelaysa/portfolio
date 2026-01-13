@@ -88,11 +88,11 @@ export class ThemeToggle extends LitElement {
       <button type="button"
         aria-label=${isDark ? "Switch to light theme" : "Switch to dark theme"}
         aria-pressed=${String(isDark)}
-        class="sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-red sw:transition-colors sw:cursor-pointer"
+        class="sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-primary sw:transition-colors sw:cursor-pointer"
         @click=${this._handleUserToggle}>
         
         <span 
-          class="${isTerminal === "terminal" ? "hidden" : ""} dot-container ${isDark ? 'sw:before:scale-100' : 'sw:before:scale-0'} sw:before:content-[''] sw:before:w-2 sw:before:h-2 sw:before:rounded-full sw:before:bg-accent-red sw:before:transition-transform sw:before:duration-300">
+          class="${isTerminal === "terminal" ? "hidden" : ""} dot-container ${isDark ? 'sw:before:scale-100' : 'sw:before:scale-0'} sw:before:content-[''] sw:before:w-2 sw:before:h-2 sw:before:rounded-full sw:before:bg-accent-primary sw:before:transition-transform sw:before:duration-300">
         </span>
         
         <span class="theme-text">
@@ -104,7 +104,7 @@ export class ThemeToggle extends LitElement {
       <button type="button"
         aria-label=${isDark ? "Switch to light theme" : "Switch to dark theme"}
         aria-pressed=${String(isDark)}
-        class="sw:p-0 sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-red sw:transition-colors sw:cursor-pointer"
+        class="sw:p-0 sw:flex sw:items-center sw:gap-2 sw:text-sm sw:min-w-[75px] sw:uppercase sw:font-sans sw:font-light sw:tracking-wider sw:text-inherit sw:hover:text-accent-primary sw:transition-colors sw:cursor-pointer"
         @click=${this._handleUserToggle}>
         
         <span class="theme-text">

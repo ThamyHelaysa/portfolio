@@ -15,14 +15,16 @@
 
   /* Custom colors */
   --color-warm-bg: var(--color-warm-bg);
-  --color-accent-red: var(--color-accent-red);
-  --color-accent-pink: var(--color-accent-pink);
+  --color-accent-primary:   var(--color-accent-primary);
+  --color-accent-secondary: var(--color-accent-secondary);
   
-  --color-paper: var(--color-paper);
-  --color-paper-text: var(--color-paper-text);
+  /* --color-paper: var(--color-paper); */
+  /* --color-paper-text: var(--color-paper-text); */
 
-  --color-border-code: var(--color-border-code);
-  --color-bg-code: var(--color-bg-code);
+  /* --color-border-code: var(--color-border-code); */
+  /* --color-bg-code: var(--color-bg-code); */
+  --color-code-bg: var(--color-code-bg);
+  --color-code-border: var(--color-code-border);
 
   /* Fonts */
   --font-serif: "Playfair Display", serif;
@@ -38,6 +40,7 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+
   @keyframes fade-out {
     from { opacity: 1; }
     to { opacity: 0; }

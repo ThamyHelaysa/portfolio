@@ -3,7 +3,7 @@
     <div class="logo">
       <a
         href="/"
-        class="text-accent-red hover:opacity-80 transition-opacity font-serif text-lg tracking-tight"
+        class="text-accent-primary hover:opacity-80 transition-opacity font-serif text-lg tracking-tight"
       >
         <span>Thamires Helaysa</span>
       </a>
@@ -16,7 +16,7 @@
           {% set isCurrentPage = (page.url == link.url) %}
           <a
             href="{{ link.url }}"
-            class="hover:text-accent-red transition-colors text-text-dark/60 {% if page.url == link.url %}text-accent-red {% endif %}"
+            class="hover:text-accent-primary transition-colors text-text-dark/60 {% if page.url == link.url %}text-accent-primary {% endif %}"
             {% if isCurrentPage %}aria-current="page"{% endif %}
             {% if link.url.startsWith("http") %}
               rel="noopener noreferrer"
@@ -43,7 +43,7 @@
             {% set isPathStartsWith = (page.url.startsWith(link.url.toString())) %}
             <a
               href="{{ link.url }}"
-              class="{% if isCurrentPage %}pointer-events-none text-accent-red/50{% endif %} -translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent-red transition-all duration-350 {{ delayMap[loop.index0] or delayMap['default'] }}"
+              class="{% if isCurrentPage %}pointer-events-none text-accent-primary/50{% endif %} -translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent-primary transition-all duration-350 {{ delayMap[loop.index0] or delayMap['default'] }}"
               {% if isPathStartsWith and isCurrentPage %}aria-current="page"{% endif %}
               {% if link.url.startsWith("http") %}
                 rel="noopener noreferrer"
@@ -58,7 +58,7 @@
         </div>
       </menu-mobile>
 
-      <div class="hidden md:block w-px h-4 bg-accent-red/20"></div>
+      <div class="hidden md:block w-px h-4 bg-accent-primary/20"></div>
 
       <theme-toggle class="hidden md:flex" data-template-id="theme-toggle-tmpl"></theme-toggle>
 

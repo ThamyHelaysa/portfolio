@@ -87,7 +87,7 @@ export class NoteModal extends LitElement {
             
             <div class="nm:w-full nm:h-fit nm:z-1 nm:text-center">
               <button id="btn-close" type="button" @click=${this._close}
-                class="nm:text-paper-text/40 nm:hover:text-accent-red nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
+                class="nm:text-text-primary/40 nm:hover:text-accent-primary nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
                 Close Note
               </button>
             </div>
@@ -96,20 +96,20 @@ export class NoteModal extends LitElement {
               class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:transform-3d">
               
               <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-text-primary/80 nm:*:text-pretty nm:*:leading-7">
                     <p id="frontContent" class="nm:transition-opacity">${frontText}</p>
                 </div>
               </div>
 
               <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-paper-text/80 nm:*:text-pretty nm:*:leading-7">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-text-primary/80 nm:*:text-pretty nm:*:leading-7">
                     <p id="backContent" class="nm:transition-opacity">${backText}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-red/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
+          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-primary/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
             <button id="btn-prev" type="button" @click=${this._prev} ?disabled=${isPrevDisabled}
               class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99">
                 &larr; Prev

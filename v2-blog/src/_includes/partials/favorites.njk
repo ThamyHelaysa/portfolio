@@ -1,15 +1,15 @@
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12 mb-24 md:mb-32 bg-warm-bg border-y border-accent-primary/60 px-4 py-12">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12 mb-24 md:mb-32 bg-background border-y border-accent/60 px-4 py-12">
   {% for item in personal.favorites %}
     <media-preview class="flex flex-col" preview-position="" preview-type="{{item.previewType}}" preview-src="{{item.previewUrl}}">
       <div key={{item.id}} class="flex flex-col group">
-        <span class="text-xs text-accent-primary/60 uppercase tracking-widest mb-3 group-hover:text-accent-primary transition-colors">
+        <span class="text-xs text-accent/60 uppercase tracking-widest mb-3 group-hover:text-accent transition-colors">
           {{item.category}}
         </span>
-        <span class="text-accent-primary text-xl md:text-2xl leading-tight mb-2 group-hover:translate-x-1 transition-transform duration-300">
+        <span class="text-accent text-xl md:text-2xl leading-tight mb-2 group-hover:translate-x-1 transition-transform duration-300">
           {{item.title}}
         </span>
-        <span class="text-sm font-mono text-text-gray/70 font-thin border-l border-accent-primary/60 pl-3">
+        <span class="text-sm font-mono text-text-gray/70 font-thin border-l border-accent/60 pl-3">
           {{item.details}}
         </span>
       </div>

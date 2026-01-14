@@ -1,16 +1,4 @@
 @theme {
-  --color-gray-50: var(--color-gray-50);
-  --color-gray-100: var(--color-gray-100);
-  --color-gray-200: var(--color-gray-200);
-  --color-gray-300: var(--color-gray-300);
-  --color-gray-400: var(--color-gray-400);
-  --color-gray-500: var(--color-gray-500);
-  --color-gray-600: var(--color-gray-600);
-  --color-gray-700: var(--color-gray-700);
-  --color-gray-800: var(--color-gray-800);
-  --color-gray-900: var(--color-gray-900);
-  --color-gray-950: var(--color-gray-950);
-
   /* Custom colors */
   --color-warm-bg: var(--color-warm-bg);
   --color-accent-primary: var(--color-accent-primary);
@@ -18,9 +6,24 @@
   --color-text-gray: var(--color-text-gray);
   --default-transition-duration: 300ms;
 
-  --color-paper:       var(--color-bg-default);
-  --color-paper-text:  var(--color-text-primary);
-  --color-text-primary: var(--color-text-primary);
+  /* --color-text-primary: var(--color-text-primary); */
+  --color-background: var(--color-bg-default);
+  --color-surface: var(--color-bg-surface);
+  --color-subtle: var(--color-bg-subtle);
+
+  --color-foreground: var(--color-text-primary);
+  --color-muted: var(--color-text-secondary);
+  --color-muted-2: var(--color-text-muted);
+  --color-inverse: var(--color-text-inverse);
+
+  --color-border: var(--color-border-default);
+  --color-border-subtle: var(--color-border-subtle);
+
+  --color-accent: var(--color-accent-primary);
+  --color-accent-soft: var(--color-accent-secondary);
+
+  --color-code-bg: var(--color-code-bg);
+  --color-code-border: var(--color-code-border);
 
   /* Fonts */
   --font-serif: var(--font-serif);

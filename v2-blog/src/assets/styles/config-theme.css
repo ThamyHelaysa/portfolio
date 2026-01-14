@@ -1,59 +1,36 @@
 @import "tailwindcss/theme.css" layer(theme);
 
 @theme {
-  --color-gray-50: var(--color-gray-50);
-  --color-gray-100: var(--color-gray-100);
-  --color-gray-200: var(--color-gray-200);
-  --color-gray-300: var(--color-gray-300);
-  --color-gray-400: var(--color-gray-400);
-  --color-gray-500: var(--color-gray-500);
-  --color-gray-600: var(--color-gray-600);
-  --color-gray-700: var(--color-gray-700);
-  --color-gray-800: var(--color-gray-800);
-  --color-gray-900: var(--color-gray-900);
-  --color-gray-950: var(--color-gray-950);
+  /* Tailwind color tokens (curtos e legíveis) */
+  --color-background: var(--color-bg-default);
+  --color-surface: var(--color-bg-surface);
+  --color-subtle: var(--color-bg-subtle);
 
-  /* Custom colors */
-  --color-warm-bg: var(--color-warm-bg);
-  --color-accent-primary:   var(--color-accent-primary);
-  --color-accent-secondary: var(--color-accent-secondary);
-  
-  /* --color-paper: var(--color-paper); */
-  /* --color-paper-text: var(--color-paper-text); */
+  --color-foreground: var(--color-text-primary);
+  --color-muted: var(--color-text-secondary);
+  --color-muted-2: var(--color-text-muted);
+  --color-inverse: var(--color-text-inverse);
 
-  /* --color-border-code: var(--color-border-code); */
-  /* --color-bg-code: var(--color-bg-code); */
+  --color-border: var(--color-border-default);
+  --color-border-subtle: var(--color-border-subtle);
+
+  --color-accent: var(--color-accent-primary);
+  --color-accent-soft: var(--color-accent-secondary);
+
   --color-code-bg: var(--color-code-bg);
   --color-code-border: var(--color-code-border);
 
-  /* Fonts */
   --font-serif: "Playfair Display", serif;
   --font-sans: "Lato", sans-serif;
 
-  /* Animation */
+  /* Animations */
   /* https://conorhaining.com/posts/view-transitions-for-your-static-site/ */
   --animate-fade-in: fade-in 400ms ease-in-out both;
   --animate-fade-out: fade-out 100ms ease-in-out both;
   --animate-drop-in: dropIn 500ms ease-out forwards;
 
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-
-  @keyframes dropIn {
-    0% {
-      transform: translateY(-50px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes dropIn { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
 }
+

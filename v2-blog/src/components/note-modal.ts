@@ -87,7 +87,7 @@ export class NoteModal extends LitElement {
             
             <div class="nm:w-full nm:h-fit nm:z-1 nm:text-center">
               <button id="btn-close" type="button" @click=${this._close}
-                class="nm:text-text-primary/40 nm:hover:text-accent-primary nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
+                class="nm:text-foreground/40 nm:hover:text-accent-primary nm:cursor-pointer nm:p-4 nm:text-xs nm:font-sans nm:uppercase nm:tracking-widest nm:transition-colors">
                 Close Note
               </button>
             </div>
@@ -95,14 +95,14 @@ export class NoteModal extends LitElement {
             <div id="innerFlipper"
               class="nm:w-full nm:h-full nm:relative nm:transition-transform nm:duration-700 nm:transform-3d">
               
-              <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-text-primary/80 nm:*:text-pretty nm:*:leading-7">
+              <div id="frontSide" class="sidesWrapper nm:absolute nm:inset-0 nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-foreground/80 nm:*:text-pretty nm:*:leading-7">
                     <p id="frontContent" class="nm:transition-opacity">${frontText}</p>
                 </div>
               </div>
 
-              <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:bg-paper nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
-                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-text-primary/80 nm:*:text-pretty nm:*:leading-7">
+              <div id="backSide" class="sidesWrapper nm:absolute nm:inset-0 nm:flex nm:flex-col nm:items-center nm:justify-between nm:backface-hidden nm:p-8 nm:md:p-12 nm:rotate-y-180">
+                <div class="content nm:full nm:overflow-x-scroll nm:overflow-y-auto nm:grow nm:flex nm:items-center nm:md:items-start nm:justify-center nm:*:font-mono nm:*:text-foreground/80 nm:*:text-pretty nm:*:leading-7">
                     <p id="backContent" class="nm:transition-opacity">${backText}</p>
                 </div>
               </div>

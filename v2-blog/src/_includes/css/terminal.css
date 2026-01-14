@@ -13,7 +13,7 @@ body {
   height: 100%;
   min-height: 100vh;
   min-height: 100svh;
-  background-color: var(--color-warm-bg);
+  background-color: var(--color-bg-surface);
   font-size: 16px;
   font-family: var(--font-mono);
   font-weight: 400;
@@ -42,25 +42,36 @@ html {
   --color-gray-900: #1c1917;
   --color-gray-950: #0c0a09;
 
-  /* Pink colors */
-  --color-pink-50: #FFFBFC;
-  --color-pink-100: #FDCFDA;
-  --color-pink-200: #FBA7BB;
-  --color-pink-300: #F9839F;
-  --color-pink-400: #F86285;
-  --color-pink-500: #F7446D;
-  --color-pink-600: #F62655;
-  --color-pink-700: #F50B40;
-  --color-pink-800: #DD0939;
-  --color-pink-900: #C70833;
-  --color-pink-950: #B3072E;
+  --color-pink-50: #fffbfc;
+  --color-pink-100: #fdcfda;
+  --color-pink-200: #fba7bb;
+  --color-pink-300: #f9839f;
+  --color-pink-400: #f86285;
+  --color-pink-500: #f7446d;
+  --color-pink-600: #f62655;
+  --color-pink-700: #f50b40;
+  --color-pink-800: #dd0939;
+  --color-pink-900: #c70833;
+  --color-pink-950: #b3072e;
 
   /* Pinky Vars */
-  --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%);
-  --color-accent-primary: var(--color-pink-900);
+  --color-text-primary: var(--color-gray-800);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-muted: var(--color-gray-400);
+  --color-text-inverse: var(--color-gray-50);
+  --color-bg-default: var(--color-pink-50);
+  --color-bg-surface: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); /* new warm-bg */
+  --color-bg-subtle: var(--color-pink-50);
+  --color-code-bg: var(--color-pink-100);
+  --color-code-border: var(--color-gray-400);
+  --color-text: var(--color-text-primary);
+
+  /* --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); */
+  --color-accent: var(--color-pink-900);
   --color-accent-secondary: var(--color-pink-400);
-  --color-text: var(--color-gray-600);
-  --color-border-code: var(--color-gray-400);
+  /* --color-text: var(--color-gray-600); */
+  /* --color-border-code: var(--color-gray-400); */
+
   --color-selection: var(--color-gray-100);
 
   --color-scroll-track: var(--color-pink-100);
@@ -98,12 +109,12 @@ html.dark {
 }
 
 ::selection {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-accent);
   color: var(--color-selection);
 }
 
 ::-moz-selection {
-  background-color: var(--color-accent-primary);
+  background-color: var(--color-accent);
   color: var(--color-selection);
 }
 
@@ -144,7 +155,7 @@ terminal-shell {
   color: var(--color-text);
   font-family: var(--font-mono);
   text-transform: lowercase;
-  border: 1px solid var(--color-border-code);
+  border: 1px solid var(--color-code-border);
 }
 
 
@@ -182,7 +193,7 @@ terminal-shell {
   letter-spacing: 0;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0;
-  color: var(--color-accent-primary);
+  color: var(--color-accent);
 
   div {
     white-space: pre;
@@ -205,7 +216,7 @@ terminal-shell {
   height: 50svh;
   margin-block-start: 1rem;
   padding-block-start: 1rem;
-  border-top: 1px solid var(--color-border-code);
+  border-top: 1px solid var(--color-code-border);
   line-height: 1.2rem;
 }
 
@@ -250,7 +261,7 @@ terminal-shell {
     display: flex;
     justify-content: center;
     padding-block: 1rem;
-    color: var(--color-accent-primary);
+    color: var(--color-accent);
     overflow: hidden;
   }
 
@@ -281,8 +292,8 @@ terminal-shell {
     left: 0;
     display: flex;
     justify-content: space-between;
-    color: var(--color-accent-primary);
-    background-color: var(--color-warm-bg);
+    color: var(--color-accent);
+    background-color: var(--color-bg-surface);
     z-index: 5;
   }
 
@@ -368,7 +379,7 @@ terminal-shell {
     position: absolute;
     top: 1px;
     left: 0;
-    color: var(--color-accent-primary);
+    color: var(--color-accent);
   }
 }
 
@@ -404,7 +415,7 @@ terminal-shell {
     display: inline-block;
     height: 1rem;
     width: .5rem;
-    background-color: var(--color-accent-primary);
+    background-color: var(--color-accent);
     animation: blink 1s infinite;
   }
 
@@ -418,7 +429,7 @@ terminal-shell {
     display: inline;
     padding-block: 1rem;
     padding-inline: 0;
-    color: var(--color-accent-primary);
+    color: var(--color-accent);
   }
 }
 

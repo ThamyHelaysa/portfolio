@@ -8,7 +8,7 @@ blockquote {
   padding-block: calc(var(--spacing) * 5);
   padding-inline: calc(var(--spacing) * 5);
   border: 1px solid currentColor;
-  color: color-mix(in oklab, var(--color-accent-primary) 70%, transparent);
+  color: color-mix(in oklab, var(--color-accent) 70%, transparent);
   font-family: var(--font-mono);
   font-weight: var(--font-weight-normal);
   p { margin: 0; }
@@ -52,13 +52,24 @@ pre {
   display: block;
   padding-block: calc(var(--spacing) * 5);
   padding-inline: calc(var(--spacing) * 5);
-  border: 1px solid var(--color-border-code);
+  border: 1px solid var(--color-code-border);
   overflow-y: hidden;
-  overflow-x: scroll;
+  overflow-x: auto;
   white-space: break-spaces;
   max-width: calc(100vw - 65px); /* 65px = inline padding from main and article */
   &:not(:last-child){
     margin-block-end: calc(var(--spacing) * 6);
+  }
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-scroll-track);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-scroll-thumb);
   }
 }
 

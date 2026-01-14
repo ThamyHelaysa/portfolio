@@ -24,17 +24,14 @@
   }
 
   h2 {
-    /* @apply text-pink-950 dark:text-pink-400; */
     color: var(--color-h2);
   }
 
   h3 {
-    /* @apply text-pink-800 dark:text-pink-500/50; */
     color: var(--color-h3);
   }
 
   h4 {
-    /* @apply text-pink-600/50 dark:text-pink-600/50; */
     color: var(--color-h4);
   }
 
@@ -75,34 +72,29 @@
     --color-pink-900: #c70833;
     --color-pink-950: #b3072e;
 
-    --color-text-primary:   var(--color-gray-800);
+    --color-text-primary: var(--color-gray-800);
     --color-text-secondary: var(--color-gray-600);
-    --color-text-muted:     var(--color-gray-500);
-    --color-text-inverse:   var(--color-gray-50);
+    --color-text-muted: var(--color-gray-400);
+    --color-text-inverse: var(--color-gray-50);
 
-    --color-bg-default:  var(--color-pink-50);
-    --color-bg-surface:  var(--color-pink-100);
-    --color-bg-subtle:   var(--color-pink-50);
+    --color-bg-default: var(--color-pink-50);
+    --color-bg-surface: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); /* new warm-bg */
+    --color-bg-subtle: var(--color-pink-50);
 
     --color-border-default: var(--color-gray-400);
-    --color-border-subtle:  var(--color-gray-300);
+    --color-border-subtle: var(--color-gray-300);
 
-    --color-accent-primary:   var(--color-pink-900);
+    --color-accent-primary: var(--color-pink-900);
     --color-accent-secondary: var(--color-pink-300);
 
-    --color-code-bg:     var(--color-pink-100);
+    --color-code-bg: var(--color-pink-100);
     --color-code-border: var(--color-gray-400);
+    --color-text: var(--color-text-primary);
 
-    /* legacy aliases (TEMP) — remover depois */
-    --color-paper:       var(--color-bg-default);
-    --color-paper-text:  var(--color-text-primary);
-    --color-text:        var(--color-text-secondary);
-    /* --color-bg-code:     var(--color-code-bg); */
-    /* --color-border-code: var(--color-code-border); */
-    /* --color-accent-red:  var(--color-accent-primary); */
-    /* --color-accent-pink: var(--color-accent-secondary); */
-
-    --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%);
+    /* --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); */
+    --color-scroll-track: var(--color-pink-100);
+    --color-scroll-thumb: var(--color-pink-200);
+    --color-sidebar: var(--color-pink-200);
 
     --color-h1: var(--color-accent-primary);
     --color-h2: color-mix(in oklab, var(--color-pink-900) 90%, white 10%);
@@ -111,42 +103,35 @@
   }
 
   html.dark {
-    --color-text-primary:   var(--color-gray-400);
-    --color-text-secondary: var(--color-gray-500);
-    --color-text-muted:     var(--color-gray-600);
-    --color-text-inverse:   var(--color-gray-900);
+    --color-text-primary: var(--color-gray-400);
+    --color-text-secondary: var(--color-gray-400);
+    --color-text-muted: var(--color-gray-500);
+    --color-text-inverse: var(--color-gray-900);
 
-    --color-bg-default:  var(--color-gray-900);
-    --color-bg-surface:  var(--color-gray-800);
-    --color-bg-subtle:   var(--color-gray-900);
+    --color-bg-default: var(--color-gray-900);
+    --color-bg-surface: var(--color-gray-800);
+    --color-bg-subtle: var(--color-gray-900);
 
     --color-border-default: var(--color-gray-800);
-    --color-border-subtle:  var(--color-gray-700);
+    --color-border-subtle: var(--color-gray-700);
 
-    --color-accent-primary:   var(--color-pink-200);
+    --color-accent-primary: var(--color-pink-200);
     --color-accent-secondary: var(--color-pink-300);
 
-    --color-code-bg:     var(--color-gray-900);
+    --color-code-bg: var(--color-gray-900);
     --color-code-border: var(--color-gray-800);
+    --color-text: var(--color-text-primary);
 
-    /* legacy aliases (TEMP) */
-    --color-paper:       var(--color-bg-default);
-    --color-paper-text:  var(--color-text-primary);
-    --color-text:        var(--color-text-secondary);
-    /* --color-bg-code:     var(--color-code-bg); */
-    /* --color-border-code: var(--color-code-border); */
-    /* --color-accent-red:  var(--color-accent-primary); */
-    /* --color-accent-pink: var(--color-accent-secondary); */
-
-    --color-warm-bg: var(--color-bg-default);
+    /* --color-warm-bg: var(--color-bg-default); */
+    --color-scroll-track: var(--color-gray-800);
+    --color-scroll-thumb: var(--color-gray-700);
+    --color-sidebar: var(--color-gray-800);
 
     --color-h1: var(--color-accent-primary);
     --color-h2: var(--color-pink-400);
     --color-h3: var(--color-gray-400);
     --color-h4: var(--color-gray-500);
   }
-
-
 }
 
 @utility dotted-bg {
@@ -160,7 +145,7 @@
       circle at 1px 1px, /* explicit position helps clarity */
       color-mix(in oklab, var(--color-accent-primary) 50%, transparent) 1px, 
       transparent 0);
-  background-color: var(--color-warm-bg);
+  background-color: var(--color-bg-default);
   background-size: 20px 20px;
   background-repeat: repeat repeat;
   background-position: top left;
@@ -213,7 +198,7 @@
   padding-inline-end: calc(var(--spacing)*2.5);
   span {
     position: relative;
-    background-color: var(--color-warm-bg);
+    background-color: var(--color-bg-default);
     z-index: 1;
   }
   @media (hover){

@@ -12,7 +12,7 @@ permalink: /copyrighty/
 
 <h1>{{ title }}</h1>
 
-<div class="bg-warm-bg py-4 px-2 md:py-12 md:px-6">
+<div class="bg-background py-4 px-2 md:py-12 md:px-6">
 
 Let’s get this straight:
 

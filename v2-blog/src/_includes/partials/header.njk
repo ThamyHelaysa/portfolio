@@ -1,9 +1,9 @@
-<header class="bg-warm-bg transition px-4 py-6 md:px-8 md:py-8">
+<header class="bg-background transition px-4 py-6 md:px-8 md:py-8">
   <div class="flex justify-between items-center max-w-6xl mx-auto w-full">
     <div class="logo">
       <a
         href="/"
-        class="text-accent-primary hover:opacity-80 transition-opacity font-serif text-lg tracking-tight"
+        class="text-accent hover:opacity-80 transition-opacity font-serif text-lg tracking-tight"
       >
         <span>Thamires Helaysa</span>
       </a>
@@ -16,7 +16,7 @@
           {% set isCurrentPage = (page.url == link.url) %}
           <a
             href="{{ link.url }}"
-            class="hover:text-accent-primary transition-colors text-text-dark/60 {% if page.url == link.url %}text-accent-primary {% endif %}"
+            class="hover:text-accent transition-colors {% if isCurrentPage %}pointer-events-none text-accent {% else %}text-muted-2{% endif %}"
             {% if isCurrentPage %}aria-current="page"{% endif %}
             {% if link.url.startsWith("http") %}
               rel="noopener noreferrer"
@@ -43,7 +43,7 @@
             {% set isPathStartsWith = (page.url.startsWith(link.url.toString())) %}
             <a
               href="{{ link.url }}"
-              class="{% if isCurrentPage %}pointer-events-none text-accent-primary/50{% endif %} -translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent-primary transition-all duration-350 {{ delayMap[loop.index0] or delayMap['default'] }}"
+              class="{% if isCurrentPage %}pointer-events-none text-accent/50{% endif %} -translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent transition-all duration-350 {{ delayMap[loop.index0] or delayMap['default'] }}"
               {% if isPathStartsWith and isCurrentPage %}aria-current="page"{% endif %}
               {% if link.url.startsWith("http") %}
                 rel="noopener noreferrer"
@@ -58,7 +58,7 @@
         </div>
       </menu-mobile>
 
-      <div class="hidden md:block w-px h-4 bg-accent-primary/20"></div>
+      <div class="hidden md:block w-px h-4 bg-accent/20"></div>
 
       <theme-toggle class="hidden md:flex" data-template-id="theme-toggle-tmpl"></theme-toggle>
 

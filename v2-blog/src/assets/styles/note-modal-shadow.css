@@ -29,7 +29,7 @@ dialog[open] {
   } */
 
   button {
-    @apply nm:select-none nm:text-text-primary/40 nm:hover:text-accent-primary;
+    @apply nm:select-none nm:text-foreground/40 nm:hover:text-accent-primary;
   }
 }
 

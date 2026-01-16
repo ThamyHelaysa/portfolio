@@ -35,6 +35,8 @@ export class TerminalShell extends LitElement {
   private _asciiCache = new Map<string, string[]>();
   private identity = IdentityManager.getInstance();
   private hasUserName = this.identity.getCachedName();
+  private _resizeObs?: ResizeObserver;
+  private _typingTimer?: number;
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
   @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
@@ -43,6 +45,9 @@ export class TerminalShell extends LitElement {
   @query('#raw-book-data') private _template!: HTMLDivElement;
   @query('#ascii-area') private _asciiArea!: HTMLElement;
   @query('#user-label') private _userLabel!: HTMLLabelElement;
+  @query("#terminal-text") private _mirrorCLI!: HTMLDivElement;
+  @query("#caret-anchor") private _anchorCLI!: HTMLSpanElement;
+  @query("#fake-caret") private _caretCLI!: HTMLSpanElement;
   // @query('#terminal-text') private _textAreaCLI!: HTMLDivElement;
 
 
@@ -52,6 +57,7 @@ export class TerminalShell extends LitElement {
   @state() private histIndex = 0;
   @state() private commandCLI = "";
   @state() private focused = false;
+  @state() private isTyping = false;
   @state() private labelVar = '--label-width';
   @state() private _skipAnimations =
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
@@ -191,12 +197,22 @@ export class TerminalShell extends LitElement {
       // this.labelWidth = this._userLabel.clientWidth;
     }
 
+    if (this._mirrorCLI) {
+      this._resizeObs = new ResizeObserver(() => {
+        requestAnimationFrame(() => this._updateFakeCaretPosition());
+      });
+      this._resizeObs.observe(this._mirrorCLI);
+    }
+
     this.startBootSequence();
   }
 
   protected updated(changed: Map<string, unknown>) {
     if (changed.has("isMobile") && !this.isMobile) {
       this.sidebarOpen = false;
+    }
+    if (changed.has("commandCLI") || changed.has("focused") || changed.has("isMobile")) {
+      requestAnimationFrame(() => this._updateFakeCaretPosition());
     }
   }
 
@@ -271,6 +287,8 @@ export class TerminalShell extends LitElement {
 
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
+    this._onTyping();
+    requestAnimationFrame(() => this._updateFakeCaretPosition());
   }
 
   private _setTextareaValue(next: string, opts?: { focus?: boolean; placeCaretAtEnd?: boolean }) {
@@ -282,6 +300,8 @@ export class TerminalShell extends LitElement {
 
     el.style.height = "auto";
     el.style.height = el.scrollHeight + "px";
+    // fix mirror text height
+    this._mirrorCLI.style.height = el.scrollHeight + "px";
 
     if (opts?.placeCaretAtEnd) {
       requestAnimationFrame(() => {
@@ -340,7 +360,7 @@ export class TerminalShell extends LitElement {
     if (e.key.length === 1) {
       return;
     }
-
+    this.isTyping = true;
     e.preventDefault();
   }
 
@@ -553,55 +573,6 @@ export class TerminalShell extends LitElement {
 
     await handler(parsed);
 
-    // Parse command + args
-
-    // switch (cmd) {
-    //   case "list":
-    //   case "continue": {
-    //     if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
-    //     this.appendToLog(`${raw}`, 0, "command");
-    //     await this.displayNextBatch();
-    //     break;
-    //   }
-
-    //   case "help":
-    //   case "h": {
-    //     await this.appendToLog(cmd, 0.2, "command");
-
-    //     if (this.isMobile) {
-    //       this._inputCLI?.blur();
-    //       this.sidebarOpen = true;
-    //     } else {
-    //       await this.appendToLog("commands", 0.2, "title");
-    //     }
-    //     break;
-    //   }
-
-    //   case "skip":
-    //     if (this.isMobile) {
-    //       this._inputCLI?.blur();
-    //       this.sidebarOpen = false;
-    //     }
-    //     if (positionals[0] === "animations") {
-    //       await this.appendToLog(`${cmd} ${positionals[0]}`, 0.2, "command");
-    //       await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, "log");
-    //       this._toggleSkipAnim();
-    //     } else {
-    //       await this.appendToLog(cmd, 0.2, "command");
-    //     }
-    //     break;
-
-    //   // case "clear": {
-    //   //   this.appendToLog(`${normalized}`, 0, "command");
-    //   //   break;
-    //   // }
-
-    //   default: {
-    //     this.appendToLog(`COMMAND NOT RECOGNIZED: ${raw}`, 0, "command");
-    //     break;
-    //   }
-    // }
-
     this._scrollToBottom(this._outputCLI);
   }
 
@@ -706,6 +677,7 @@ export class TerminalShell extends LitElement {
     const end = el.value.length;
     el.setSelectionRange(end, end);
 
+    requestAnimationFrame(() => this._updateFakeCaretPosition());
     this._scrollToBottom(this._outputCLI);
   }
 
@@ -721,12 +693,45 @@ export class TerminalShell extends LitElement {
 
   private _handleBlur() {
     this.focused = false;
+    requestAnimationFrame(() => this._updateFakeCaretPosition());
   }
 
   private _toggleSkipAnim() {
     console.log('toggle', this._skipAnimations);
     this._skipAnimations = !this._skipAnimations
   }
+
+  private _updateFakeCaretPosition() {
+    const mirror = this._mirrorCLI;
+    const anchor = this._anchorCLI;
+    const caret = this._caretCLI;
+
+    if (!mirror || !anchor || !caret) return;
+
+    const mirrorRect = mirror.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+
+    const x = anchorRect.left - mirrorRect.left;
+    const y = anchorRect.top - mirrorRect.top;
+
+    caret.style.transform = `translate(${x}px, ${y}px)`;
+    caret.style.height = `${anchorRect.height || mirrorRect.height}px`;
+  }
+
+  private _onTyping() {
+    if (!this.isTyping) {
+      this.isTyping = true;
+      this.requestUpdate();
+    }
+
+    // reset debounce
+    clearTimeout(this._typingTimer);
+    this._typingTimer = window.setTimeout(() => {
+      this.isTyping = false;
+      this.requestUpdate();
+    }, 500);
+  }
+
 
   protected render(): unknown {
     const anim = this._skipAnimations;
@@ -796,21 +801,28 @@ export class TerminalShell extends LitElement {
           <pre id="boot-log"></pre>
         </div>
 
-        <form id="terminal-form" @submit="${this._handleSubmit}">
-          <label id="user-label" for="terminal-input" class="prompt">${this.userID}@BOOK_OS:~$</label>
-          <textarea
-            id="terminal-input"
-            name="command"
-            rows="1"
-            @blur="${this._handleBlur}"
-            @input="${this._handleInput}"
-            @keydown="${this._handleInputKeys}"
-            @mousedown="${this._preventMouseCaret}"
-            @selection="${this._forceCaretRules}"
-            ?disabled="${!this.booted}"
-            spellcheck="false"></textarea>
-            <div class="${!this.focused ? "invisible" : ""} ${this.isMobile ? "hidden" : ""}" id="terminal-text">${this.commandCLI}</div>
-            
+        <form id="terminal-form" @submit=${this._handleSubmit}>
+          <label id="user-label" for="terminal-input" class="prompt">${!this.isMobile ? this.userID + "@BOOK_OS:~$" : ">"}</label>
+          <div id="input-wrap">
+            <textarea
+              id="terminal-input"
+              name="command"
+              rows="1"
+              @blur=${this._handleBlur}
+              @input=${this._handleInput}
+              @keydown=${this._handleInputKeys}
+              @mousedown=${this._preventMouseCaret}
+              @selection=${this._forceCaretRules}
+              ?disabled="${!this.booted}"
+              spellcheck="false"></textarea>
+            <div
+              class="${!this.isTyping ? "blink" : ""} ${!this.focused ? "invisible" : ""} ${this.isMobile ? "hidden" : ""}"
+              id="terminal-text"
+            >
+              <span id="terminal-mirror">${this.commandCLI}</span><span id="caret-anchor">&#8203;</span>
+              <span id="fake-caret" aria-hidden="true"></span>
+            </div>
+          </div>
         </form>
       </div>
     `;

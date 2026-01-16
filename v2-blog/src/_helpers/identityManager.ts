@@ -15,7 +15,7 @@ const PREFIXES = [
   "CANDLE",     // gothic lit flicker
   "WISP",       // ghosty elegance
   "BYTE",       // old-school compy
-  "AUSTN",      // Jane’s ghost, maybe
+  "AUSTIN",      // Jane’s ghost, maybe
   "EMILY",      // Dickinson coded in
   "LAMB",
   "CRYPT",      // spooky and tech

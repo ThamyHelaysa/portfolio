@@ -36,19 +36,24 @@ export class UserFakeID extends LitElement {
       white-space: nowrap;
     }
 
+    .hidden {
+      opacity: 0;
+      transform: scale(0);
+    }
+
     .container {
       position: relative;
     }
 
-    .hidden {
-      opacity: 0;
-      transform: scale(0);
+    #userId {
+      cursor: pointer;
     }
 
     .tooltip {
       position: absolute;
       top: -8%;
       right: 0;
+      cursor: pointer;
       transition: all 300ms ease;
       will-change: tranform, opacity;
     }
@@ -103,7 +108,6 @@ export class UserFakeID extends LitElement {
     }
   }
 
-
   protected updated(_changedProperties: PropertyValues): void {
     if (!this.allowReveal) return;
 
@@ -135,14 +139,17 @@ export class UserFakeID extends LitElement {
 
     return html`
     <div class="container">
-      <span @click=${this._handleRandomID} id="userId"></span>,
+      <span 
+        @click=${this._handleRandomID} 
+        title="Click to change your ID"
+        aria-label="Click to change your ID"
+        id="userId"></span>,
       <span
         @click=${this.setRandomID}
         class="tooltip ${this.isRandom ? "" : "hidden"}"
         aria-label="Set new ID"
         title="Set new ID"
-        >*</span
-      >
+        >*</span>
     </div>
   `;
   }

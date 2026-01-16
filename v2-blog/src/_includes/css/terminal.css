@@ -379,7 +379,7 @@ terminal-shell {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  /* align-items: baseline; */
   gap: .5rem;
 
   @media (width >=768px) {
@@ -403,11 +403,14 @@ terminal-shell {
   outline: none;
   color: inherit;
   font-family: var(--font-mono);
-  font-size: inherit;
+  font-size: 14px;
+  /* white-space: pre-wrap; */
+  letter-spacing: inherit;
   line-height: 1.2;
   resize: none;
   text-indent: calc(var(--label-width) + 5px);
   opacity: 1;
+  z-index: 2;
 
   @media (width >=768px) {
     opacity: 0;
@@ -434,8 +437,12 @@ terminal-shell {
   /* align-items: center; */
   height: 100%;
   cursor: text;
+  font-family: var(--font-mono);
+  font-size: 14px;
   line-height: 1.2;
-  pointer-events: none; 
+  letter-spacing: inherit;
+  pointer-events: none;
+  z-index: 1;
 
   /* &::after {
     content: "";
@@ -459,9 +466,11 @@ terminal-shell {
   height: 1em;
   width: .5rem;
   transform: translate(0, 0);
+  transform-origin: bottom left;
   background-color: var(--color-accent-primary);
   animation: none;
   opacity: 1;
+  will-change: transform, opacity;
   .invisible &{
     display: none;
   }

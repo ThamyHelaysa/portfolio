@@ -817,11 +817,7 @@ export class TerminalShell extends LitElement {
               spellcheck="false"></textarea>
             <div
               class="${!this.isTyping ? "blink" : ""} ${!this.focused ? "invisible" : ""} ${this.isMobile ? "hidden" : ""}"
-              id="terminal-text"
-            >
-              <span id="terminal-mirror">${this.commandCLI}</span><span id="caret-anchor">&#8203;</span>
-              <span id="fake-caret" aria-hidden="true"></span>
-            </div>
+              id="terminal-text"><span id="terminal-mirror">${this.commandCLI}</span><span id="caret-anchor">&#8203;</span><span id="fake-caret" aria-hidden="true"></span></div>
           </div>
         </form>
       </div>

@@ -11,6 +11,15 @@ type ParsedCommand = {
   positionals: string[];       // ["5"] or ["id","5"]
 };
 
+enum CommandType {
+  "log" = 0,
+  "logdata" = 1,
+  "command" = 2,
+  "title" = 3,
+  "error" = 4,
+  "status" = 5
+}
+
 
 gsap.registerPlugin(TextPlugin);
 
@@ -67,17 +76,17 @@ export class TerminalShell extends LitElement {
     (ctx: ParsedCommand) => Promise<void> | void
   > = {
       help: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
         if (this.isMobile) {
           this._inputCLI?.blur();
           this.sidebarOpen = true;
         } else {
-          await this.appendToLog("commands", 0.2, "title");
+          await this.appendToLog("commands", 0.2, CommandType.title);
           await this.appendToLog(
             "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all",
             0.5,
-            "logdata"
+            CommandType.logdata
           )
         }
       },
@@ -87,14 +96,14 @@ export class TerminalShell extends LitElement {
       list: async (ctx) => {
         // boolean flag: --all
         if (ctx.flags.all === true) {
-          await this.appendToLog("LISTING ALL RECORDS...", 0.05, "log");
+          await this.appendToLog("LISTING ALL RECORDS...", 0.05, CommandType.log);
           // Todo: await this.displayAllBooks();
           return;
         }
 
         // const art = typeof ctx.flags.art === "string" ? this._sanitizeArtId(ctx.flags.art) : undefined;
         if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
-        this.appendToLog(`${ctx.raw}`, 0, "command");
+        this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
 
         await this.displayNextBatch();
       },
@@ -108,11 +117,11 @@ export class TerminalShell extends LitElement {
 
         const id = Number(idToken);
         if (!Number.isFinite(id)) {
-          await this.appendToLog("USAGE: BOOK <id>  (example: BOOK 5)", 0.05, "log");
+          await this.appendToLog("USAGE: BOOK <id>  (example: BOOK 5)", 0.05, CommandType.log);
           return;
         }
 
-        await this.appendToLog(`OPENING BOOK ${id}...`, 0.05, "log");
+        await this.appendToLog(`OPENING BOOK ${id}...`, 0.05, CommandType.log);
         // Todo: this.openBookById(id);
       },
 
@@ -122,51 +131,52 @@ export class TerminalShell extends LitElement {
           this.sidebarOpen = false;
         }
         if (ctx.positionals[0] === "animations") {
-          await this.appendToLog(`${ctx.raw} ${ctx.positionals[0]}`, 0.2, "command");
-          await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, "log");
+          await this.appendToLog(`${ctx.raw} ${ctx.positionals[0]}`, 0.2, CommandType.command);
+          await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, CommandType.log);
           this._toggleSkipAnim();
         } else {
-          await this.appendToLog(ctx.raw, 0.2, "command");
+          await this.appendToLog(ctx.raw, 0.2, CommandType.command);
         }
       },
 
+      // Todo: add content
       whoami: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
-        await this.appendToLog("life scan complete.", 0.2, "log");
-        await this.appendToLog(`[RECORD - ]\n   `, 0.15, "logdata");
-        await this.appendToLog(`[AUTHOR]\n   `, 0.15, "logdata");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
+        // await this.appendToLog("life scan complete.", 0.2, CommandType.log);
+        // await this.appendToLog(`[RECORD - ]\n   `, 0.15, CommandType.logdata);
+        // await this.appendToLog(`[AUTHOR]\n   `, 0.15, CommandType.logdata);
       },
 
       // list portfolio branchs/commits and more
       // just like git but without the write permission
       git: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
       },
 
       // list terminal archives
       ls: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
       },
 
       // search posts, files 
       grep: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
       },
 
       // display contents only no flags 
       cat: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
       },
 
       clear: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
         // Todo: improve clear
         // this._clearOutput();
-        // await this.appendToLog("SCREEN CLEARED.", 0.05, "log");
+        // await this.appendToLog("SCREEN CLEARED.", 0.05, CommandType.log);
       },
     };
 
@@ -233,18 +243,18 @@ export class TerminalShell extends LitElement {
     await this.appendToLog(
       `Welcome to book_os`,
       0,
-      "title"
+      CommandType.title
     );
-    await this.appendToLog("Its raining outside, and you find shelter inside my library, make yourself at home and explore around.", 3, "log");
+    await this.appendToLog("Its raining outside, and you find shelter inside my library, make yourself at home and explore around.", 3, CommandType.log);
 
-    await this.appendToLog("...", 2, "log");
+    await this.appendToLog("...", 2, CommandType.log);
 
     const isDirectBook = !!this.querySelector(".book-template");
 
     if (isDirectBook) {
       await this.handleDirectAccessReveal();
     } else {
-      await this.appendToLog("TYPE 'HELP' FOR COMMANDS.", 0, "log");
+      await this.appendToLog("TYPE 'HELP' FOR COMMANDS.", 0, CommandType.log);
     }
 
     this.booted = true;
@@ -254,7 +264,7 @@ export class TerminalShell extends LitElement {
     });
   }
 
-  private async appendToLog(text: string, duration = 0.2, kind: "log" | "logdata" | "command" | "title") {
+  private async appendToLog(text: string, duration = 0.2, kind: CommandType) {
     const log = this.querySelector("#boot-log");
     if (!log) return;
 
@@ -263,7 +273,7 @@ export class TerminalShell extends LitElement {
 
     for (const line of lines) {
       const p = document.createElement("p");
-      p.className = `terminal-msg ${kind}`;
+      p.className = `terminal-msg ${CommandType[kind]}`;
       p.textContent = "";
       log.appendChild(p);
 
@@ -409,7 +419,7 @@ export class TerminalShell extends LitElement {
     await this.appendToLog(
       "DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.",
       1,
-      "log"
+      CommandType.log
     );
 
     const existingBook = this.querySelector(".book-template") as HTMLElement | null;
@@ -507,7 +517,7 @@ export class TerminalShell extends LitElement {
     const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
 
     if (batch.length === 0) {
-      await this.appendToLog("Bookshelf scan complete.", 0.2, "log");
+      await this.appendToLog("Bookshelf scan complete.", 0.2, CommandType.log);
       this._scrollToBottom(this._outputCLI);
       return;
     }
@@ -519,17 +529,17 @@ export class TerminalShell extends LitElement {
         await this._renderAsciiForBookInstant(this.booksDisplayed + 1);
       }
 
-      await this.appendToLog(`[RECORD - ${book.id}]\n   ${book.title}`, 0.15, "logdata");
-      await this.appendToLog(`[AUTHOR]\n   ${book.author}`, 0.15, "logdata");
+      await this.appendToLog(`\n[${book.id}] ${book.title}`, 0.15, CommandType.logdata);
+      await this.appendToLog(`      ${book.author}`, 0.15, CommandType.logdata);
 
       this.booksDisplayed++;
       this._scrollToBottom(this._outputCLI);
     }
 
     if (this.bookData.length - this.booksDisplayed) {
-      await this.appendToLog(`books remaining: ${this.bookData.length - this.booksDisplayed}`, 0, "command");
+      await this.appendToLog(`books remaining: ${this.bookData.length - this.booksDisplayed}`, 0, CommandType.status);
     } else {
-      await this.appendToLog("bookshelf scan complete.", 0.2, "log");
+      await this.appendToLog("bookshelf scan complete.", 0.2, CommandType.status);
     }
   }
 
@@ -566,7 +576,7 @@ export class TerminalShell extends LitElement {
     const handler = this.COMMANDS[parsed.cmd];
 
     if (!handler) {
-      this.appendToLog(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, "command");
+      this.appendToLog(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, CommandType.error);
       this._scrollToBottom(this._outputCLI);
       return;
     }

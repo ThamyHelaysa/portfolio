@@ -295,6 +295,17 @@ terminal-shell {
 
   .logdata {
     text-indent: 1rem;
+    @media (width >=768px) {
+      text-indent: 3rem;
+    }
+  }
+
+  .status {
+    /* color: rgb(0, 0, 188); */
+  }
+
+  .error {
+    color: var(--color-pink-700);
   }
 
   .command {

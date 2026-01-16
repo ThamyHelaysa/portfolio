@@ -1,7 +1,8 @@
-import { LitElement, PropertyValues, html, nothing } from 'lit';
+import { LitElement, PropertyValues, css, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { TextPlugin } from 'gsap/TextPlugin';
+import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
 
 type ParsedCommand = {
   raw: string;                 // original command
@@ -24,12 +25,16 @@ export class TerminalShell extends LitElement {
   @property({ type: Boolean }) sidebarOpen = false;
   @property({ type: Boolean }) isMobile = window.innerWidth <= 768;
   @property({ type: Boolean }) quickActionsExecute = false;
+  @property({ type: String, reflect: true })
+  userID: string = "";
 
   // @property({ type: String, reflect: true })
   // private commandCLI: String = "";
 
   private bookData: Array<{ title: string, author: string, id: string }> = [];
   private _asciiCache = new Map<string, string[]>();
+  private identity = IdentityManager.getInstance();
+  private hasUserName = this.identity.getCachedName();
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
   @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
@@ -37,7 +42,8 @@ export class TerminalShell extends LitElement {
   @query('#terminal-form') private _formCLI!: HTMLFormElement;
   @query('#raw-book-data') private _template!: HTMLDivElement;
   @query('#ascii-area') private _asciiArea!: HTMLElement;
-  @query('#terminal-text') private _textAreaCLI!: HTMLDivElement;
+  @query('#user-label') private _userLabel!: HTMLLabelElement;
+  // @query('#terminal-text') private _textAreaCLI!: HTMLDivElement;
 
 
   @state() private booksDisplayed = 0;
@@ -46,6 +52,7 @@ export class TerminalShell extends LitElement {
   @state() private histIndex = 0;
   @state() private commandCLI = "";
   @state() private focused = false;
+  @state() private labelVar = '--label-width';
   @state() private _skipAnimations =
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 
@@ -54,11 +61,6 @@ export class TerminalShell extends LitElement {
     (ctx: ParsedCommand) => Promise<void> | void
   > = {
       help: async (ctx) => {
-        // await this.appendToLog(
-        //   "COMMANDS:\n- HELP\n- LIST [--all] [--art <id>]\n- BOOK <id>\n- CLEAR",
-        //   0.05,
-        //   "log"
-        // );
         await this.appendToLog(`${ctx.raw}`, 0.2, "command");
 
         if (this.isMobile) {
@@ -122,9 +124,43 @@ export class TerminalShell extends LitElement {
         }
       },
 
-      clear: async () => {
-        // Todo: this._clearOutput();
-        await this.appendToLog("SCREEN CLEARED.", 0.05, "log");
+      whoami: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        await this.appendToLog("life scan complete.", 0.2, "log");
+        await this.appendToLog(`[RECORD - ]\n   `, 0.15, "logdata");
+        await this.appendToLog(`[AUTHOR]\n   `, 0.15, "logdata");
+      },
+
+      // list portfolio branchs/commits and more
+      // just like git but without the write permission
+      git: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+
+      },
+
+      // list terminal archives
+      ls: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+
+      },
+
+      // search posts, files 
+      grep: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+
+      },
+
+      // display contents only no flags 
+      cat: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+
+      },
+
+      clear: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0.2, "command");
+        // Todo: improve clear
+        // this._clearOutput();
+        // await this.appendToLog("SCREEN CLEARED.", 0.05, "log");
       },
     };
 
@@ -140,7 +176,21 @@ export class TerminalShell extends LitElement {
       }));
       // Remove container
       this._template.remove();
+
+      if (this.hasUserName) {
+        this.userID = this.hasUserName;
+
+      } else {
+        this.userID = this.identity.getFullIdentity(IDMode.default);
+      }
+      requestAnimationFrame(() => {
+        document.documentElement.style.setProperty(this.labelVar, `${this._userLabel.clientWidth}px`);
+
+      })
+
+      // this.labelWidth = this._userLabel.clientWidth;
     }
+
     this.startBootSequence();
   }
 
@@ -459,7 +509,7 @@ export class TerminalShell extends LitElement {
     if (this.bookData.length - this.booksDisplayed) {
       await this.appendToLog(`books remaining: ${this.bookData.length - this.booksDisplayed}`, 0, "command");
     } else {
-      await this.appendToLog("Bookshelf scan complete.", 0.2, "log");
+      await this.appendToLog("bookshelf scan complete.", 0.2, "log");
     }
   }
 
@@ -627,6 +677,16 @@ export class TerminalShell extends LitElement {
     return id.replace(/[^a-z0-9_-]/gi, "");
   }
 
+  private _clearOutput() {
+    if (!this._outputCLI) return;
+    var logHeight = this._bootLog.scrollHeight;
+    var outputHeight = this._outputCLI.offsetHeight;
+    this._bootLog.style.height = `${logHeight + outputHeight}px`;
+    requestAnimationFrame(() => {
+      this._scrollToBottom(this._outputCLI);
+    })
+  }
+
   private _scrollToBottom(el?: HTMLElement) {
     if (!el) { return; }
     setTimeout(() => {
@@ -737,7 +797,7 @@ export class TerminalShell extends LitElement {
         </div>
 
         <form id="terminal-form" @submit="${this._handleSubmit}">
-          <label for="terminal-input" class="prompt">USER@BOOK_OS:~$</label>
+          <label id="user-label" for="terminal-input" class="prompt">${this.userID}@BOOK_OS:~$</label>
           <textarea
             id="terminal-input"
             name="command"

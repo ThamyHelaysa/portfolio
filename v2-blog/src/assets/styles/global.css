@@ -75,7 +75,7 @@
     --color-text-primary: var(--color-gray-800);
     --color-text-secondary: var(--color-gray-600);
     --color-text-muted: var(--color-gray-400);
-    --color-text-inverse: var(--color-gray-50);
+    --color-text-inverse: var(--color-pink-50);
 
     --color-bg-default: var(--color-pink-50);
     --color-bg-surface: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); /* new warm-bg */
@@ -85,13 +85,12 @@
     --color-border-subtle: var(--color-gray-300);
 
     --color-accent-primary: var(--color-pink-900);
-    --color-accent-secondary: var(--color-pink-300);
+    --color-accent-secondary: var(--color-pink-950);
 
     --color-code-bg: var(--color-pink-100);
     --color-code-border: var(--color-gray-400);
     --color-text: var(--color-text-primary);
 
-    /* --color-warm-bg: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); */
     --color-scroll-track: var(--color-pink-100);
     --color-scroll-thumb: var(--color-pink-200);
     --color-sidebar: var(--color-pink-200);
@@ -122,7 +121,6 @@
     --color-code-border: var(--color-gray-800);
     --color-text: var(--color-text-primary);
 
-    /* --color-warm-bg: var(--color-bg-default); */
     --color-scroll-track: var(--color-gray-800);
     --color-scroll-thumb: var(--color-gray-700);
     --color-sidebar: var(--color-gray-800);
@@ -183,18 +181,15 @@
 }
 
 ::view-transition-old(post) {
-  /* animation: 0.1s ease-in-out both fade-out; */
   animation: var(--animate-fade-out);
 }
 
 ::view-transition-new(post) {
-  /* animation: 0.4s ease-in-out both fade-in; */
   animation: var(--animate-fade-in);
 }
 
 .logo {
   position: relative;
-  /* overflow: hidden; */
   padding-inline-end: calc(var(--spacing)*2.5);
   span {
     position: relative;
@@ -205,7 +200,6 @@
     > a::after {
       position: absolute;
       content: '\2192 Still doing frontend. Still not sorry.';
-      /* inset: 0; */
       top: 0;
       left: 0;
       font-size: var(--text-xs);

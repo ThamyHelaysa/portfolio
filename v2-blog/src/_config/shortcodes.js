@@ -4,12 +4,12 @@ export default {
     return `
       <div class="bg-background flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-y border-accent/10 ">
         <div class="md:w-1/3 shrink-0">
-          <h3 class="text-2xl md:text-3xl text-accent mb-2 leading-tight">
+          <h3 class="text-2xl md:mb-2! md:text-3xl text-accent mb-2 leading-tight">
             <a href="${url}">
               ${title}
             </a>
           </h3>
-            <p class="text-sm font-sans text-accent/60 uppercase tracking-widest mt-2">
+            <p class="text-sm! font-sans text-accent/60 uppercase tracking-widest mt-2">
               ${date}
             </p>
         </div>
@@ -32,11 +32,11 @@ export default {
     return `
       <div class="bg-background flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-t border-accent/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
-          <h2 class="text-2xl md:text-3xl text-accent mb-2 leading-tight">
+          <h2 class="text-2xl md:mb-2! md:text-3xl text-accent mb-2 leading-tight">
             ${title}
           </h2>
           ${subtitle ? `
-            <p class="text-sm font-sans text-accent/60 uppercase tracking-widest mt-2">
+            <p class="text-sm! font-sans text-accent/60 uppercase tracking-widest mt-2">
               ${subtitle}
             </p>
           ` : ""}

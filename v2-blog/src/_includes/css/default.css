@@ -1,10 +1,10 @@
 
 body {
-  color: var(--color-text, #44403c);
+  color: var(--color-foreground, #292524);
   font-weight: 400;
   transition: color 300ms ease 0ms;
   .dark & {
-    color: var(--color-text, #a8a29e);
+    color: var(--color-foreground, #a8a29e);
   }
 }
 /* content-visibility: auto;

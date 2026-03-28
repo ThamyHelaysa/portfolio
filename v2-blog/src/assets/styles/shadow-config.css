@@ -13,7 +13,7 @@
 
   --color-foreground: var(--color-text-primary);
   --color-muted: var(--color-text-secondary);
-  --color-muted-2: var(--color-text-muted);
+  /* --color-muted-2: var(--color-text-muted); */
   --color-inverse: var(--color-text-inverse);
 
   --color-border: var(--color-border-default);

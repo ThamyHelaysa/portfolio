@@ -3,8 +3,8 @@
  * This ensures the cursor remains visible and prevents the preview
  * from interfering with mouse events on the underlying element.
  */
-const PREVIEW_OFFSET = 12;   // small gap between preview and anchor
-const PREVIEW_SIZE = 100;    // matches your 100x100
+const PREVIEW_OFFSET = 12;
+const PREVIEW_SIZE = 100;
 
 export type MediaType = 'image' | 'video';
 export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';

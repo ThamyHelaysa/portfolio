@@ -67,4 +67,5 @@ reports/
 # 9. Pre build files/folders
 # ------------------------------------------------------
 MY_CHECKLIST.md
+ffmpeg-cheatsheet.md
 media-src/

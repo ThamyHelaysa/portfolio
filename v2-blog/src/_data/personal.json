@@ -105,8 +105,8 @@
     {
       "id": "books",
       "category": "Last Read",
-      "title": "Refactoring UI",
-      "details": "Adam Wathan & Steve Schoger",
+      "title": "The Canterville Ghost and Other Stories",
+      "details": "Oscar Wilde",
       "previewUrl": "../assets/images/clefairy.jpg",
       "previewType": "img"
     },
@@ -121,8 +121,8 @@
     {
       "id": "game",
       "category": "Playing",
-      "title": "Hollow Knight",
-      "details": "-",
+      "title": "Pokemon Y (3DS)",
+      "details": "First time playing a Pokemon game!",
       "previewUrl": "../assets/images/pikachu.jpg",
       "previewType": "img"
     },

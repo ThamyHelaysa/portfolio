@@ -120,6 +120,34 @@ describe("sharedPreview", () => {
     expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("50px");
   });
 
+  it("warns when video autoplay is blocked", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+    const autoplayError = new Error("blocked");
+
+    Object.defineProperty(video!, "play", {
+      configurable: true,
+      value: vi.fn().mockRejectedValue(autoplayError),
+    });
+
+    preview.show({
+      src: "/assets/demo.mp4",
+      x: 40,
+      y: 50,
+      type: "video",
+    });
+
+    await Promise.resolve();
+
+    expect(warn).toHaveBeenCalledWith(
+      "[SharedMediaPreview] Video preview autoplay failed",
+      autoplayError
+    );
+  });
+
   it("positions relative to the trigger for non-cursor placements", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();

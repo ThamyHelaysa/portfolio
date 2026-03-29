@@ -22,6 +22,62 @@ describe("identityManager", () => {
     });
   });
 
+  it("uses one explicit random salt per random identity generation", () => {
+    const manager = IdentityManager.getInstance();
+    const originalCrypto = globalThis.crypto;
+    const getRandomValues = vi.fn((values: Uint32Array) => {
+      values[0] = 123456;
+      return values;
+    });
+
+    Object.defineProperty(globalThis, "crypto", {
+      configurable: true,
+      value: { getRandomValues },
+    });
+
+    try {
+      const first = manager.getFullIdentity(IDMode.random);
+      const second = manager.getFullIdentity(IDMode.random);
+
+      expect(first).toBe(second);
+      expect(getRandomValues).toHaveBeenCalledTimes(2);
+      expect(getRandomValues).toHaveBeenNthCalledWith(1, expect.any(Uint32Array));
+    } finally {
+      Object.defineProperty(globalThis, "crypto", {
+        configurable: true,
+        value: originalCrypto,
+      });
+    }
+  });
+
+  it("changes the random identity when the explicit salt changes", () => {
+    const manager = IdentityManager.getInstance();
+    const originalCrypto = globalThis.crypto;
+    let salt = 111;
+    const getRandomValues = vi.fn((values: Uint32Array) => {
+      values[0] = salt;
+      return values;
+    });
+
+    Object.defineProperty(globalThis, "crypto", {
+      configurable: true,
+      value: { getRandomValues },
+    });
+
+    try {
+      const first = manager.getFullIdentity(IDMode.random);
+      salt = 222;
+      const second = manager.getFullIdentity(IDMode.random);
+
+      expect(first).not.toBe(second);
+    } finally {
+      Object.defineProperty(globalThis, "crypto", {
+        configurable: true,
+        value: originalCrypto,
+      });
+    }
+  });
+
   it("snaps to the final text if reveal work continues after disconnect", () => {
     const manager = IdentityManager.getInstance();
     const element = document.createElement("span");

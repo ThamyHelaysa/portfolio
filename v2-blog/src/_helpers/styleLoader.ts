@@ -84,6 +84,13 @@ async function getSheet(url: string): Promise<CSSStyleSheet> {
   }
 }
 
+/**
+ * Fetches and caches plain CSS text for the legacy stylesheet fallback path.
+ * Uses request coalescing so repeated calls for the same URL share one in-flight fetch.
+ *
+ * @param url - The resolved URL of the CSS file.
+ * @returns A promise resolving to the fetched CSS text.
+ */
 async function getCssText(url: string): Promise<string> {
   if (sharedCssText.has(url)) {
     return sharedCssText.get(url)!;
@@ -124,6 +131,14 @@ function adoptSheet(shadowRoot: ShadowRoot, sheet: CSSStyleSheet): void {
   }
 }
 
+/**
+ * Injects a fallback `<style>` tag for environments without constructable stylesheet support.
+ * The injected style node is tagged per URL so repeated calls stay idempotent for the same root.
+ *
+ * @param shadowRoot - The target shadow root.
+ * @param url - The resolved CSS URL used as the deduplication key.
+ * @param cssText - The CSS text to inject into the fallback style element.
+ */
 function adoptFallbackStyle(shadowRoot: ShadowRoot, url: string, cssText: string): void {
   const existing = shadowRoot.querySelector(`style[data-shared-css-url="${url}"]`);
   if (existing) return;

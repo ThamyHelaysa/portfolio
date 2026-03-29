@@ -55,6 +55,8 @@ export class MediaPreview extends LitElement {
   }
 
   private _handleMouseMove(e: MouseEvent) {
+    if (!this.previewSrc) return;
+
     const preview = SharedMediaPreview.getInstance();
     const rect = this.getBoundingClientRect(); 
 

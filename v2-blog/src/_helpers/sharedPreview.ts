@@ -112,18 +112,22 @@ export class SharedMediaPreview {
     // Determine type: use provided type or try to guess from file extension
     const effectiveType = type || this.inferType(src);
     if (!effectiveType) return;
+    const isSameMedia = this._currentSrc === src && this._currentType === effectiveType;
 
     this._setPosition({ x, y, placement, triggerRect });
 
-    // Toggle specific element visibility
-    if (effectiveType === 'video') {
-      this._showVideo(src);
-    } else {
-      this._showImage(src);
+    if (!isSameMedia) {
+      // Toggle specific element visibility
+      if (effectiveType === 'video') {
+        this._showVideo(src);
+      } else {
+        this._showImage(src);
+      }
+
+      this._currentSrc = src;
+      this._currentType = effectiveType;
     }
 
-    this._currentSrc = src;
-    this._currentType = effectiveType;
     this._wrapper.classList.add('is-visible');
   }
 

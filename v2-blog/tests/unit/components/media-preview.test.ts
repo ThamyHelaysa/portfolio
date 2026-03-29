@@ -52,8 +52,10 @@ describe("media-preview", () => {
 
     const wrapper = element.shadowRoot?.querySelector(".wrapper");
     wrapper?.dispatchEvent(new MouseEvent("mouseenter", { clientX: 10, clientY: 20, bubbles: true }));
+    wrapper?.dispatchEvent(new MouseEvent("mousemove", { clientX: 30, clientY: 40, bubbles: true }));
 
     expect(previewApi.show).not.toHaveBeenCalled();
+    expect(previewApi.move).not.toHaveBeenCalled();
   });
 
   it("delegates mousemove and mouseleave to the shared preview", async () => {

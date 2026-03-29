@@ -85,6 +85,41 @@ describe("sharedPreview", () => {
     expect(pause).toHaveBeenCalledTimes(1);
   });
 
+  it("does not replay the same visible video repeatedly", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(video!, "play", {
+      configurable: true,
+      value: play,
+    });
+    Object.defineProperty(video!, "paused", {
+      configurable: true,
+      get: () => false,
+    });
+
+    preview.show({
+      src: "/assets/demo.mp4",
+      x: 40,
+      y: 50,
+      type: "video",
+    });
+
+    preview.show({
+      src: "/assets/demo.mp4",
+      x: 90,
+      y: 100,
+      type: "video",
+    });
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("40px");
+    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("50px");
+  });
+
   it("positions relative to the trigger for non-cursor placements", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();

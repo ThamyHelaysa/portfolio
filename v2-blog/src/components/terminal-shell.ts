@@ -3,6 +3,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
+import { deferNonCriticalWork } from '../_helpers/deferNonCriticalWork.ts';
 
 type ParsedCommand = {
   raw: string;                 // original command
@@ -214,7 +215,9 @@ export class TerminalShell extends LitElement {
       this._resizeObs.observe(this._mirrorCLI);
     }
 
-    this.startBootSequence();
+    deferNonCriticalWork(() => {
+      void this.startBootSequence();
+    });
   }
 
   protected updated(changed: Map<string, unknown>) {

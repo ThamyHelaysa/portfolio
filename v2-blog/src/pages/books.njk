@@ -5,6 +5,11 @@ description: A growing list of books I’ve read (or pretended to). If you think
 permalink: /books/
 ---
 
+<section aria-label="Library introduction" id="library-intro">
+  <h1>book_os library</h1>
+  <p>Type 'HELP' or 'LIST' to explore the library when the terminal finishes booting.</p>
+</section>
+
 <div id="raw-book-data">
   {% for book in collections.books %}
     {% set title = book.data.title %}

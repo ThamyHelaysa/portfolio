@@ -4,10 +4,18 @@ class AnimationManager {
   private static instance: AnimationManager;
   private activeAnimations: WeakMap<HTMLElement, Animation>;
 
+  /**
+   * Creates the animation registry used to coordinate one active animation per element.
+   */
   private constructor() {
     this.activeAnimations = new WeakMap();
   }
 
+  /**
+   * Returns the shared animation manager singleton.
+   *
+   * @returns The shared `AnimationManager` instance.
+   */
   public static getInstance(): AnimationManager {
     if (!AnimationManager.instance) {
       AnimationManager.instance = new AnimationManager();
@@ -17,6 +25,11 @@ class AnimationManager {
 
   /**
    * Animates an element and handles cleanup automatically.
+   *
+   * @param element - The element that owns the animation lifecycle.
+   * @param keyframes - The keyframes passed to the Web Animations API.
+   * @param options - Animation timing options used to configure playback.
+   * @returns A promise that resolves once the animation finishes or is canceled.
    */
   public async animate(
     element: HTMLElement,
@@ -88,6 +101,8 @@ class AnimationManager {
 
   /**
    * Manually cancels an animation on an element if it exists.
+   *
+   * @param element - The element whose active animation should be canceled.
    */
   public cancel(element: HTMLElement): void {
     const existing = this.activeAnimations.get(element);

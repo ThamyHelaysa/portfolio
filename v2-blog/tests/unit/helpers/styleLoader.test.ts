@@ -60,4 +60,53 @@ describe("styleLoader", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     expect(root.adoptedStyleSheets).toHaveLength(1);
   });
+
+  it("does not append duplicate fallback style tags on repeated calls", async () => {
+    const originalReplaceSync = CSSStyleSheet.prototype.replaceSync;
+    // Force legacy path
+    // @ts-expect-error test override
+    delete CSSStyleSheet.prototype.replaceSync;
+
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response("body { color: orange; }", { status: 200 })
+    );
+
+    try {
+      const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+      const root = document.createElement("div").attachShadow({ mode: "open" });
+
+      await adoptTailwind(root, "shadow.css");
+      await adoptTailwind(root, "shadow.css");
+
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      expect(root.querySelectorAll('style[data-shared-css-url="/assets/css/shadow.css"]')).toHaveLength(1);
+    } finally {
+      CSSStyleSheet.prototype.replaceSync = originalReplaceSync;
+    }
+  });
+
+  it("reuses fetched css text across fallback calls on different roots", async () => {
+    const originalReplaceSync = CSSStyleSheet.prototype.replaceSync;
+    // @ts-expect-error test override
+    delete CSSStyleSheet.prototype.replaceSync;
+
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response("body { color: purple; }", { status: 200 })
+    );
+
+    try {
+      const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+      const rootA = document.createElement("div").attachShadow({ mode: "open" });
+      const rootB = document.createElement("div").attachShadow({ mode: "open" });
+
+      await adoptTailwind(rootA, "toggle-theme-shadow.css");
+      await adoptTailwind(rootB, "toggle-theme-shadow.css");
+
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      expect(rootA.querySelector('style[data-shared-css-url="/assets/css/toggle-theme-shadow.css"]')).not.toBeNull();
+      expect(rootB.querySelector('style[data-shared-css-url="/assets/css/toggle-theme-shadow.css"]')).not.toBeNull();
+    } finally {
+      CSSStyleSheet.prototype.replaceSync = originalReplaceSync;
+    }
+  });
 });

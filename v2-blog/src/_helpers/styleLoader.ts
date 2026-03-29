@@ -76,9 +76,9 @@ async function getSheet(url: string): Promise<CSSStyleSheet> {
   try {
     return await p;
   } finally {
-    // If the fetch failed, remove from promise cache so retries are possible.
-    // If it succeeded, it's already in the 'shared' Map, so we don't need the promise anymore.
-    if (!shared.has(url)) sharedPromises.delete(url);
+    // The pending promise should never outlive the request lifecycle.
+    // On success the stylesheet is cached in `shared`; on failure retries must be allowed.
+    sharedPromises.delete(url);
   }
 }
 

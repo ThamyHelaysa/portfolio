@@ -36,6 +36,11 @@ class AnimationManager {
     // Wait for visual readiness 
     await waitForVisual();
 
+    // Component teardown may happen while we wait for a paint frame.
+    if (!element.isConnected) {
+      return;
+    }
+
     // Create and store the animation
     const animation = element.animate(keyframes, {
       ...options,

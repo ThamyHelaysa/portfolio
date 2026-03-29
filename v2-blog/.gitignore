@@ -55,12 +55,15 @@ coverage/
 reports/
 .nyc_output/
 .lighthouseci/
+playwright-report/
+test-results/
 
 # ------------------------------------------------------
 # 8. Temporary Files
 # ------------------------------------------------------
 *.log
 *.tmp
+vitest.config.timestamp-*
 
 
 # ------------------------------------------------------
@@ -77,3 +80,4 @@ ffmpeg-cheatsheet.md
 MY_CHECKLIST.md
 AGENTS.md
 SENIOR_SOFTWARE_ENGINEER_AGENT.md
+HELPER_OPPORTUNITIES.md

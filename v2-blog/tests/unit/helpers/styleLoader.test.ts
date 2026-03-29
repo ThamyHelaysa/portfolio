@@ -1,0 +1,63 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+describe("styleLoader", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    globalThis.fetch = vi.fn() as unknown as typeof fetch;
+  });
+
+  it("does not duplicate adopted stylesheets on repeated calls", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(new Response("body { color: red; }", { status: 200 }));
+
+    const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode: "open" });
+
+    await adoptTailwind(root, "shadow.css");
+    await adoptTailwind(root, "shadow.css");
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(root.adoptedStyleSheets).toHaveLength(1);
+  });
+
+  it("coalesces concurrent fetches and shares the same stylesheet instance", async () => {
+    let resolveFetch!: () => void;
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = () => resolve(new Response("body { color: pink; }", { status: 200 }));
+    });
+
+    vi.mocked(globalThis.fetch).mockReturnValue(fetchPromise);
+
+    const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+    const rootA = document.createElement("div").attachShadow({ mode: "open" });
+    const rootB = document.createElement("div").attachShadow({ mode: "open" });
+
+    const pendingA = adoptTailwind(rootA, "toggle-theme-shadow.css");
+    const pendingB = adoptTailwind(rootB, "toggle-theme-shadow.css");
+
+    resolveFetch();
+
+    await Promise.all([pendingA, pendingB]);
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(rootA.adoptedStyleSheets[0]).toBe(rootB.adoptedStyleSheets[0]);
+  });
+
+  it("clears failed pending requests so a later retry can succeed", async () => {
+    vi.mocked(globalThis.fetch)
+      .mockResolvedValueOnce(new Response("missing", { status: 500 }))
+      .mockResolvedValueOnce(new Response("body { color: green; }", { status: 200 }));
+
+    const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+    const root = document.createElement("div").attachShadow({ mode: "open" });
+
+    await expect(adoptTailwind(root, "menu-mobile-shadow.css")).rejects.toThrow(
+      "Failed to fetch /assets/css/menu-mobile-shadow.css: 500"
+    );
+
+    await adoptTailwind(root, "menu-mobile-shadow.css");
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(root.adoptedStyleSheets).toHaveLength(1);
+  });
+});

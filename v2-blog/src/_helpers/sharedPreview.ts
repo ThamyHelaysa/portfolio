@@ -73,13 +73,19 @@ export class SharedMediaPreview {
 
     this._wrapper.appendChild(this.img);
     this._wrapper.appendChild(this.video);
-
-    document.body.appendChild(this._wrapper);
+    this._ensureAttached();
 
     /** Tracks the currently loaded source to avoid redundant reloading. */
     this._currentSrc = null;
     /** Tracks the current media type ('image' or 'video'). */
     this._currentType = null;
+  }
+
+  private _ensureAttached(): void {
+    if (this._wrapper.isConnected) return;
+    if (!document.body) return;
+
+    document.body.appendChild(this._wrapper);
   }
 
   /**
@@ -112,18 +118,23 @@ export class SharedMediaPreview {
     // Determine type: use provided type or try to guess from file extension
     const effectiveType = type || this.inferType(src);
     if (!effectiveType) return;
+    const isSameMedia = this._currentSrc === src && this._currentType === effectiveType;
+    this._ensureAttached();
 
     this._setPosition({ x, y, placement, triggerRect });
 
-    // Toggle specific element visibility
-    if (effectiveType === 'video') {
-      this._showVideo(src);
-    } else {
-      this._showImage(src);
+    if (!isSameMedia) {
+      // Toggle specific element visibility
+      if (effectiveType === 'video') {
+        this._showVideo(src);
+      } else {
+        this._showImage(src);
+      }
+
+      this._currentSrc = src;
+      this._currentType = effectiveType;
     }
 
-    this._currentSrc = src;
-    this._currentType = effectiveType;
     this._wrapper.classList.add('is-visible');
   }
 
@@ -132,6 +143,7 @@ export class SharedMediaPreview {
    * Usually called during mousemove events.
    */
   move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
+    this._ensureAttached();
     this._setPosition({ x, y, placement, triggerRect });
   }
 
@@ -141,6 +153,9 @@ export class SharedMediaPreview {
    */
   hide(): void {
     this._wrapper.classList.remove('is-visible');
+
+    this.img.classList.remove('visible');
+    this.video.classList.remove('visible');
 
     // Pause video to save resources when not visible
     if (!this.video.paused) {
@@ -236,6 +251,8 @@ export class SharedMediaPreview {
 
     // Attempt to play. Catch prevents errors if the user hasn't interacted with the document yet
     // or if the browser blocks autoplay.
-    this.video.play().catch(() => { });
+    this.video.play().catch((error) => {
+      console.warn('[SharedMediaPreview] Video preview autoplay failed', error);
+    });
   }
 }

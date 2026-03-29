@@ -4,6 +4,11 @@
   "description": "My brand new portfolio",
   "main": "index.js",
   "type": "module",
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
+  },
   "scripts": {
     "build": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts",
     "start": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts --serve --incremental",

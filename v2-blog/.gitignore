@@ -66,6 +66,14 @@ reports/
 # ------------------------------------------------------
 # 9. Pre build files/folders
 # ------------------------------------------------------
-MY_CHECKLIST.md
-ffmpeg-cheatsheet.md
 media-src/
+ffmpeg-cheatsheet.md
+
+
+# ------------------------------------------------------
+# 10. AI Agent Documentation (For the future)
+# ------------------------------------------------------
+
+MY_CHECKLIST.md
+AGENTS.md
+SENIOR_SOFTWARE_ENGINEER_AGENT.md

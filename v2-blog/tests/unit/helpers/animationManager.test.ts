@@ -6,17 +6,17 @@ vi.mock("../../../src/_helpers/waitForVisuals.ts", () => ({
 
 function createAnimationStub() {
   const listeners = {
-    finish: [],
-    cancel: [],
+    finish: [] as Array<() => void>,
+    cancel: [] as Array<() => void>,
   };
 
   return {
-    onfinish: null,
-    oncancel: null,
-    addEventListener: vi.fn((type, cb) => {
+    onfinish: null as null | (() => void),
+    oncancel: null as null | (() => void),
+    addEventListener: vi.fn((type: "finish" | "cancel", cb: () => void) => {
       listeners[type].push(cb);
     }),
-    cancel: vi.fn(function () {
+    cancel: vi.fn(function (this: { oncancel: null | (() => void) }) {
       this.oncancel?.();
       for (const cb of listeners.cancel) cb();
     }),
@@ -35,7 +35,7 @@ describe("animationManager", () => {
     element.animate = vi
       .fn()
       .mockImplementationOnce(() => animations[0])
-      .mockImplementationOnce(() => animations[1]);
+      .mockImplementationOnce(() => animations[1]) as unknown as typeof element.animate;
 
     const { animator } = await import("../../../src/_helpers/animationManager.ts");
 
@@ -54,7 +54,7 @@ describe("animationManager", () => {
     const animation = createAnimationStub();
     const element = document.createElement("div");
 
-    element.animate = vi.fn(() => animation);
+    element.animate = vi.fn(() => animation) as unknown as typeof element.animate;
 
     const { animator } = await import("../../../src/_helpers/animationManager.ts");
 

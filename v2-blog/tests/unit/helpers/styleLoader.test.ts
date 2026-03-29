@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 describe("styleLoader", () => {
   beforeEach(() => {
     vi.resetModules();
-    globalThis.fetch = vi.fn();
+    globalThis.fetch = vi.fn() as unknown as typeof fetch;
   });
 
   it("does not duplicate adopted stylesheets on repeated calls", async () => {
-    globalThis.fetch.mockResolvedValue(new Response("body { color: red; }", { status: 200 }));
+    vi.mocked(globalThis.fetch).mockResolvedValue(new Response("body { color: red; }", { status: 200 }));
 
     const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
     const host = document.createElement("div");
@@ -21,12 +21,12 @@ describe("styleLoader", () => {
   });
 
   it("coalesces concurrent fetches and shares the same stylesheet instance", async () => {
-    let resolveFetch;
-    const fetchPromise = new Promise((resolve) => {
+    let resolveFetch!: () => void;
+    const fetchPromise = new Promise<Response>((resolve) => {
       resolveFetch = () => resolve(new Response("body { color: pink; }", { status: 200 }));
     });
 
-    globalThis.fetch.mockReturnValue(fetchPromise);
+    vi.mocked(globalThis.fetch).mockReturnValue(fetchPromise);
 
     const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
     const rootA = document.createElement("div").attachShadow({ mode: "open" });

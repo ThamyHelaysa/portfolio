@@ -6,7 +6,7 @@ vi.mock("../../../src/_helpers/styleLoader.ts", () => ({
 
 import { ThemeToggle } from "../../../src/components/theme-toggle.ts";
 
-function setSystemDarkMode(enabled) {
+function setSystemDarkMode(enabled: boolean) {
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
     writable: true,
@@ -52,12 +52,15 @@ describe("theme-toggle", () => {
     document.body.appendChild(element);
     await element.updateComplete;
 
-    const button = element.shadowRoot.querySelector("button");
+    const button = element.shadowRoot?.querySelector("button");
+    if (!button) {
+      throw new Error("theme-toggle button was not rendered");
+    }
     button.click();
     await element.updateComplete;
 
     expect(element.theme).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
-    expect(button.getAttribute("aria-pressed")).toBe("true");
+    expect(button?.getAttribute("aria-pressed")).toBe("true");
   });
 });

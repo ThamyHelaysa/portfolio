@@ -3,12 +3,12 @@ import { beforeEach, vi } from "vitest";
 class TestStyleSheet {
   text = "";
 
-  replaceSync(value) {
+  replaceSync(value: string) {
     this.text = value;
   }
 }
 
-function defineAdoptedStyleSheets(proto) {
+function defineAdoptedStyleSheets(proto: object) {
   if (Object.getOwnPropertyDescriptor(proto, "adoptedStyleSheets")) return;
 
   Object.defineProperty(proto, "adoptedStyleSheets", {
@@ -36,7 +36,7 @@ function createMatchMedia(matches = false) {
 }
 
 if (!globalThis.CSSStyleSheet) {
-  globalThis.CSSStyleSheet = TestStyleSheet;
+  globalThis.CSSStyleSheet = TestStyleSheet as unknown as typeof CSSStyleSheet;
 }
 
 defineAdoptedStyleSheets(Document.prototype);
@@ -56,10 +56,12 @@ beforeEach(() => {
   });
 
   if (!globalThis.requestAnimationFrame) {
-    globalThis.requestAnimationFrame = (cb) => setTimeout(() => cb(Date.now()), 0);
+    globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) =>
+      window.setTimeout(() => cb(Date.now()), 0)) as typeof requestAnimationFrame;
   }
 
   if (!globalThis.cancelAnimationFrame) {
-    globalThis.cancelAnimationFrame = (id) => clearTimeout(id);
+    globalThis.cancelAnimationFrame = ((id: number) =>
+      window.clearTimeout(id)) as typeof cancelAnimationFrame;
   }
 });

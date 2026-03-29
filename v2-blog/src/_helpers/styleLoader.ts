@@ -9,6 +9,8 @@ const shared = new Map<string, CSSStyleSheet>();
  * Prevents multiple components from triggering simultaneous requests for the same file.
  */
 const sharedPromises = new Map<string, Promise<CSSStyleSheet>>();
+const sharedCssText = new Map<string, string>();
+const sharedCssTextPromises = new Map<string, Promise<string>>();
 
 /**
  * Checks browser support for Constructable Stylesheets.
@@ -82,6 +84,32 @@ async function getSheet(url: string): Promise<CSSStyleSheet> {
   }
 }
 
+async function getCssText(url: string): Promise<string> {
+  if (sharedCssText.has(url)) {
+    return sharedCssText.get(url)!;
+  }
+
+  if (sharedCssTextPromises.has(url)) {
+    return sharedCssTextPromises.get(url)!;
+  }
+
+  const p = (async () => {
+    const res = await fetch(url, { cache: "force-cache" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+    const cssText = await res.text();
+    sharedCssText.set(url, cssText);
+    return cssText;
+  })();
+
+  sharedCssTextPromises.set(url, p);
+
+  try {
+    return await p;
+  } finally {
+    sharedCssTextPromises.delete(url);
+  }
+}
+
 /**
  * Adopts a shared stylesheet into a ShadowRoot.
  * Prevents duplicates by checking existing sheets.
@@ -96,6 +124,16 @@ function adoptSheet(shadowRoot: ShadowRoot, sheet: CSSStyleSheet): void {
   }
 }
 
+function adoptFallbackStyle(shadowRoot: ShadowRoot, url: string, cssText: string): void {
+  const existing = shadowRoot.querySelector(`style[data-shared-css-url="${url}"]`);
+  if (existing) return;
+
+  const style = document.createElement("style");
+  style.dataset.sharedCssUrl = url;
+  style.textContent = cssText;
+  shadowRoot.appendChild(style);
+}
+
 /**
  * Main utility to load and apply Tailwind (or any CSS) to a Shadow DOM.
  * * Automatically handles URL resolution, caching, and browser compatibility.
@@ -108,11 +146,8 @@ export async function adoptTailwind(shadowRoot: ShadowRoot, cssFileOrUrl?: strin
 
   // Fallback: Legacy browsers (no Constructable Stylesheets)
   if (!supportsConstructableStylesheets()) {
-    // minimal fallback
-    const res = await fetch(url);
-    const style = document.createElement("style");
-    style.textContent = await res.text();
-    shadowRoot.appendChild(style);
+    const cssText = await getCssText(url);
+    adoptFallbackStyle(shadowRoot, url, cssText);
     return;
   }
 

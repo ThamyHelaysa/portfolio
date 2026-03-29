@@ -12,14 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: v2-blog/package-lock.json
+
+      - name: Install V2 dependencies
+        working-directory: ./v2-blog
+        run: npm ci
+
+      - name: Build V2
+        working-directory: ./v2-blog
+        run: npm run build
+
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: |
-            https://thamy-v2-blog.netlify.app/
-            https://thamy-v2-blog.netlify.app/about/
-            https://thamy-v2-blog.netlify.app/blog/
-            https://thamy-v2-blog.netlify.app/notes/
-            https://thamy-v2-blog.netlify.app/games-that-i-may-or-may-not-play/
-            https://thamy-v2-blog.netlify.app/copyrighty/
-          configPath: ./v2-blog/.lighthouserc.json
+          configPath: ./v2-blog/.lighthouserc.github.json

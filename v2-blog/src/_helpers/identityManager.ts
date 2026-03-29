@@ -180,6 +180,27 @@ export class IdentityManager {
 
   private _revealRaf = new WeakMap<HTMLElement, number>();
 
+  private _snapToFinalText(element: HTMLElement, finalText: string): void {
+    const prev = this._revealRaf.get(element);
+    if (prev != null) {
+      cancelAnimationFrame(prev);
+      this._revealRaf.delete(element);
+    }
+
+    element.textContent = finalText;
+  }
+
+  private _cancelGlitchAnimation(element: HTMLElement): void {
+    const prev = this._glitchAnim.get(element);
+    if (prev) {
+      prev.cancel();
+      this._glitchAnim.delete(element);
+    }
+
+    element.style.textShadow = "";
+    element.style.transform = "";
+  }
+
   public animateReveal(element: HTMLElement, finalText: string): void {
     if (!element) return;
 
@@ -188,7 +209,7 @@ export class IdentityManager {
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
     if (reduceMotion) {
-      element.textContent = finalText;
+      this._snapToFinalText(element, finalText);
       this.triggerGlitchAnimation(element);
       return;
     }
@@ -198,6 +219,7 @@ export class IdentityManager {
 
     const prev = this._revealRaf.get(element);
     if (prev != null) cancelAnimationFrame(prev);
+    this._cancelGlitchAnimation(element);
 
     const finalChars = Array.from(finalText); // handles unicode better than split('')
     const len = finalChars.length;
@@ -207,6 +229,12 @@ export class IdentityManager {
     let start = 0;
 
     const tick = (now: number) => {
+      if (!element.isConnected) {
+        this._snapToFinalText(element, finalText);
+        this._cancelGlitchAnimation(element);
+        return;
+      }
+
       if (!start) start = now;
       const elapsed = now - start;
 
@@ -230,8 +258,7 @@ export class IdentityManager {
         const id = requestAnimationFrame(tick);
         this._revealRaf.set(element, id);
       } else {
-        element.textContent = finalText;
-        this._revealRaf.delete(element);
+        this._snapToFinalText(element, finalText);
         this.triggerGlitchAnimation(element);
       }
     };
@@ -266,11 +293,12 @@ export class IdentityManager {
 
     if (reduceMotion) return;
 
-    const prev = this._glitchAnim.get(element);
-    if (prev) {
-      prev.cancel();
-      this._glitchAnim.delete(element);
+    if (!element.isConnected) {
+      this._cancelGlitchAnimation(element);
+      return;
     }
+
+    this._cancelGlitchAnimation(element);
 
     const keyframes: Keyframe[] = [
       { textShadow: "2px 0 #ff453a, -2px 0 #00ffff", transform: "translate(2px, 0)" },
@@ -290,9 +318,7 @@ export class IdentityManager {
     this._glitchAnim.set(element, anim);
 
     const cleanup = () => {
-      element.style.textShadow = "";
-      element.style.transform = "";
-      this._glitchAnim.delete(element);
+      this._cancelGlitchAnimation(element);
     };
 
     anim.addEventListener("finish", cleanup, { once: true });

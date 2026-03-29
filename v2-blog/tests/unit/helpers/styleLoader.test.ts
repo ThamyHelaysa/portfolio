@@ -42,4 +42,22 @@ describe("styleLoader", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     expect(rootA.adoptedStyleSheets[0]).toBe(rootB.adoptedStyleSheets[0]);
   });
+
+  it("clears failed pending requests so a later retry can succeed", async () => {
+    vi.mocked(globalThis.fetch)
+      .mockResolvedValueOnce(new Response("missing", { status: 500 }))
+      .mockResolvedValueOnce(new Response("body { color: green; }", { status: 200 }));
+
+    const { adoptTailwind } = await import("../../../src/_helpers/styleLoader.ts");
+    const root = document.createElement("div").attachShadow({ mode: "open" });
+
+    await expect(adoptTailwind(root, "menu-mobile-shadow.css")).rejects.toThrow(
+      "Failed to fetch /assets/css/menu-mobile-shadow.css: 500"
+    );
+
+    await adoptTailwind(root, "menu-mobile-shadow.css");
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(root.adoptedStyleSheets).toHaveLength(1);
+  });
 });

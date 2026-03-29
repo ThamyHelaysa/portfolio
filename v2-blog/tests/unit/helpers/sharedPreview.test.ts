@@ -81,6 +81,7 @@ describe("sharedPreview", () => {
     preview.hide();
 
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
+    expect(video?.classList.contains("visible")).toBe(false);
     expect(pause).toHaveBeenCalledTimes(1);
   });
 

@@ -142,6 +142,9 @@ export class SharedMediaPreview {
   hide(): void {
     this._wrapper.classList.remove('is-visible');
 
+    this.img.classList.remove('visible');
+    this.video.classList.remove('visible');
+
     // Pause video to save resources when not visible
     if (!this.video.paused) {
       this.video.pause();

@@ -58,6 +58,45 @@ describe("media-preview", () => {
     expect(previewApi.move).not.toHaveBeenCalled();
   });
 
+  it("shows the preview on keyboard focus when the content has meaning", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/example.webp";
+    element.previewType = "image";
+    element.previewPosition = "bottom";
+
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(20, 30, 40, 50));
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    expect(wrapper?.getAttribute("tabindex")).toBe("0");
+
+    wrapper?.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+
+    expect(previewApi.show).toHaveBeenCalledWith({
+      src: "/assets/example.webp",
+      type: "image",
+      x: 40,
+      y: 55,
+      placement: "bottom",
+      triggerRect: expect.any(DOMRect),
+    });
+  });
+
+  it("hides the preview when focus leaves the component", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/example.webp";
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    wrapper?.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+
+    expect(previewApi.hide).toHaveBeenCalledTimes(1);
+  });
+
   it("delegates mousemove and mouseleave to the shared preview", async () => {
     const element = new MediaPreview();
     element.previewSrc = "/assets/example.webp";

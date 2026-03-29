@@ -73,15 +73,43 @@ export class MediaPreview extends LitElement {
     preview.hide();
   }
 
+  private _handleFocusIn() {
+    if (!this.previewSrc) return;
+
+    const preview = SharedMediaPreview.getInstance();
+    const rect = this.getBoundingClientRect();
+
+    preview.show({
+      src: this.previewSrc,
+      type: this.previewType,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      placement: this.previewPosition,
+      triggerRect: rect,
+    });
+  }
+
+  private _handleFocusOut(e: FocusEvent) {
+    const nextTarget = e.relatedTarget;
+
+    if (nextTarget instanceof Node && this.contains(nextTarget)) return;
+
+    const preview = SharedMediaPreview.getInstance();
+    preview.hide();
+  }
+
   // --- Render ---
 
   protected render(): unknown {
     return html`
       <div 
         class="wrapper"
+        tabindex="0"
         @mouseenter="${this._handleMouseEnter}"
         @mousemove="${this._handleMouseMove}"
         @mouseleave="${this._handleMouseLeave}"
+        @focusin="${this._handleFocusIn}"
+        @focusout="${this._handleFocusOut}"
       >
         <slot></slot>
       </div>

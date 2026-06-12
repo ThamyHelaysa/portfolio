@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "thamy-blog",
+  "engines": {
+    "node": ">=20"
+  },
   "author": "Thamires H",
   "keywords": [
     "gatsby"
@@ -31,6 +34,7 @@
     "gatsby-source-mongodb": "^5.5.0",
     "gatsby-transformer-sharp": "^5.3.1",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "styled-components": "^5.3.6"
   },
   "devDependencies": {
@@ -38,6 +42,16 @@
   },
   "overrides": {
     "json5": "^1.0.2",
-    "loader-utils": "^2.0.0"
+    "loader-utils": "^2.0.0",
+    "cookie": "^0.7.0",
+    "immutable": "^3.8.3",
+    "lodash": "^4.18.1",
+    "path-to-regexp": "^0.1.13",
+    "msgpackr": "^1.12.1",
+    "serialize-javascript": "^7.0.5",
+    "tmp": "^0.2.7",
+    "uuid": "^11.1.1",
+    "webpack": "^5.105.0",
+    "xml2js": "^0.5.0"
   }
 }

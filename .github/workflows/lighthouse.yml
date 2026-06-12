@@ -3,28 +3,31 @@ on:
   push:
     paths:
       - 'v2-blog/**'
+      - '.github/workflows/lighthouse.yml'
+  workflow_dispatch:
+
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
+          cache-dependency-path: v2-blog/package-lock.json
 
-      # 1. Install & Build only the new subdirectory
-      - name: Install & Build V2
+      - name: Install V2 dependencies
         working-directory: ./v2-blog
-        run: |
-          npm ci
-          npm run build
+        run: npm ci
 
-      # 2. Run Lighthouse
+      - name: Build V2
+        working-directory: ./v2-blog
+        run: npm run build
+
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
-          # Point to where your built files are
-          urls: https://thamy-v2-blog.netlify.app/
-          configPath: ./v2-blog/.lighthouserc.json
+          configPath: ./v2-blog/.lighthouserc.github.json

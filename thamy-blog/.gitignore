@@ -9,3 +9,7 @@ yarn-error.log*
 yarn.lock
 package-lock.json
 dist
+# environment secrets
+.env
+.env.*
+!.env.example

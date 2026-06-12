@@ -1,0 +1,33 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "staticDistDir": "./v2-blog/dist",
+      "url": [
+        "/",
+        "/about/",
+        "/blog/",
+        "/notes/",
+        "/games-that-i-may-or-may-not-play/",
+        "/copyrighty/"
+      ]
+    },
+    "assert": {
+      "assertions": {
+        "render-blocking-resources": ["warn", { "minScore": 1 }],
+        "server-response-time": ["error", { "minScore": 0.9 }],
+        "font-display": ["error", { "minScore": 1 }],
+        "first-contentful-paint": ["error", { "maxNumericValue": 2000 }],
+        "categories:performance": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["error", { "minScore": 0.9 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "resource-counts:image": ["warn", { "maxNumericValue": 20 }],
+        "resource-sizes:image": ["warn", { "maxNumericValue": 5000000 }]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

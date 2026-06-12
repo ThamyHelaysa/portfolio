@@ -1,3 +1,12 @@
+require("dotenv").config()
+
+if (!process.env.MONGODB_USER || !process.env.MONGODB_PASSWORD) {
+  throw new Error(
+    "Missing MONGODB_USER / MONGODB_PASSWORD environment variables. " +
+    "Set them in .env locally or in the Netlify environment settings."
+  )
+}
+
 /**
  * @type {import('gatsby').GatsbyConfig}
  */
@@ -64,13 +73,16 @@ module.exports = {
           port: 27017
         },
         auth: {
-          user: 'default',
-          password: 'LPO1HvEWC9WW0uQZ'
+          user: process.env.MONGODB_USER,
+          password: process.env.MONGODB_PASSWORD
         },
         extraParams: {
           ssl: true,
           authSource: 'admin',
-          retryWrites: true
+          retryWrites: true,
+          // direct connection to a single replica member: allow reads even
+          // when this member is not the current primary
+          readPreference: 'secondaryPreferred'
         }
       }
     },

@@ -1,7 +1,6 @@
-import { LitElement, PropertyValues, css, html, nothing } from 'lit';
+import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
-import { TextPlugin } from 'gsap/TextPlugin';
 import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
 
 type ParsedCommand = {
@@ -20,8 +19,7 @@ enum CommandType {
   "status" = 5
 }
 
-
-gsap.registerPlugin(TextPlugin);
+type RouteMode = "listing" | "detail";
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -46,12 +44,21 @@ export class TerminalShell extends LitElement {
   private hasUserName = this.identity.getCachedName();
   private _resizeObs?: ResizeObserver;
   private _typingTimer?: number;
+  private _routeMode: RouteMode = "detail";
+  private _bootSequenceStarted = false;
+  private _interactionReady = false;
+  private _bookDataLoaded = false;
+  private _startupRafOne?: number;
+  private _startupRafTwo?: number;
+  private _asciiRenderRaf?: number;
+  private _asciiRenderQueue: Promise<void> = Promise.resolve();
+  private readonly _fallbackUserId = "reader";
 
   @query('#boot-log') private _bootLog!: HTMLDivElement;
   @query('#terminal-input') private _inputCLI!: HTMLTextAreaElement;
   @query('#terminal-output') private _outputCLI!: HTMLDivElement;
   @query('#terminal-form') private _formCLI!: HTMLFormElement;
-  @query('#raw-book-data') private _template!: HTMLDivElement;
+  @query('#raw-book-data') private _dataScript!: HTMLScriptElement;
   @query('#ascii-area') private _asciiArea!: HTMLElement;
   @query('#user-label') private _userLabel!: HTMLLabelElement;
   @query("#terminal-text") private _mirrorCLI!: HTMLDivElement;
@@ -182,39 +189,8 @@ export class TerminalShell extends LitElement {
 
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
-    // Get data
-    if (this._template) {
-      const items = this._template.querySelectorAll('.book-template');
-      this.bookData = Array.from(items).map(el => ({
-        title: el.getAttribute('data-title') || "Unknown",
-        author: el.getAttribute('data-author') || "Unknown",
-        id: el.getAttribute('data-id') || "Unknown"
-      }));
-      // Remove container
-      this._template.remove();
-
-      if (this.hasUserName) {
-        this.userID = this.hasUserName;
-
-      } else {
-        this.userID = this.identity.getFullIdentity(IDMode.default);
-      }
-      requestAnimationFrame(() => {
-        document.documentElement.style.setProperty(this.labelVar, `${this._userLabel.clientWidth}px`);
-
-      })
-
-      // this.labelWidth = this._userLabel.clientWidth;
-    }
-
-    if (this._mirrorCLI) {
-      this._resizeObs = new ResizeObserver(() => {
-        requestAnimationFrame(() => this._updateFakeCaretPosition());
-      });
-      this._resizeObs.observe(this._mirrorCLI);
-    }
-
-    this.startBootSequence();
+    this._runRequiredOnLoadStartup();
+    this._schedulePostPaintStartup();
   }
 
   protected updated(changed: Map<string, unknown>) {
@@ -231,27 +207,230 @@ export class TerminalShell extends LitElement {
     // this.startBootSequence();
   }
 
+  /**
+   * Clears observers and queued async work when the terminal disconnects.
+   *
+   * @returns `void`.
+   */
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._resizeObs?.disconnect();
+    this._resizeObs = undefined;
+
+    if (this._typingTimer != null) {
+      clearTimeout(this._typingTimer);
+      this._typingTimer = undefined;
+    }
+
+    if (this._startupRafOne != null) {
+      cancelAnimationFrame(this._startupRafOne);
+      this._startupRafOne = undefined;
+    }
+
+    if (this._startupRafTwo != null) {
+      cancelAnimationFrame(this._startupRafTwo);
+      this._startupRafTwo = undefined;
+    }
+
+    if (this._asciiRenderRaf != null) {
+      cancelAnimationFrame(this._asciiRenderRaf);
+      this._asciiRenderRaf = undefined;
+    }
+  }
+
+  /**
+   * Initializes only the state needed for the first readable render.
+   *
+   * @returns `void`.
+   */
+  private _runRequiredOnLoadStartup() {
+    this._routeMode = this._dataScript ? "listing" : "detail";
+    this.userID = this.hasUserName || this._fallbackUserId;
+    this._syncPromptWidth();
+  }
+
+  /**
+   * Defers the boot sequence until after the initial paint.
+   *
+   * @returns `void`.
+   */
+  private _schedulePostPaintStartup() {
+    if (this._bootSequenceStarted) return;
+
+    this._startupRafOne = requestAnimationFrame(() => {
+      this._startupRafOne = undefined;
+      this._startupRafTwo = requestAnimationFrame(() => {
+        this._startupRafTwo = undefined;
+        void this._runPostPaintStartup();
+      });
+    });
+  }
+
+  /**
+   * Starts the post-paint boot path once the element is still connected.
+   *
+   * @returns A promise that settles when boot initialization is done.
+   */
+  private async _runPostPaintStartup() {
+    if (!this.isConnected || this._bootSequenceStarted) return;
+
+    this._bootSequenceStarted = true;
+    await this.startBootSequence();
+  }
+
+  /**
+   * Lazily enables interaction-only behaviors on the first user input path.
+   *
+   * @returns `void`.
+   */
+  private _ensureInteractionStartup() {
+    if (this._interactionReady) return;
+
+    this._interactionReady = true;
+    this._ensureIdentityReady();
+    this._ensureCaretObserver();
+  }
+
+  /**
+   * Replaces the fallback prompt label with the real identity when needed.
+   *
+   * @returns `void`.
+   */
+  private _ensureIdentityReady() {
+    if (this.hasUserName || this.userID !== this._fallbackUserId) return;
+
+    this.userID = this.identity.getFullIdentity(IDMode.default);
+    this.identity.cacheName(this.userID);
+    this.hasUserName = this.userID;
+    this._syncPromptWidth();
+  }
+
+  /**
+   * Starts the caret observer only after terminal interaction is needed.
+   *
+   * @returns `void`.
+   */
+  private _ensureCaretObserver() {
+    if (this._resizeObs || !this._mirrorCLI || typeof ResizeObserver === "undefined") return;
+
+    this._resizeObs = new ResizeObserver(() => {
+      requestAnimationFrame(() => this._updateFakeCaretPosition());
+    });
+    this._resizeObs.observe(this._mirrorCLI);
+  }
+
+  /**
+   * Extracts hidden listing data only when a books command needs it.
+   *
+   * @returns `void`.
+   */
+  private _ensureBookDataLoaded() {
+    if (this._bookDataLoaded || !this._dataScript) return;
+
+    this.bookData = this._parseBookDataPayload(this._dataScript.textContent);
+    this._dataScript.remove();
+    this._bookDataLoaded = true;
+  }
+
+  /**
+   * Parses the compact listing payload embedded in the books page.
+   *
+   * @param payload - The serialized books payload from the non-executable script tag.
+   * @returns The normalized book data used by the terminal listing flow.
+   */
+  private _parseBookDataPayload(payload: string | null) {
+    if (!payload) return [];
+
+    try {
+      const parsed = JSON.parse(payload) as Array<Partial<{ title: string; author: string; id: string }>>;
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.map((item) => ({
+        title: item.title || "Unknown",
+        author: item.author || "Unknown",
+        id: item.id || "Unknown",
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Syncs the prompt label width to the CSS custom property used by the fake caret.
+   *
+   * @returns `void`.
+   */
+  private _syncPromptWidth() {
+    requestAnimationFrame(() => {
+      if (!this._userLabel) return;
+      document.documentElement.style.setProperty(this.labelVar, `${this._userLabel.clientWidth}px`);
+    });
+  }
+
+  /**
+   * Waits until the next paint before running a non-critical terminal task.
+   *
+   * @returns A promise resolved on the next animation frame.
+   */
+  private _deferNonCriticalTask(): Promise<void> {
+    if (!this.isConnected) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      this._asciiRenderRaf = requestAnimationFrame(() => {
+        this._asciiRenderRaf = undefined;
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Queues ASCII rendering after the current interaction completes so the command text can show first.
+   *
+   * @param id - The book art identifier to render.
+   * @returns `void`.
+   */
+  private _queueAsciiRenderForBook(id = 5) {
+    this._asciiRenderQueue = this._asciiRenderQueue
+      .catch(() => undefined)
+      .then(async () => {
+        await this._deferNonCriticalTask();
+        if (!this.isConnected || !this._asciiArea) return;
+
+        if (this._skipAnimations) {
+          await this._renderAsciiForBookInstant(id);
+          return;
+        }
+
+        await this._renderAsciiForBook(id);
+      });
+  }
+
+  /**
+   * Runs the minimal post-paint boot flow without holding route content behind long copy animations.
+   *
+   * @returns A promise that settles once the terminal is focusable.
+   */
   async startBootSequence() {
     const bootLog = this._bootLog;
     if (!bootLog) return;
-
-    // Todo: skip on reduced motion or mobile flag
-    // Todo: press Enter to skip boot
-
-    // bootLog.textContent = "";
 
     await this.appendToLog(
       `Welcome to book_os`,
       0,
       CommandType.title
     );
-    await this.appendToLog("Its raining outside, and you find shelter inside my library, make yourself at home and explore around.", 3, CommandType.log);
+    await this.appendToLog(
+      "Its raining outside, and you find shelter inside my library, make yourself at home and explore around.",
+      0,
+      CommandType.log
+    );
 
-    await this.appendToLog("...", 2, CommandType.log);
-
-    const isDirectBook = !!this.querySelector(".book-template");
-
-    if (isDirectBook) {
+    if (this._routeMode === "detail") {
       await this.handleDirectAccessReveal();
     } else {
       await this.appendToLog("TYPE 'HELP' FOR COMMANDS.", 0, CommandType.log);
@@ -290,6 +469,7 @@ export class TerminalShell extends LitElement {
   }
 
   private _handleInput(e: Event) {
+    this._ensureInteractionStartup();
     const el = e.target as HTMLTextAreaElement;
     var val = el.value;
     // this._textCLI.textContent = val;
@@ -315,7 +495,6 @@ export class TerminalShell extends LitElement {
 
     if (opts?.placeCaretAtEnd) {
       requestAnimationFrame(() => {
-        console.log("placeCaretAtEnd");
         const end = next.length;
         el.setSelectionRange(end, end);
       })
@@ -398,34 +577,26 @@ export class TerminalShell extends LitElement {
     }
   }
 
-  private animateBook(el: HTMLElement, index: number) {
-    // Find the path inside THIS specific book element
-    const titlePlaceholder = el.querySelector('.title-placeholder');
-    const fullTitle = el.getAttribute('data-title') || "";
-
-    const tl = gsap.timeline({ delay: index * 0.15 });
-
-    // Type the text
-    if (titlePlaceholder) {
-      tl.to(titlePlaceholder, {
-        duration: 2,
-        text: fullTitle,
-        ease: "none"
-      }, "-=0.5");
-    }
-  }
-
+  /**
+   * Finalizes the direct-book route without waiting on title animation work.
+   *
+   * @returns A promise that settles once the visible title content is ready.
+   */
   private async handleDirectAccessReveal() {
     await this.appendToLog(
       "DETECTED LOCAL DATA SOURCE... EXTRACTING RECORD.",
-      1,
+      0,
       CommandType.log
     );
 
     const existingBook = this.querySelector(".book-template") as HTMLElement | null;
     if (!existingBook) return;
+    const titlePlaceholder = existingBook.querySelector('.title-placeholder');
+    const fullTitle = existingBook.getAttribute('data-title') || "";
 
-    await this.animateBook(existingBook, 0);
+    if (titlePlaceholder) {
+      titlePlaceholder.textContent = fullTitle;
+    }
   }
 
   private async loadAscii(url: string) {
@@ -513,7 +684,13 @@ export class TerminalShell extends LitElement {
     this._asciiArea.appendChild(container);
   }
 
+  /**
+   * Logs the next batch of books immediately and pushes ASCII art rendering into the background queue.
+   *
+   * @returns A promise that settles once the textual batch output is written.
+   */
   private async displayNextBatch() {
+    this._ensureBookDataLoaded();
     const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
 
     if (batch.length === 0) {
@@ -523,11 +700,8 @@ export class TerminalShell extends LitElement {
     }
 
     for (const book of batch) {
-      if (!this._skipAnimations) {
-        await this._renderAsciiForBook(this.booksDisplayed + 1);
-      } else {
-        await this._renderAsciiForBookInstant(this.booksDisplayed + 1);
-      }
+      const artId = this.booksDisplayed + 1;
+      this._queueAsciiRenderForBook(artId);
 
       await this.appendToLog(`\n[${book.id}] ${book.title}`, 0.15, CommandType.logdata);
       await this.appendToLog(`      ${book.author}`, 0.15, CommandType.logdata);
@@ -545,6 +719,7 @@ export class TerminalShell extends LitElement {
 
   private async _handleSubmit(e: Event) {
     e.preventDefault();
+    this._ensureInteractionStartup();
 
     const form = e.target as HTMLFormElement;
     const raw = String(new FormData(form).get("command") ?? "");
@@ -646,8 +821,6 @@ export class TerminalShell extends LitElement {
       }
     }
 
-    console.log({ raw, cmd, flags, positionals })
-
     return { raw, cmd, flags, positionals };
   }
 
@@ -680,6 +853,7 @@ export class TerminalShell extends LitElement {
 
     if (!this.booted) return;
 
+    this._ensureInteractionStartup();
     const el = this._inputCLI; //e.currentTarget as HTMLTextAreaElement;
     el.focus();
     this.focused = true;
@@ -707,7 +881,6 @@ export class TerminalShell extends LitElement {
   }
 
   private _toggleSkipAnim() {
-    console.log('toggle', this._skipAnimations);
     this._skipAnimations = !this._skipAnimations
   }
 

@@ -1,5 +1,5 @@
 [context.production]
-  environment = { NODE_VERSION = "18.14.0" }
+  environment = { NODE_VERSION = "20.20.2" }
 
 [[headers]]
   for = "*.ttf"

@@ -27,54 +27,31 @@ html {
   --color-pink-950: #b3072e;
 
   --color-text-primary: var(--color-gray-800);
-  --color-text-secondary: var(--color-gray-600);
-  --color-text-muted: var(--color-gray-400);
-  --color-text-inverse: var(--color-pink-50);
-
   --color-bg-default: var(--color-pink-50);
-  --color-bg-surface: color-mix(in oklab, var(--color-pink-100) 30%, var(--color-pink-50) 70%); /* new warm-bg */
-  --color-bg-subtle: var(--color-pink-50);
 
   --color-border-default: var(--color-gray-400);
-  --color-border-subtle: var(--color-gray-300);
 
   --color-accent-primary: var(--color-pink-900);
-  --color-accent-secondary: var(--color-pink-950);
 
   --color-code-bg: var(--color-pink-100);
   --color-code-border: var(--color-gray-400);
   --color-text: var(--color-text-primary);
-
-  --color-scroll-track: var(--color-pink-100);
-  --color-scroll-thumb: var(--color-pink-200);
-  --color-sidebar: var(--color-pink-200);
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
 }
 
 html.dark {
   --color-text-primary: var(--color-gray-400);
-  --color-text-secondary: var(--color-gray-400);
-  --color-text-muted: var(--color-gray-500);
-  --color-text-inverse: var(--color-gray-900);
 
   --color-bg-default: var(--color-gray-900);
-  --color-bg-surface: var(--color-gray-800);
-  --color-bg-subtle: var(--color-gray-900);
 
   --color-border-default: var(--color-gray-800);
-  --color-border-subtle: var(--color-gray-700);
 
   --color-accent-primary: var(--color-pink-200);
-  --color-accent-secondary: var(--color-pink-300);
 
   --color-code-bg: var(--color-gray-900);
   --color-code-border: var(--color-gray-800);
   --color-text: var(--color-text-primary);
-
-  --color-scroll-track: var(--color-gray-800);
-  --color-scroll-thumb: var(--color-gray-700);
-  --color-sidebar: var(--color-gray-800);
 }
 
 @keyframes blink {
@@ -121,16 +98,12 @@ body {
 
 ::selection {
   background-color: var(--color-accent-primary);
-  color: var(--color-selection);
+  color: var(--color-bg-default);
 }
 
 ::-moz-selection {
   background-color: var(--color-accent-primary);
-  color: var(--color-selection);
-}
-
-#raw-book-data {
-  display: none;
+  color: var(--color-bg-default);
 }
 
 .hidden {
@@ -174,46 +147,12 @@ terminal-shell {
   display: flex;
   flex-flow: column-reverse;
   align-items: flex-start;
-  /* flex: auto; */
   width: 100%;
-  /* height: 30vh;
-  height: 30svh; */
   gap: 1rem;
-
-  &::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
 }
 
 #ascii-area {
-  display: inline-flex;
-  flex: 0;
-  gap: 0 .5rem;
-  width: 100%;
-  white-space: pre;
-  word-spacing: 0;
-  text-size-adjust: none;
-  -webkit-text-size-adjust: none;
-  font-size: 1vmin;
-  font-family: dejavu-sans-mono, sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  line-height: 1em;
-  letter-spacing: 0;
-  font-variant-ligatures: none;
-  font-feature-settings: "liga" 0;
-  color: var(--color-accent-primary);
-
-  div {
-    white-space: pre;
-    line-height: 1em;
-  }
-
-  @media (width >=768px) {
-    font-size: 1.5vmin;
-  }
+  display: none;
 }
 
 #terminal-cli {
@@ -242,155 +181,17 @@ terminal-shell {
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 10px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: var(--color-scroll-track);
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-scroll-thumb);
-  }
 }
 
 #boot-log {
-  /* position: absolute; */
-  /* inset: 0; */
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-
-  p {
-    max-width: 600px;
-    padding-block: 2px;
-  }
-
-  .title {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    padding-block: 1rem;
-    color: var(--color-accent-primary);
-    overflow: hidden;
-  }
-
-  .title::before {
-    top: 0;
-  }
-
-  .title::after {
-    bottom: 0;
-  }
-
-  .title::before,
-  .title::after {
-    position: absolute;
-    content: "=====================================================================================================================================================================================================================================================================================";
-    width: 100%;
-    left: 0;
-    white-space: nowrap;
-  }
-
-  .logdata {
-    text-indent: 1rem;
-    @media (width >=768px) {
-      text-indent: 3rem;
-    }
-  }
-
-  .status {
-    /* color: rgb(0, 0, 188); */
-  }
-
-  .error {
-    color: var(--color-pink-700);
-  }
-
-  .command {
-    position: sticky;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: space-between;
-    color: var(--color-accent-primary);
-    background-color: var(--color-bg-default);
-    z-index: 5;
-  }
-
-  .command::before {
-    content: "[";
-    display: inline-block;
-    margin-inline-end: 5px;
-  }
-
-  .command::after {
-    content: "]";
-    display: inline-block;
-    margin-inline-start: auto;
-  }
-}
-
-#terminal-sidebar {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-sidebar);
-  padding-block: 1rem;
-  padding-inline: 1rem;
-  transform: translateY(100%);
-  will-change: transform;
-  z-index: 9;
-
-  &.transition {
-    transition: transform 300ms ease 0ms;
-  }
-
-  &[open] {
-    transform: translateY(0%);
-  }
-
-  summary {
-    margin-block-end: 2rem;
-    text-align: center;
-    align-content: center;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .info {
-    padding-inline: .5rem;
-    margin-block-end: 1rem;
-  }
-
-  .ico::before {
-    content: "\25B2";
-    /* ▲ */
-    margin-inline-end: 1rem;
-  }
-
-  & summary::-webkit-details-marker,
-  & summary::marker {
-    display: none;
-    width: 0;
-
-  }
-
-  &[open] .ico::before {
-    content: "\25BC";
-    /* ▼ */
-  }
-
 }
 
 #terminal-form {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  /* align-items: baseline; */
   gap: .5rem;
 
   @media (width >=768px) {
@@ -406,7 +207,6 @@ terminal-shell {
 }
 
 #terminal-input {
-  /* flex: auto; */
   width: 100%;
   padding: 0;
   background-color: transparent;
@@ -415,7 +215,6 @@ terminal-shell {
   color: inherit;
   font-family: var(--font-mono);
   font-size: 14px;
-  /* white-space: pre-wrap; */
   letter-spacing: inherit;
   line-height: 1.2;
   resize: none;
@@ -434,18 +233,13 @@ terminal-shell {
 }
 
 #terminal-text {
-  /* chat ideia */
-  /* position: relative; */
-  /* white-space: pre-wrap; */
   overflow-wrap: anywhere;
   position: absolute;
   top: 1px;
-  /* left: var(--label-width); */
   left: 0;
   text-indent: calc(var(--label-width) + 5px);
   min-width: calc(var(--label-width) + 5px);
   display: inline-block;
-  /* align-items: center; */
   height: 100%;
   cursor: text;
   font-family: var(--font-mono);
@@ -454,15 +248,6 @@ terminal-shell {
   letter-spacing: inherit;
   pointer-events: none;
   z-index: 1;
-
-  /* &::after {
-    content: "";
-    display: inline-block;
-    height: 1rem;
-    width: .5rem;
-    background-color: var(--color-accent-primary);
-    animation: blink 1s infinite;
-  } */
 }
 
 #caret-anchor {
@@ -490,21 +275,6 @@ terminal-shell {
   }
 }
 
-#mobile-actions {
-  .btn {
-    display: inline;
-    padding-block: 1rem;
-    padding-inline: 0;
-    color: var(--color-accent-primary);
-  }
-}
-
-#skip {
-  @media (width >=768px) {
-    margin-inline-start: auto;
-  }
-}
-
 .btn {
   display: flex;
   align-items: center;
@@ -516,12 +286,4 @@ terminal-shell {
   color: inherit;
   font-family: var(--font-mono);
   cursor: pointer;
-
-  &::before {
-    content: "[";
-  }
-
-  &::after {
-    content: "]";
-  }
 }

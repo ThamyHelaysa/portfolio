@@ -5,12 +5,12 @@ description: A growing list of books I’ve read (or pretended to). If you think
 permalink: /books/
 ---
 
-<div id="raw-book-data">
+<script id="raw-book-data" type="application/json">[
   {% for book in collections.books %}
-    {% set title = book.data.title %}
-    {% set author = book.data.author %}
-    {% set id = book.data.id %}
-    {% set content = "" %}
-    {% include "partials/book-shell.njk" %}
+    {
+      "id": {{ book.data.id | dump | safe }},
+      "title": {{ book.data.title | dump | safe }},
+      "author": {{ book.data.author | dump | safe }}
+    }{% if not loop.last %},{% endif %}
   {% endfor %}
-</div>
+]</script>

@@ -268,6 +268,10 @@ export default function (eleventyConfig: any) {
     "src/assets/asciiart": "assets/asciiart"
   });
 
+  eleventyConfig.addPassthroughCopy({
+    "src/assets/styles/books-terminal-deferred.css": "assets/css/books-terminal-deferred.css"
+  });
+
   return {
     dir: {
       input: 'src',

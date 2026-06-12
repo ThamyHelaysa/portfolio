@@ -22,6 +22,12 @@
 
     {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
     {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
+
+    {% set deferredBooksShellCssContent %}{% include "inline-books-shell-css.js" %}{% endset %}
+    {% set deferredBooksShellCssHash = deferredBooksShellCssContent | trim | cspHash %}
+
+    {% set cspScriptSrc = cspScriptSrc + " " + deferredBooksShellCssHash %}
+    {% set scriptsOutput = scriptsOutput + '<script>' + (deferredBooksShellCssContent | safe | trim) + '</script>' %}
     
 
     {# Handle optional page script #}
@@ -76,7 +82,6 @@
     {{ stylesOutput | safe }}
 
     <link rel="preload" href="/assets/fonts/ibm-plex-mono-v20-latin/ibm-plex-mono-v20-latin-regular.woff2" as="font" type="font/woff2" crossorigin/>
-    <link rel="preload" href="/assets/fonts/ibm-plex-mono-v20-latin/ibm-plex-mono-v20-latin-italic.woff2" as="font" type="font/woff2" crossorigin/>
 
     {{ scriptsOutput | safe }}
 

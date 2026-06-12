@@ -1,2 +1,2 @@
 export const tags = ["notes"];
-export const permaLink = false;
+export const permalink = false;

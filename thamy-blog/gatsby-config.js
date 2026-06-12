@@ -70,7 +70,10 @@ module.exports = {
         extraParams: {
           ssl: true,
           authSource: 'admin',
-          retryWrites: true
+          retryWrites: true,
+          // direct connection to a single replica member: allow reads even
+          // when this member is not the current primary
+          readPreference: 'secondaryPreferred'
         }
       }
     },

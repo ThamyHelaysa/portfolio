@@ -15,3 +15,7 @@ _Avoid_: program, process
 **Summon**:
 The act of opening the site-wide Terminal overlay from any base-layout page (via `Ctrl/Cmd+Shift+C` or the unlock button). Distinct from the books page, where the Terminal is always present.
 _Avoid_: open, launch, invoke
+
+**Terminal palette**:
+The Terminal's own colour token set, derived from the active site theme's primary-pink **hue** and **brightness** rather than copied from the site's base tokens or fixed dark. It flips with the theme toggle while keeping its own contrast/accent structure. See [ADR-0002](docs/adr/0002-terminal-palette-derived-from-theme.md).
+_Avoid_: terminal colors, terminal theme

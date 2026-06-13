@@ -4,6 +4,7 @@ import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from "../_helpers/animationManager.ts";
 import { CommandType, TerminalCore } from "../_helpers/terminal/core.ts";
 import type { ParsedCommand } from "../_helpers/terminal/parser.ts";
+import { fetchSiteIndex, filterSection, matchEntry } from "../_helpers/terminal/site-index.ts";
 
 /**
  * Site-wide summonable terminal overlay (the "cheat console").
@@ -193,16 +194,68 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nmore commands coming soon",
+          "help - list commands\nls [section] - list site content (posts, books, pages)\nopen <slug> - go to a page",
           0.3,
           CommandType.logdata
         );
+      },
+
+      ls: async (ctx: ParsedCommand) => this._listContent(ctx),
+      list: async (ctx: ParsedCommand) => this._listContent(ctx),
+
+      open: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        const query = ctx.positionals.join(" ");
+        if (!query) {
+          await this._core.append("usage: open <slug>", 0.2, CommandType.error);
+          return;
+        }
+
+        const entries = await fetchSiteIndex();
+        const result = matchEntry(entries, query);
+
+        if (result.kind === "match") {
+          await this._core.append(`opening ${result.entry.title}...`, 0.2, CommandType.status);
+          window.location.href = result.entry.url;
+        } else if (result.kind === "ambiguous") {
+          await this._core.append(`"${query}" is ambiguous — did you mean:`, 0.2, CommandType.error);
+          await this._core.append(
+            result.entries.map((e) => `  ${e.title}`).join("\n"),
+            0.2,
+            CommandType.logdata
+          );
+        } else {
+          await this._core.append(`no match for "${query}"`, 0.2, CommandType.error);
+        }
       },
     },
     logEl: () => this._log,
     skipAnimations: () => this._skipAnimations,
     onLineWritten: () => this._scrollToBottom(),
   });
+
+  /**
+   * Lists site content for `ls` / `list [section]`, optionally filtered.
+   *
+   * @param ctx - The parsed command (first positional is an optional section).
+   * @returns A promise that settles once the listing is written.
+   */
+  private async _listContent(ctx: ParsedCommand): Promise<void> {
+    await this._core.append(ctx.raw, 0.2, CommandType.command);
+
+    const section = ctx.positionals[0];
+    const entries = filterSection(await fetchSiteIndex(), section);
+
+    if (entries.length === 0) {
+      await this._core.append(section ? `nothing in "${section}"` : "nothing to list", 0.2, CommandType.error);
+      return;
+    }
+
+    await this._core.append(section ? section : "all content", 0.2, CommandType.title);
+    for (const entry of entries) {
+      await this._core.append(`  ${entry.title}`, 0.05, CommandType.logdata);
+    }
+  }
 
   async firstUpdated() {
     try {

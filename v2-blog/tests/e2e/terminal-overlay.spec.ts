@@ -25,6 +25,25 @@ test("Ctrl+Shift+C summons the overlay, runs help, and Esc closes it", async ({ 
   await expect(overlay).not.toHaveAttribute("open", "");
 });
 
+test("ls lists content and open navigates to a post", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+
+  const input = page.locator("#overlay-input");
+  await expect(input).toBeFocused();
+
+  // ls lists site content.
+  await input.fill("ls");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#overlay-log")).toContainText("Ngrok");
+
+  // open navigates to the matching post.
+  await input.fill("open ngrok");
+  await page.keyboard.press("Enter");
+  await page.waitForURL("**/blog/2025/using-ngrok-to-test-some-web-things/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Ngrok");
+});
+
 test("the overlay is not summonable on the books terminal page", async ({ page }) => {
   await page.goto("/books/");
   await page.keyboard.press("Control+Shift+C");

@@ -39,9 +39,9 @@ html {
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
 
-  /* Terminal palette — derived from the theme's pink accent (hue) mixed toward
-     white per theme brightness (ADR-0002). Keep in sync with global.css. */
-  --term-bg: color-mix(in oklab, var(--color-accent-primary) 6%, white);
+  /* Terminal palette (ADR-0002). Background uses the theme default; surface,
+     border and text share the pink accent hue. Keep in sync with global.css. */
+  --term-bg: var(--color-bg-default);
   --term-surface: color-mix(in oklab, var(--color-accent-primary) 12%, white);
   --term-border: color-mix(in oklab, var(--color-accent-primary) 28%, white);
   --term-text: color-mix(in oklab, var(--color-accent-primary) 78%, black);
@@ -68,7 +68,7 @@ html.dark {
   --color-text: var(--color-text-primary);
 
   /* Dark theme: same pink hue, mixed toward black (ADR-0002). */
-  --term-bg: color-mix(in oklab, var(--color-accent-primary) 8%, #0c0a14);
+  --term-bg: var(--color-bg-default);
   --term-surface: color-mix(in oklab, var(--color-accent-primary) 14%, #0c0a14);
   --term-border: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-gray-800));
   --term-text: color-mix(in oklab, var(--color-accent-primary) 32%, white);

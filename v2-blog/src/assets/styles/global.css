@@ -100,9 +100,9 @@
     --color-h3: color-mix(in oklab, var(--color-pink-950) 90%, white 10%);
     --color-h4: color-mix(in oklab, var(--color-pink-950) 95%, white 5%);
 
-    /* Terminal palette — pink-accent hue, light brightness (ADR-0002).
-       Keep in sync with src/_includes/css/terminal.css. */
-    --term-bg: color-mix(in oklab, var(--color-accent-primary) 6%, white);
+    /* Terminal palette (ADR-0002). Background uses the theme default; surface,
+       border and text share the pink accent hue. Keep in sync with terminal.css. */
+    --term-bg: var(--color-bg-default);
     --term-surface: color-mix(in oklab, var(--color-accent-primary) 12%, white);
     --term-border: color-mix(in oklab, var(--color-accent-primary) 28%, white);
     --term-text: color-mix(in oklab, var(--color-accent-primary) 78%, black);
@@ -140,7 +140,7 @@
     --color-sidebar: var(--color-gray-800);
 
     /* Dark theme: same pink hue, mixed toward black (ADR-0002). */
-    --term-bg: color-mix(in oklab, var(--color-accent-primary) 8%, #0c0a14);
+    --term-bg: var(--color-bg-default);
     --term-surface: color-mix(in oklab, var(--color-accent-primary) 14%, #0c0a14);
     --term-border: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-gray-800));
     --term-text: color-mix(in oklab, var(--color-accent-primary) 32%, white);

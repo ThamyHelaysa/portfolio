@@ -22,3 +22,5 @@ v2-blog/.lighthouseci/
 v2-blog/reports/
 # claude code local settings
 .claude/settings.local.json
+# root CLAUDE.md is local-only session context; AGENTS.md is the shared doc
+/CLAUDE.md

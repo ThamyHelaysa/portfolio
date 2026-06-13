@@ -1,0 +1,32 @@
+import { expect, test } from "@playwright/test";
+
+test("Ctrl+Shift+C summons the overlay, runs help, and Esc closes it", async ({ page }) => {
+  await page.goto("/");
+
+  // Not present until summoned (lazy-loaded).
+  await expect(page.locator("terminal-overlay")).toHaveCount(0);
+
+  await page.keyboard.press("Control+Shift+C");
+
+  const overlay = page.locator("terminal-overlay");
+  await expect(overlay).toHaveAttribute("open", "");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toBeVisible();
+
+  // Input is focused on open; type help and run it.
+  const input = page.locator("#overlay-input");
+  await expect(input).toBeFocused();
+  await input.fill("help");
+  await page.keyboard.press("Enter");
+
+  await expect(page.locator("#overlay-log")).toContainText("help - list commands");
+
+  // Esc closes.
+  await page.keyboard.press("Escape");
+  await expect(overlay).not.toHaveAttribute("open", "");
+});
+
+test("the overlay is not summonable on the books terminal page", async ({ page }) => {
+  await page.goto("/books/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("terminal-overlay")).toHaveCount(0);
+});

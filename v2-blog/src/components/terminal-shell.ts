@@ -2,22 +2,8 @@ import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
-
-type ParsedCommand = {
-  raw: string;                 // original command
-  cmd: string;                 // "list", "book",
-  flags: Record<string, string | boolean>;
-  positionals: string[];       // ["5"] or ["id","5"]
-};
-
-enum CommandType {
-  "log" = 0,
-  "logdata" = 1,
-  "command" = 2,
-  "title" = 3,
-  "error" = 4,
-  "status" = 5
-}
+import { CommandType, TerminalCore } from '../_helpers/terminal/core.ts';
+import type { ParsedCommand } from '../_helpers/terminal/parser.ts';
 
 type RouteMode = "listing" | "detail";
 
@@ -69,8 +55,6 @@ export class TerminalShell extends LitElement {
 
   @state() private booksDisplayed = 0;
   @state() private readonly batchSize = 3;
-  @state() private history: string[] = [];
-  @state() private histIndex = 0;
   @state() private commandCLI = "";
   @state() private focused = false;
   @state() private isTyping = false;
@@ -186,6 +170,14 @@ export class TerminalShell extends LitElement {
         // await this.appendToLog("SCREEN CLEARED.", 0.05, CommandType.log);
       },
     };
+
+  // Declared after COMMANDS so the initializer can hand it to the core.
+  private _core = new TerminalCore({
+    commands: this.COMMANDS,
+    logEl: () => this.querySelector("#boot-log"),
+    skipAnimations: () => this._skipAnimations,
+    onLineWritten: () => this._scrollToBottom(this._outputCLI),
+  });
 
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -443,29 +435,16 @@ export class TerminalShell extends LitElement {
     });
   }
 
+  /**
+   * Writes a message to the boot log through the terminal core.
+   *
+   * @param text - The message; newlines become separate log lines.
+   * @param duration - Per-line typing animation duration in seconds.
+   * @param kind - The visual kind controlling the line's CSS class.
+   * @returns A promise that settles when all lines are written.
+   */
   private async appendToLog(text: string, duration = 0.2, kind: CommandType) {
-    const log = this.querySelector("#boot-log");
-    if (!log) return;
-
-    // Normalize newlines and split
-    const lines = String(text).replace(/\r\n/g, "\n").split("\n");
-
-    for (const line of lines) {
-      const p = document.createElement("p");
-      p.className = `terminal-msg ${CommandType[kind]}`;
-      p.textContent = "";
-      log.appendChild(p);
-
-      const full = `${line}`;
-
-      if (this._skipAnimations) {
-        p.textContent = full;
-      } else {
-        await this._typeTextPromise(p, full, duration);
-      }
-
-      this._scrollToBottom(this._outputCLI);
-    }
+    await this._core.append(text, duration, kind);
   }
 
   private _handleInput(e: Event) {
@@ -553,28 +532,21 @@ export class TerminalShell extends LitElement {
     e.preventDefault();
   }
 
+  /**
+   * Applies ArrowUp/ArrowDown history navigation to the input field.
+   *
+   * @param type - Which direction the user is stepping through history.
+   * @returns `void`.
+   */
   private _handleHistory(type: "ArrowUp" | "ArrowDown") {
-    var histLen = this.history.length
+    const value = type === "ArrowUp"
+      ? this._core.history.prev()
+      : this._core.history.next();
 
-    if (type === "ArrowUp") {
-      if (!histLen) return;
-      this.histIndex = this.histIndex === 0
-        ? 0
-        : this.histIndex - 1;
+    if (value === undefined) return;
 
-      this._inputCLI.value = this.history[this.histIndex];
-      this.commandCLI = this._inputCLI.value;
-      return;
-    } else {
-      if (!histLen) return;
-      this.histIndex = this.histIndex === histLen
-        ? this.histIndex
-        : this.histIndex + 1;
-
-      this._inputCLI.value = this.history[this.histIndex] || "";
-      this.commandCLI = this._inputCLI.value;
-      return;
-    }
+    this._inputCLI.value = value;
+    this.commandCLI = value;
   }
 
   /**
@@ -603,24 +575,6 @@ export class TerminalShell extends LitElement {
     const res = await fetch(url, { cache: "force-cache" });
     if (!res.ok) throw new Error("Failed to load ASCII JSON");
     return res.json();
-  }
-
-  private _typeTextPromise(el: HTMLElement, fullText: string, durationSec = 0.5): Promise<void> {
-    return new Promise((resolve) => {
-      const state = { i: 0 };
-      gsap.to(state, {
-        i: fullText.length,
-        duration: durationSec,
-        ease: "none",
-        onUpdate: () => {
-          el.textContent = fullText.slice(0, Math.floor(state.i));
-        },
-        onComplete: () => {
-          el.textContent = fullText;
-          resolve();
-        }
-      });
-    });
   }
 
   private async _getAsciiLines(url: string) {
@@ -731,33 +685,14 @@ export class TerminalShell extends LitElement {
     await this._executeCommand(raw);
   }
 
+  /**
+   * Runs one submitted input line through the terminal core.
+   *
+   * @param input - The raw text submitted to the terminal.
+   * @returns A promise that settles when the command finishes.
+   */
   private async _executeCommand(input: string) {
-    // const normalized = raw.trim().replace(/\s+/g, " ");
-    // const lower = normalized.toLowerCase();
-
-    const parsed = this._parseCommand(input);
-    // Ignore empty command
-    if (!parsed.raw) {
-      this._scrollToBottom(this._outputCLI);
-      return;
-    }
-
-    // Push history (avoid duplicates)
-    if (this.history.length === 0 || this.history[this.history.length - 1] !== parsed.raw) {
-      this.history.push(parsed.raw);
-    }
-    this.histIndex = this.history.length;
-
-    const handler = this.COMMANDS[parsed.cmd];
-
-    if (!handler) {
-      this.appendToLog(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, CommandType.error);
-      this._scrollToBottom(this._outputCLI);
-      return;
-    }
-
-    await handler(parsed);
-
+    await this._core.run(input);
     this._scrollToBottom(this._outputCLI);
   }
 
@@ -791,37 +726,6 @@ export class TerminalShell extends LitElement {
     if (cmd === "help") return this._runCommand("help");
     if (this.quickActionsExecute) return this._runCommand(cmd);
     this._insertCommand(cmd, "replace");
-  }
-
-  private _parseCommand(input: string): ParsedCommand {
-    const raw = input.trim().replace(/\s+/g, " ");
-    const tokens = raw.length ? raw.split(" ") : [];
-
-    const cmd = (tokens.shift() ?? "").toLowerCase();
-
-    const flags: Record<string, string | boolean> = {};
-    const positionals: string[] = [];
-
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-
-      if (t.startsWith("--")) {
-        const name = t.slice(2).toLowerCase();
-
-        // --flag value (if next token exists and isn't another flag)
-        if (tokens[i + 1] && !tokens[i + 1].startsWith("--")) {
-          flags[name] = tokens[i + 1];
-          i++;
-        } else {
-          // --flag (boolean)
-          flags[name] = true;
-        }
-      } else {
-        positionals.push(t);
-      }
-    }
-
-    return { raw, cmd, flags, positionals };
   }
 
   // Todo: decide if id can be predetermined

@@ -38,6 +38,20 @@ html {
   --color-text: var(--color-text-primary);
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
+
+  /* Terminal palette (ADR-0002). Background uses the theme default; surface,
+     border and text share the pink accent hue. Keep in sync with global.css. */
+  --term-bg: var(--color-bg-default);
+  --term-surface: color-mix(in oklab, var(--color-accent-primary) 12%, white);
+  --term-border: color-mix(in oklab, var(--color-accent-primary) 28%, white);
+  --term-text: color-mix(in oklab, var(--color-accent-primary) 78%, black);
+  --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
+  --term-accent: var(--color-accent-primary);
+  --term-on-accent: var(--color-pink-50);
+  --term-prompt: var(--color-accent-primary);
+  --term-ok-bg: #2fa46a;
+  --term-err-bg: #e5484d;
+  --term-badge-text: #fff;
 }
 
 html.dark {
@@ -52,6 +66,17 @@ html.dark {
   --color-code-bg: var(--color-gray-900);
   --color-code-border: var(--color-gray-800);
   --color-text: var(--color-text-primary);
+
+  /* Dark theme: same pink hue, mixed toward black (ADR-0002). */
+  --term-bg: var(--color-bg-default);
+  --term-surface: color-mix(in oklab, var(--color-accent-primary) 14%, #0c0a14);
+  --term-border: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-gray-800));
+  --term-text: color-mix(in oklab, var(--color-accent-primary) 32%, white);
+  --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
+  --term-on-accent: var(--color-gray-900);
+  --term-ok-bg: #46d18a;
+  --term-err-bg: #ff6b6b;
+  --term-badge-text: #15131f;
 }
 
 @keyframes blink {
@@ -136,10 +161,11 @@ terminal-shell {
   width: 100%;
   height: 100%;
   padding: 1rem;
-  color: var(--color-text);
+  background-color: var(--term-bg);
+  color: var(--term-text);
   font-family: var(--font-mono);
   text-transform: lowercase;
-  border: 1px solid var(--color-code-border);
+  border: 1px solid var(--term-border);
 }
 
 

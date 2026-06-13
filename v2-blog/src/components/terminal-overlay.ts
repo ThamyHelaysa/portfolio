@@ -33,12 +33,12 @@ export class TerminalOverlay extends LitElement {
       max-height: 45vh;
       padding: 0;
       border: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      border-bottom: 1px solid var(--term-border);
       display: block;
       transform: translateY(-100%);
-      color: #e8e6e3;
+      color: var(--term-text);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-      font-family: ui-monospace, "IBM Plex Mono", monospace;
+      font-family: var(--font-mono, ui-monospace, "IBM Plex Mono", monospace);
     }
 
     /* A real painted fill rather than a CSS background on the popover element:
@@ -48,7 +48,7 @@ export class TerminalOverlay extends LitElement {
       position: absolute;
       inset: 0;
       z-index: 0;
-      background: rgba(20, 18, 24, 0.96);
+      background: var(--term-bg);
     }
 
     #overlay-inner {
@@ -73,17 +73,87 @@ export class TerminalOverlay extends LitElement {
       line-height: 1.5;
     }
 
+    /* Linear-stream lines: badge pills from the core's data-badge attribute. */
+    .terminal-msg {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 0.6ch;
+    }
+
+    .terminal-msg[data-badge]::before {
+      content: attr(data-badge);
+      flex: none;
+      align-self: flex-start;
+      padding: 0 0.6ch;
+      font-weight: 600;
+      font-size: 0.82em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--term-accent);
+      color: var(--term-on-accent);
+    }
+
+    .terminal-msg.error[data-badge]::before {
+      background: var(--term-err-bg);
+      color: var(--term-badge-text);
+    }
+
+    .terminal-msg.status[data-badge]::before {
+      background: var(--term-ok-bg);
+      color: var(--term-badge-text);
+    }
+
+    .terminal-msg.command::before {
+      content: "$";
+      flex: none;
+      color: var(--term-prompt);
+      font-weight: 600;
+    }
+
     #overlay-form {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid var(--term-border);
       padding: 0.6rem 1.25rem;
     }
 
     #overlay-form::before {
       content: "$";
-      opacity: 0.6;
+      color: var(--term-prompt);
+      font-weight: 600;
+    }
+
+    /* Segmented vim-style status bar. */
+    #overlay-status {
+      display: flex;
+      align-items: stretch;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    #overlay-status > span {
+      padding: 0.2rem 0.8rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-mode {
+      background: var(--term-accent);
+      color: var(--term-on-accent);
+      text-transform: uppercase;
+    }
+
+    .status-path {
+      flex: 1;
+      color: var(--term-muted);
+    }
+
+    .status-id {
+      background: var(--term-surface);
+      color: var(--term-muted);
     }
 
     #overlay-input {
@@ -280,6 +350,11 @@ export class TerminalOverlay extends LitElement {
               autocomplete="off"
             ></textarea>
           </form>
+          <div id="overlay-status" aria-hidden="true">
+            <span class="status-mode">cheat</span>
+            <span class="status-path">~/book_os</span>
+            <span class="status-id">◍ reader</span>
+          </div>
         </div>
       </section>
     `;

@@ -90,34 +90,55 @@ html.dark {
 
 #boot-log {
   p {
-    max-width: 600px;
+    max-width: 640px;
     padding-block: 2px;
   }
 
-  .title {
-    position: relative;
+  /* Linear-stream lines: command echoes get a prompt glyph; title/error/status
+     get an uppercase badge pill from the core's data-badge attribute. */
+  .terminal-msg {
     display: flex;
-    justify-content: center;
-    padding-block: 1rem;
-    color: var(--color-accent-primary);
-    overflow: hidden;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.6ch;
   }
 
-  .title::before {
+  .terminal-msg[data-badge]::before {
+    content: attr(data-badge);
+    flex: none;
+    align-self: flex-start;
+    padding: 0 0.6ch;
+    font-weight: 600;
+    font-size: 0.82em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--term-accent);
+    color: var(--term-on-accent);
+  }
+
+  .error[data-badge]::before {
+    background: var(--term-err-bg);
+    color: var(--term-badge-text);
+  }
+
+  .status[data-badge]::before {
+    background: var(--term-ok-bg);
+    color: var(--term-badge-text);
+  }
+
+  .command {
+    position: sticky;
     top: 0;
-  }
-
-  .title::after {
-    bottom: 0;
-  }
-
-  .title::before,
-  .title::after {
-    position: absolute;
-    content: "=====================================================================================================================================================================================================================================================================================";
-    width: 100%;
     left: 0;
-    white-space: nowrap;
+    color: var(--term-prompt);
+    background-color: var(--term-bg);
+    z-index: 5;
+  }
+
+  .command::before {
+    content: "$";
+    flex: none;
+    font-weight: 600;
   }
 
   .logdata {
@@ -126,32 +147,38 @@ html.dark {
       text-indent: 3rem;
     }
   }
+}
 
-  .error {
-    color: var(--color-pink-700);
-  }
+/* Segmented vim-style status bar at the foot of the books terminal. */
+#terminal-status {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-block-start: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 
-  .command {
-    position: sticky;
-    top: 0;
-    left: 0;
+  & > span {
     display: flex;
-    justify-content: space-between;
-    color: var(--color-accent-primary);
-    background-color: var(--color-bg-default);
-    z-index: 5;
+    align-items: center;
+    padding: 0.2rem 0.8rem;
   }
 
-  .command::before {
-    content: "[";
-    display: inline-block;
-    margin-inline-end: 5px;
+  .status-mode {
+    background: var(--term-accent);
+    color: var(--term-on-accent);
+    text-transform: uppercase;
   }
 
-  .command::after {
-    content: "]";
-    display: inline-block;
-    margin-inline-start: auto;
+  .status-path {
+    flex: 1;
+    color: var(--term-muted);
+  }
+
+  .status-id {
+    background: var(--term-surface);
+    color: var(--term-muted);
   }
 }
 

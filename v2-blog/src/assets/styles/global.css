@@ -99,6 +99,20 @@
     --color-h2: color-mix(in oklab, var(--color-pink-900) 90%, white 10%);
     --color-h3: color-mix(in oklab, var(--color-pink-950) 90%, white 10%);
     --color-h4: color-mix(in oklab, var(--color-pink-950) 95%, white 5%);
+
+    /* Terminal palette (ADR-0002). Background uses the theme default; surface,
+       border and text share the pink accent hue. Keep in sync with terminal.css. */
+    --term-bg: var(--color-bg-default);
+    --term-surface: color-mix(in oklab, var(--color-accent-primary) 12%, white);
+    --term-border: color-mix(in oklab, var(--color-accent-primary) 28%, white);
+    --term-text: color-mix(in oklab, var(--color-accent-primary) 78%, black);
+    --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
+    --term-accent: var(--color-accent-primary);
+    --term-on-accent: var(--color-pink-50);
+    --term-prompt: var(--color-accent-primary);
+    --term-ok-bg: #2fa46a;
+    --term-err-bg: #e5484d;
+    --term-badge-text: #fff;
   }
 
   html.dark {
@@ -124,6 +138,17 @@
     --color-scroll-track: var(--color-gray-800);
     --color-scroll-thumb: var(--color-gray-700);
     --color-sidebar: var(--color-gray-800);
+
+    /* Dark theme: same pink hue, mixed toward black (ADR-0002). */
+    --term-bg: var(--color-bg-default);
+    --term-surface: color-mix(in oklab, var(--color-accent-primary) 14%, #0c0a14);
+    --term-border: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-gray-800));
+    --term-text: color-mix(in oklab, var(--color-accent-primary) 32%, white);
+    --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
+    --term-on-accent: var(--color-gray-900);
+    --term-ok-bg: #46d18a;
+    --term-err-bg: #ff6b6b;
+    --term-badge-text: #15131f;
 
     --color-h1: var(--color-accent-primary);
     --color-h2: var(--color-pink-400);

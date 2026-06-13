@@ -58,6 +58,16 @@ describe("TerminalCore", () => {
     expect(logEl.querySelectorAll("p.terminal-msg.log")[1].textContent).toBe("second");
   });
 
+  it("stamps a data-badge on badged kinds and omits it on plain kinds", async () => {
+    const { core, logEl } = createCore();
+
+    await core.append("uh oh", 0, CommandType.error);
+    await core.append("just info", 0, CommandType.log);
+
+    expect(logEl.querySelector("p.error")?.getAttribute("data-badge")).toBe("ERR");
+    expect(logEl.querySelector("p.log")?.hasAttribute("data-badge")).toBe(false);
+  });
+
   it("notifies onLineWritten after each appended line", async () => {
     const onLineWritten = vi.fn();
     const { core, logEl } = createCore({ onLineWritten });

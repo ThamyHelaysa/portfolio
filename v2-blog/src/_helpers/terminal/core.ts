@@ -17,6 +17,26 @@ export enum CommandType {
 
 export type CommandHandler = (ctx: ParsedCommand) => Promise<void> | void;
 
+/**
+ * Maps a log line's kind to its short uppercase badge label.
+ * Shared by every terminal surface so badges stay consistent (see ADR-0002).
+ *
+ * @param type - The line kind.
+ * @returns The badge label, or `undefined` for kinds shown without a badge.
+ */
+export function commandBadge(type: CommandType): string | undefined {
+  switch (type) {
+    case CommandType.title:
+      return "TITLE";
+    case CommandType.error:
+      return "ERR";
+    case CommandType.status:
+      return "OK";
+    default:
+      return undefined;
+  }
+}
+
 type TerminalCoreOptions = {
   /** Command registry; consumers register their own command sets. */
   commands: Record<string, CommandHandler>;
@@ -112,9 +132,12 @@ export class TerminalCore {
 
     const lines = String(text).replace(/\r\n/g, "\n").split("\n");
 
+    const badge = commandBadge(kind);
+
     for (const line of lines) {
       const p = document.createElement("p");
       p.className = `terminal-msg ${CommandType[kind]}`;
+      if (badge) p.dataset.badge = badge;
       p.textContent = "";
       log.appendChild(p);
 

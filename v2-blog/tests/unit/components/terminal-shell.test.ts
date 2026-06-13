@@ -161,9 +161,11 @@ describe("terminal-shell startup phases", () => {
     appendSpy.mockResolvedValue(undefined);
 
     await element.startBootSequence();
+    await element.updateComplete;
 
     expect(revealSpy).not.toHaveBeenCalled();
-    expect(element.booted).toBe(true);
+    // booted is now internal state; assert its observable effect: input is enabled.
+    expect(element.querySelector("#terminal-input")?.hasAttribute("disabled")).toBe(false);
     expect(appendSpy).toHaveBeenCalled();
   });
 

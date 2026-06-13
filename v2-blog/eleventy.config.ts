@@ -107,6 +107,10 @@ export default function (eleventyConfig: any) {
       {
         input: './src/assets/styles/menu-mobile-shadow.css',
         output: './dist/assets/css/menu-mobile-shadow.css'
+      },
+      {
+        input: './src/assets/styles/terminal-overlay-shadow.css',
+        output: './dist/assets/css/terminal-overlay-shadow.css'
       }
     ];
 

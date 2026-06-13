@@ -20,3 +20,5 @@ v2-blog/.env
 .lighthouseci/
 v2-blog/.lighthouseci/
 v2-blog/reports/
+# claude code local settings
+.claude/settings.local.json

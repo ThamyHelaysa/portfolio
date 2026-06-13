@@ -916,6 +916,11 @@ export class TerminalShell extends LitElement {
               id="terminal-text"><span id="terminal-mirror">${this.shell.command}</span><span id="caret-anchor">&#8203;</span><span id="fake-caret" aria-hidden="true"></span></div>
           </div>
         </form>
+        <footer id="terminal-status" aria-hidden="true">
+          <span class="status-mode">${this.shell.routeMode === "detail" ? "read" : "browse"}</span>
+          <span class="status-path">~/book_os</span>
+          <span class="status-id">◍ ${this.userID || "reader"}</span>
+        </footer>
       </div>
     `;
   }

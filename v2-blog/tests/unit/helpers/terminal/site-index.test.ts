@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, renderSubtree } from "../../../../src/_helpers/terminal/site-index.ts";
+import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, renderSubtree, resolveOpen, sanitizeNavQuery } from "../../../../src/_helpers/terminal/site-index.ts";
 
 const ENTRIES = parseSiteIndex([
   { section: "posts", title: "Why I never heard of Lit", url: "/blog/2025/why-i-never-heard-of-lit/" },
@@ -173,5 +173,38 @@ describe("renderSubtree", () => {
     expect(joined).toContain("├── ");             // a non-last leaf uses the tee connector
     expect(joined).toContain("why-i-never-heard-of-lit");
     expect(lines.some((l) => l.includes("└── test-driven-fun"))).toBe(true); // last leaf, corner
+  });
+});
+
+describe("sanitizeNavQuery", () => {
+  it("strips disallowed characters, collapses separators, trims and caps length", () => {
+    expect(sanitizeNavQuery("  Blog/2025  ")).toBe("blog/2025");
+    expect(sanitizeNavQuery("books//ring")).toBe("books/ring");
+    expect(sanitizeNavQuery("ring<script>alert(1)</script>")).toBe("ringscriptalert1/script");
+    expect(sanitizeNavQuery("../../etc/passwd")).toBe("etc/passwd");
+    expect(sanitizeNavQuery("a".repeat(500)).length).toBeLessThanOrEqual(120);
+  });
+});
+
+describe("resolveOpen", () => {
+  const root = buildTree(ENTRIES);
+
+  it("navigates to a leaf reached by a slash path", () => {
+    const r = resolveOpen(root, ENTRIES, "books/ring");
+    expect(r).toEqual({ kind: "navigate", url: "/books/ring/", title: "Ring" });
+  });
+
+  it("reports not-a-page for a path that lands on a page-less folder (e.g. a year)", () => {
+    expect(resolveOpen(root, ENTRIES, "blog/2025").kind).toBe("not-a-page");
+  });
+
+  it("reports none for an unresolvable path", () => {
+    expect(resolveOpen(root, ENTRIES, "blog/9999").kind).toBe("none");
+  });
+
+  it("falls back to slug/title matching for a bare query (navigate / ambiguous / none)", () => {
+    expect(resolveOpen(root, ENTRIES, "ngrok")).toMatchObject({ kind: "navigate", url: "/blog/2025/using-ngrok-to-test-some-web-things/" });
+    expect(resolveOpen(root, ENTRIES, "test").kind).toBe("ambiguous");
+    expect(resolveOpen(root, ENTRIES, "zzz").kind).toBe("none");
   });
 });

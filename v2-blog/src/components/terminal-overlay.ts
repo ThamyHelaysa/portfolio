@@ -8,9 +8,10 @@ import {
   buildTree,
   fetchSiteIndex,
   findNode,
-  matchEntry,
   renderRootListing,
   renderSubtree,
+  resolveOpen,
+  sanitizeNavQuery,
 } from "../_helpers/terminal/site-index.ts";
 
 /**
@@ -212,27 +213,33 @@ export class TerminalOverlay extends LitElement {
 
       open: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
-        const query = ctx.positionals.join(" ");
+        const query = sanitizeNavQuery(ctx.positionals.join(" "));
         if (!query) {
-          await this._core.append("usage: open <slug>", 0.2, CommandType.error);
+          await this._core.append("usage: open <slug-or-path>", 0.2, CommandType.error);
           return;
         }
 
         const entries = await fetchSiteIndex();
-        const result = matchEntry(entries, query);
+        const result = resolveOpen(buildTree(entries), entries, query);
 
-        if (result.kind === "match") {
-          await this._core.append(`opening ${result.entry.title}...`, 0.2, CommandType.status);
-          window.location.href = result.entry.url;
-        } else if (result.kind === "ambiguous") {
-          await this._core.append(`"${query}" is ambiguous — did you mean:`, 0.2, CommandType.error);
-          await this._core.append(
-            result.entries.map((e) => `  ${e.title}`).join("\n"),
-            0.2,
-            CommandType.logdata
-          );
-        } else {
-          await this._core.append(`no match for "${query}"`, 0.2, CommandType.error);
+        switch (result.kind) {
+          case "navigate":
+            await this._core.append(`opening ${result.title}...`, 0.2, CommandType.status);
+            window.location.href = result.url;
+            break;
+          case "ambiguous":
+            await this._core.append(`"${query}" is ambiguous — did you mean:`, 0.2, CommandType.error);
+            await this._core.append(
+              result.entries.map((e) => `  ${e.title}`).join("\n"),
+              0.2,
+              CommandType.logdata
+            );
+            break;
+          case "not-a-page":
+            await this._core.append(`${query} is a folder, not a page — try: ls ${query}`, 0.2, CommandType.error);
+            break;
+          default:
+            await this._core.append(`no match for "${query}"`, 0.2, CommandType.error);
         }
       },
     },
@@ -254,7 +261,7 @@ export class TerminalOverlay extends LitElement {
     await this._core.append(ctx.raw, 0.2, CommandType.command);
 
     const root = buildTree(await fetchSiteIndex());
-    const target = ctx.positionals[0];
+    const target = sanitizeNavQuery(ctx.positionals[0] ?? "");
 
     if (!target) {
       for (const line of renderRootListing(root)) {

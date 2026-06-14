@@ -169,11 +169,64 @@ function dfsByName(node: TreeNode, name: string): TreeNode | undefined {
   return undefined;
 }
 
+/**
+ * Sanitizes a user-typed navigation argument: lowercases, keeps only
+ * slug/path characters (letters, digits, `/`, `-`, `_`, space), collapses
+ * repeated separators, strips edge slashes (no path traversal), and caps length.
+ *
+ * @param input - The raw user argument.
+ * @returns The cleaned query, safe to match against the index.
+ */
+export function sanitizeNavQuery(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9/_ -]/g, "")
+    .replace(/\/+/g, "/")
+    .replace(/ +/g, " ")
+    .replace(/^\/+|\/+$/g, "")
+    .slice(0, 120);
+}
+
 /** The outcome of resolving an `open <query>` against the index. */
 export type MatchResult =
   | { kind: "match"; entry: SiteIndexEntry }
   | { kind: "ambiguous"; entries: SiteIndexEntry[] }
   | { kind: "none" };
+
+/** The outcome of resolving an `open <query>`. */
+export type OpenResult =
+  | { kind: "navigate"; url: string; title: string }
+  | { kind: "ambiguous"; entries: SiteIndexEntry[] }
+  | { kind: "not-a-page" }
+  | { kind: "none" };
+
+/**
+ * Resolves an `open` query to a navigation target. A slash path is walked
+ * through the tree (a page-less folder like a year yields `not-a-page`); a
+ * bare query falls back to slug/title matching. Navigation always targets a
+ * URL from the index, never the raw user input.
+ *
+ * @param root - The site tree.
+ * @param entries - The flat index (for bare slug/title matching).
+ * @param query - The sanitized user argument.
+ * @returns What `open` should do.
+ */
+export function resolveOpen(root: TreeNode, entries: SiteIndexEntry[], query: string): OpenResult {
+  if (!query) return { kind: "none" };
+
+  if (query.includes("/")) {
+    const node = findNode(root, query);
+    if (!node) return { kind: "none" };
+    if (!node.url) return { kind: "not-a-page" };
+    return { kind: "navigate", url: node.url, title: node.title ?? node.name };
+  }
+
+  const match = matchEntry(entries, query);
+  if (match.kind === "match") return { kind: "navigate", url: match.entry.url, title: match.entry.title };
+  if (match.kind === "ambiguous") return { kind: "ambiguous", entries: match.entries };
+  return { kind: "none" };
+}
 
 /** Extracts the slug (last non-empty path segment) from a URL. */
 function slugOf(url: string): string {

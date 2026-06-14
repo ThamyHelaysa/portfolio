@@ -4,6 +4,15 @@ import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from "../_helpers/animationManager.ts";
 import { CommandType, TerminalCore } from "../_helpers/terminal/core.ts";
 import type { ParsedCommand } from "../_helpers/terminal/parser.ts";
+import {
+  buildTree,
+  fetchSiteIndex,
+  findNode,
+  renderRootListing,
+  renderSubtree,
+  resolveOpen,
+  sanitizeNavQuery,
+} from "../_helpers/terminal/site-index.ts";
 
 /**
  * Site-wide summonable terminal overlay (the "cheat console").
@@ -193,16 +202,91 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nmore commands coming soon",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page",
           0.3,
           CommandType.logdata
         );
+      },
+
+      ls: async (ctx: ParsedCommand) => this._listContent(ctx),
+      list: async (ctx: ParsedCommand) => this._listContent(ctx),
+
+      open: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        const query = sanitizeNavQuery(ctx.positionals.join(" "));
+        if (!query) {
+          await this._core.append("usage: open <slug-or-path>", 0.2, CommandType.error);
+          return;
+        }
+
+        const entries = await fetchSiteIndex();
+        const result = resolveOpen(buildTree(entries), entries, query);
+
+        switch (result.kind) {
+          case "navigate":
+            await this._core.append(`opening ${result.title}...`, 0.2, CommandType.status);
+            window.location.href = result.url;
+            break;
+          case "ambiguous":
+            await this._core.append(`"${query}" is ambiguous — did you mean:`, 0.2, CommandType.error);
+            await this._core.append(
+              result.entries.map((e) => `  ${e.title}`).join("\n"),
+              0.2,
+              CommandType.logdata
+            );
+            break;
+          case "not-a-page":
+            await this._core.append(`${query} is a folder, not a page — try: ls ${query}`, 0.2, CommandType.error);
+            break;
+          default:
+            await this._core.append(`no match for "${query}"`, 0.2, CommandType.error);
+        }
       },
     },
     logEl: () => this._log,
     skipAnimations: () => this._skipAnimations,
     onLineWritten: () => this._scrollToBottom(),
   });
+
+  /**
+   * Handles `ls [target]` against the site tree:
+   * - no arg → the top level (folders with counts, then leaf pages);
+   * - a folder → its `tree`-style subtree;
+   * - a leaf → its title and description.
+   *
+   * @param ctx - The parsed command (first positional is an optional target).
+   * @returns A promise that settles once the output is written.
+   */
+  private async _listContent(ctx: ParsedCommand): Promise<void> {
+    await this._core.append(ctx.raw, 0.2, CommandType.command);
+
+    const root = buildTree(await fetchSiteIndex());
+    const target = sanitizeNavQuery(ctx.positionals[0] ?? "");
+
+    if (!target) {
+      for (const line of renderRootListing(root)) {
+        await this._core.append(line, 0.02, CommandType.log);
+      }
+      return;
+    }
+
+    const node = findNode(root, target);
+    if (!node) {
+      await this._core.append(`ls: ${target}: no such page`, 0.2, CommandType.error);
+      return;
+    }
+
+    if (node.children.length > 0) {
+      for (const line of renderSubtree(node)) {
+        await this._core.append(line, 0.02, CommandType.log);
+      }
+      return;
+    }
+
+    // Leaf page: show its title and description (uniform).
+    await this._core.append(node.title ?? node.name, 0.2, CommandType.title);
+    await this._core.append(node.description ?? "(no description)", 0.2, CommandType.logdata);
+  }
 
   async firstUpdated() {
     try {

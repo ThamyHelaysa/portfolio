@@ -5,6 +5,10 @@ export default {
   games: function (collectionApi) {
     return collectionApi.getFilteredByGlob('src/games/**/*.md');
   },
+  pages: function (collectionApi) {
+    // Top-level pages (home, blog, notes, books, about, games, copyright).
+    return collectionApi.getFilteredByGlob('src/pages/**/*.{njk,md}');
+  },
   published: function (collectionApi) {
     const now = new Date();
 

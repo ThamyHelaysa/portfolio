@@ -19,3 +19,7 @@ _Avoid_: open, launch, invoke
 **Terminal palette**:
 The Terminal's own colour token set, derived from the active site theme's primary-pink **hue** and **brightness** rather than copied from the site's base tokens or fixed dark. It flips with the theme toggle while keeping its own contrast/accent structure. See [ADR-0002](docs/adr/0002-terminal-palette-derived-from-theme.md).
 _Avoid_: terminal colors, terminal theme
+
+**Site index**:
+The build-time manifest of navigable pages — blog posts, books, and top-level pages — that the Terminal lists with `ls` and navigates with `open`. The Terminal models it as a **tree** keyed on each page's real URL: containers (`blog/`, `books/`, year levels) are **folders** that carry a descendant count; individual pages are **leaves**. Page URLs always come from real Eleventy permalinks, never hardcoded.
+_Avoid_: sitemap, manifest, catalog

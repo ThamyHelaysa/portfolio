@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filterSection, matchEntry, parseSiteIndex } from "../../../../src/_helpers/terminal/site-index.ts";
+import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, renderSubtree } from "../../../../src/_helpers/terminal/site-index.ts";
 
 const ENTRIES = parseSiteIndex([
   { section: "posts", title: "Why I never heard of Lit", url: "/blog/2025/why-i-never-heard-of-lit/" },
@@ -36,12 +36,13 @@ describe("parseSiteIndex", () => {
     expect(parseSiteIndex(null)).toEqual([]);
   });
 
-  it("ignores unknown extra fields without breaking (forward-compatible)", () => {
+  it("keeps description and ignores other unknown fields (forward-compatible)", () => {
     const entries = parseSiteIndex([
-      { section: "posts", title: "T", url: "/blog/x/", description: "future search field", weight: 5 },
+      { section: "posts", title: "T", url: "/blog/x/", description: "a summary", weight: 5 },
     ]);
 
-    expect(entries[0]).toMatchObject({ section: "posts", title: "T", url: "/blog/x/" });
+    expect(entries[0]).toMatchObject({ section: "posts", title: "T", url: "/blog/x/", description: "a summary" });
+    expect(entries[0]).not.toHaveProperty("weight");
   });
 });
 
@@ -74,18 +75,89 @@ describe("matchEntry", () => {
   });
 });
 
-describe("filterSection", () => {
-  it("returns all entries when no section is given", () => {
-    expect(filterSection(ENTRIES)).toHaveLength(ENTRIES.length);
-  });
+describe("buildTree", () => {
+  it("groups entries into a tree by URL path segments", () => {
+    const root = buildTree(ENTRIES);
 
-  it("returns only the requested section, case-insensitively", () => {
-    const books = filterSection(ENTRIES, "BOOKS");
-    expect(books.length).toBe(2);
-    expect(books.every((e) => e.section === "books")).toBe(true);
-  });
+    const blog = root.children.find((n) => n.name === "blog");
+    expect(blog).toBeDefined();
+    expect(blog!.children.find((n) => n.name === "2025")).toBeDefined();
 
-  it("returns empty for an unknown section", () => {
-    expect(filterSection(ENTRIES, "widgets")).toEqual([]);
+    const books = root.children.find((n) => n.name === "books");
+    expect(books!.children.map((n) => n.name).sort()).toEqual(["a-seca", "ring"]);
+
+    const about = root.children.find((n) => n.name === "about");
+    expect(about!.children).toHaveLength(0);
+  });
+});
+
+describe("buildTree counts", () => {
+  it("sets each folder's count to its descendant leaf pages, recursively", () => {
+    const root = buildTree(ENTRIES);
+    const find = (name: string) => root.children.find((n) => n.name === name)!;
+
+    expect(find("blog").count).toBe(3);
+    expect(find("blog").children.find((n) => n.name === "2025")!.count).toBe(3);
+    expect(find("books").count).toBe(2);
+    expect(find("about").count).toBe(0);
+  });
+});
+
+describe("buildTree home + findNode", () => {
+  it("places the home page (url '/') as a root leaf named 'home'", () => {
+    const root = buildTree(parseSiteIndex([{ section: "pages", title: "Home", url: "/" }]));
+    const home = root.children.find((n) => n.name === "home");
+    expect(home).toBeDefined();
+    expect(home!.url).toBe("/");
+    expect(home!.children).toHaveLength(0);
+  });
+});
+
+describe("findNode", () => {
+  it("finds a top-level folder and a nested leaf by name, case-insensitively", () => {
+    const root = buildTree(ENTRIES);
+
+    const blog = findNode(root, "blog");
+    expect(blog?.name).toBe("blog");
+    expect(blog!.children.length).toBeGreaterThan(0);
+
+    const ring = findNode(root, "RING");
+    expect(ring?.name).toBe("ring");
+    expect(ring!.url).toBe("/books/ring/");
+
+    expect(findNode(root, "nope")).toBeUndefined();
+  });
+});
+
+describe("renderRootListing", () => {
+  it("lists folders (slash + count) before leaf pages (plain)", () => {
+    const lines = renderRootListing(buildTree(ENTRIES));
+
+    const blogLine = lines.find((l) => l.startsWith("blog/"));
+    expect(blogLine).toBeDefined();
+    expect(blogLine).toMatch(/3/);
+
+    const booksLine = lines.find((l) => l.startsWith("books/"));
+    expect(booksLine).toMatch(/2/);
+
+    // leaf page: plain name, no slash, no count
+    expect(lines).toContain("about");
+
+    // folders come before leaves
+    expect(lines.findIndex((l) => l.startsWith("blog/"))).toBeLessThan(lines.indexOf("about"));
+  });
+});
+
+describe("renderSubtree", () => {
+  it("renders a tree with connectors, sub-folder counts, and slug leaves", () => {
+    const lines = renderSubtree(findNode(buildTree(ENTRIES), "blog")!);
+    const joined = lines.join("\n");
+
+    expect(lines[0]).toMatch(/^blog/);
+    expect(joined).toContain("└── 2025");        // sole child uses the corner connector
+    expect(joined).toMatch(/2025\/?\s+3/);        // year folder shows its count
+    expect(joined).toContain("├── ");             // a non-last leaf uses the tee connector
+    expect(joined).toContain("why-i-never-heard-of-lit");
+    expect(lines.some((l) => l.includes("└── test-driven-fun"))).toBe(true); // last leaf, corner
   });
 });

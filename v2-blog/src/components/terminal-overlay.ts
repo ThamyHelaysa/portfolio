@@ -4,7 +4,14 @@ import { adoptTailwind } from "../_helpers/styleLoader.ts";
 import { animator } from "../_helpers/animationManager.ts";
 import { CommandType, TerminalCore } from "../_helpers/terminal/core.ts";
 import type { ParsedCommand } from "../_helpers/terminal/parser.ts";
-import { fetchSiteIndex, filterSection, matchEntry } from "../_helpers/terminal/site-index.ts";
+import {
+  buildTree,
+  fetchSiteIndex,
+  findNode,
+  matchEntry,
+  renderRootListing,
+  renderSubtree,
+} from "../_helpers/terminal/site-index.ts";
 
 /**
  * Site-wide summonable terminal overlay (the "cheat console").
@@ -194,7 +201,7 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nls [section] - list site content (posts, books, pages)\nopen <slug> - go to a page",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page",
           0.3,
           CommandType.logdata
         );
@@ -235,26 +242,43 @@ export class TerminalOverlay extends LitElement {
   });
 
   /**
-   * Lists site content for `ls` / `list [section]`, optionally filtered.
+   * Handles `ls [target]` against the site tree:
+   * - no arg → the top level (folders with counts, then leaf pages);
+   * - a folder → its `tree`-style subtree;
+   * - a leaf → its title and description.
    *
-   * @param ctx - The parsed command (first positional is an optional section).
-   * @returns A promise that settles once the listing is written.
+   * @param ctx - The parsed command (first positional is an optional target).
+   * @returns A promise that settles once the output is written.
    */
   private async _listContent(ctx: ParsedCommand): Promise<void> {
     await this._core.append(ctx.raw, 0.2, CommandType.command);
 
-    const section = ctx.positionals[0];
-    const entries = filterSection(await fetchSiteIndex(), section);
+    const root = buildTree(await fetchSiteIndex());
+    const target = ctx.positionals[0];
 
-    if (entries.length === 0) {
-      await this._core.append(section ? `nothing in "${section}"` : "nothing to list", 0.2, CommandType.error);
+    if (!target) {
+      for (const line of renderRootListing(root)) {
+        await this._core.append(line, 0.02, CommandType.log);
+      }
       return;
     }
 
-    await this._core.append(section ? section : "all content", 0.2, CommandType.title);
-    for (const entry of entries) {
-      await this._core.append(`  ${entry.title}`, 0.05, CommandType.logdata);
+    const node = findNode(root, target);
+    if (!node) {
+      await this._core.append(`ls: ${target}: no such page`, 0.2, CommandType.error);
+      return;
     }
+
+    if (node.children.length > 0) {
+      for (const line of renderSubtree(node)) {
+        await this._core.append(line, 0.02, CommandType.log);
+      }
+      return;
+    }
+
+    // Leaf page: show its title and description (uniform).
+    await this._core.append(node.title ?? node.name, 0.2, CommandType.title);
+    await this._core.append(node.description ?? "(no description)", 0.2, CommandType.logdata);
   }
 
   async firstUpdated() {

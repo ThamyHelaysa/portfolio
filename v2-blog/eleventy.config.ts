@@ -144,6 +144,7 @@ export default function (eleventyConfig: any) {
 
 
   eleventyConfig.addCollection("projects", collections.projects);
+  eleventyConfig.addCollection("pages", collections.pages);
   eleventyConfig.addCollection("published", collections.published);
   eleventyConfig.addCollection("notesPublished", collections.notesPublished);
 

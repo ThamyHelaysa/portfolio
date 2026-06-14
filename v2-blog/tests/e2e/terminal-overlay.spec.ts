@@ -32,10 +32,15 @@ test("ls lists content and open navigates to a post", async ({ page }) => {
   const input = page.locator("#overlay-input");
   await expect(input).toBeFocused();
 
-  // ls lists site content.
+  // ls shows the top-level tree (folders with counts).
   await input.fill("ls");
   await page.keyboard.press("Enter");
-  await expect(page.locator("#overlay-log")).toContainText("Ngrok");
+  await expect(page.locator("#overlay-log")).toContainText("blog/");
+
+  // drilling into a folder shows its tree of slugs.
+  await input.fill("ls blog");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#overlay-log")).toContainText("using-ngrok-to-test-some-web-things");
 
   // open navigates to the matching post.
   await input.fill("open ngrok");

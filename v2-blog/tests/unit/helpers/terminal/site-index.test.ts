@@ -127,6 +127,20 @@ describe("findNode", () => {
 
     expect(findNode(root, "nope")).toBeUndefined();
   });
+
+  it("resolves a slash-separated path by walking segments from the root", () => {
+    const root = buildTree(ENTRIES);
+
+    const year = findNode(root, "blog/2025");
+    expect(year?.name).toBe("2025");
+    expect(year!.count).toBe(3);
+
+    const leaf = findNode(root, "books/ring");
+    expect(leaf?.url).toBe("/books/ring/");
+
+    // a wrong path segment fails cleanly
+    expect(findNode(root, "blog/1999")).toBeUndefined();
+  });
 });
 
 describe("renderRootListing", () => {

@@ -136,17 +136,34 @@ export function renderSubtree(node: TreeNode): string[] {
 }
 
 /**
- * Finds a tree node by name (case-insensitive), searching depth-first.
+ * Resolves a query to a tree node. A bare name is searched depth-first
+ * (so `ring` finds a nested book); a slash path (`blog/2025`) is walked
+ * segment by segment from `node`.
  *
  * @param node - The node to search from (typically the root).
- * @param name - The folder/leaf name to find.
- * @returns The first matching node, or `undefined`.
+ * @param query - A name or a slash-separated path.
+ * @returns The matching node, or `undefined`.
  */
-export function findNode(node: TreeNode, name: string): TreeNode | undefined {
-  const n = name.trim().toLowerCase();
+export function findNode(node: TreeNode, query: string): TreeNode | undefined {
+  const segments = query.trim().split("/").filter(Boolean);
+  if (segments.length === 0) return undefined;
+
+  if (segments.length > 1) {
+    let current: TreeNode | undefined = node;
+    for (const segment of segments) {
+      current = current?.children.find((c) => c.name.toLowerCase() === segment.toLowerCase());
+    }
+    return current;
+  }
+
+  return dfsByName(node, segments[0].toLowerCase());
+}
+
+/** Depth-first search for the first node whose name matches (lowercased). */
+function dfsByName(node: TreeNode, name: string): TreeNode | undefined {
   for (const child of node.children) {
-    if (child.name.toLowerCase() === n) return child;
-    const deeper = findNode(child, name);
+    if (child.name.toLowerCase() === name) return child;
+    const deeper = dfsByName(child, name);
     if (deeper) return deeper;
   }
   return undefined;

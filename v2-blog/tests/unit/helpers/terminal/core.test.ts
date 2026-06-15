@@ -78,6 +78,16 @@ describe("TerminalCore", () => {
     expect(logEl.querySelectorAll("p")).toHaveLength(2);
   });
 
+  it("passes each written line's text and kind to onLineWritten", async () => {
+    const onLineWritten = vi.fn();
+    const { core } = createCore({ onLineWritten });
+
+    await core.append("first\nsecond", 0, CommandType.error);
+
+    expect(onLineWritten).toHaveBeenNthCalledWith(1, { text: "first", kind: CommandType.error });
+    expect(onLineWritten).toHaveBeenNthCalledWith(2, { text: "second", kind: CommandType.error });
+  });
+
   it("records executed commands in history", async () => {
     const { core } = createCore({ commands: { list: vi.fn() } });
 

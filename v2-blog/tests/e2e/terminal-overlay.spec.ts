@@ -54,3 +54,42 @@ test("the overlay is not summonable on the books terminal page", async ({ page }
   await page.keyboard.press("Control+Shift+C");
   await expect(page.locator("terminal-overlay")).toHaveCount(0);
 });
+
+test("session continuity: the overlay reopens with history after open navigates", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+
+  const input = page.locator("#overlay-input");
+  await expect(input).toBeFocused();
+
+  await input.fill("open ngrok");
+  await page.keyboard.press("Enter");
+  await page.waitForURL("**/blog/2025/using-ngrok-to-test-some-web-things/");
+
+  // The overlay re-summons itself on the destination (after paint, on idle).
+  const overlay = page.locator("terminal-overlay");
+  await expect(overlay).toHaveAttribute("open", "", { timeout: 10000 });
+
+  // Scrollback replayed + a cd-style arrival line for the new path.
+  await expect(page.locator("#overlay-log")).toContainText(
+    "cd ~/blog/2025/using-ngrok-to-test-some-web-things"
+  );
+
+  // Arrow-up recalls the command issued before the jump.
+  await input.focus();
+  await page.keyboard.press("ArrowUp");
+  await expect(input).toHaveValue("open ngrok");
+});
+
+test("closing the overlay then navigating normally does not resurrect it", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
+
+  await page.keyboard.press("Escape");
+  await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");
+
+  await page.goto("/about/");
+  // A normal navigation after closing must not bring the overlay back.
+  await expect(page.locator("terminal-overlay")).toHaveCount(0);
+});

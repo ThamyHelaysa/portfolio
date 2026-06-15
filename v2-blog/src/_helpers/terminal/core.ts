@@ -46,8 +46,12 @@ type TerminalCoreOptions = {
   skipAnimations: () => boolean;
   /** Per-line typing animation; defaults to the gsap-based typewriter. */
   typeText?: (el: HTMLElement, text: string, durationSec: number) => Promise<void>;
-  /** Invoked after each written line, e.g. to keep the log scrolled to bottom. */
-  onLineWritten?: () => void;
+  /**
+   * Invoked after each written line, e.g. to keep the log scrolled to bottom
+   * or to persist the line. Receives the line's text and kind so consumers can
+   * mirror the scrollback into storage (see the overlay's session continuity).
+   */
+  onLineWritten?: (line: { text: string; kind: CommandType }) => void;
 };
 
 /**
@@ -147,7 +151,7 @@ export class TerminalCore {
         await (this.opts.typeText ?? typeTextWithGsap)(p, line, duration);
       }
 
-      this.opts.onLineWritten?.();
+      this.opts.onLineWritten?.({ text: line, kind });
     }
   }
 }

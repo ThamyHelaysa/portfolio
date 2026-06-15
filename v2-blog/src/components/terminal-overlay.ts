@@ -13,6 +13,7 @@ import {
   resolveOpen,
   sanitizeNavQuery,
 } from "../_helpers/terminal/site-index.ts";
+import { TerminalSession } from "../_helpers/terminal/session.ts";
 
 /**
  * Site-wide summonable terminal overlay (the "cheat console").
@@ -197,6 +198,20 @@ export class TerminalOverlay extends LitElement {
   private _skipAnimations =
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 
+  /** Session-scoped continuity store (survives full-page navigations). */
+  private _session = new TerminalSession();
+  /** True while replaying restored scrollback, to suppress re-persisting it. */
+  private _restoring = false;
+  /** When set, the next open settles in place instead of sliding (restore). */
+  private _skipSlideOnce = false;
+  /** Resolves once any session restore on mount has finished (test hook). */
+  private _restoreComplete: Promise<void> | null = null;
+
+  /** Awaitable that settles after a mount-time session restore completes. */
+  get restoreComplete(): Promise<void> | null {
+    return this._restoreComplete;
+  }
+
   private _core = new TerminalCore({
     commands: {
       help: async (ctx: ParsedCommand) => {
@@ -245,7 +260,11 @@ export class TerminalOverlay extends LitElement {
     },
     logEl: () => this._log,
     skipAnimations: () => this._skipAnimations,
-    onLineWritten: () => this._scrollToBottom(),
+    onLineWritten: (line) => {
+      this._scrollToBottom();
+      // Mirror live output into the session; restore replay is already stored.
+      if (!this._restoring) this._session.appendLine(line.text, line.kind);
+    },
   });
 
   /**
@@ -289,6 +308,9 @@ export class TerminalOverlay extends LitElement {
   }
 
   async firstUpdated() {
+    // Kick off restore synchronously (before the async style load) so the
+    // replay isn't gated on Tailwind and `restoreComplete` is set immediately.
+    this._restoreComplete = this._maybeRestore();
     try {
       await adoptTailwind(this.renderRoot as ShadowRoot, "terminal-overlay-shadow.css");
     } catch (e) {
@@ -296,12 +318,44 @@ export class TerminalOverlay extends LitElement {
     }
   }
 
+  /**
+   * Restores a continued session on mount: if the stored snapshot was left
+   * open, replays its scrollback instantly, rehydrates history, reopens without
+   * sliding, and prints a `cd ~<path>` arrival line for the new page.
+   *
+   * @returns A promise that settles once restore (if any) has finished.
+   */
+  private async _maybeRestore(): Promise<void> {
+    const snap = this._session.read();
+    if (!snap || !snap.open) return;
+
+    this._restoring = true;
+    for (const line of snap.log) {
+      await this._core.append(line.t, 0, line.k);
+    }
+    this._restoring = false;
+
+    this._core.history.load(snap.history);
+
+    this._skipSlideOnce = true;
+    this.open = true;
+    await this.updateComplete;
+
+    const path = window.location.pathname.replace(/\/+$/, "");
+    await this._core.append(`cd ~${path}`, 0, CommandType.status);
+  }
+
   protected updated(changed: PropertyValues): void {
     if (changed.has("open")) {
       if (this.open) {
         this._onOpened();
+        this._session.setOpen(true);
       } else {
-        this._onClosed(changed.get("open") as boolean | undefined);
+        const wasOpen = changed.get("open") as boolean | undefined;
+        this._onClosed(wasOpen);
+        // Only a real close ends the session; the initial render (wasOpen
+        // undefined) must not wipe a session we're about to restore.
+        if (wasOpen) this._session.clear();
       }
     }
   }
@@ -315,6 +369,14 @@ export class TerminalOverlay extends LitElement {
     this._showPopover();
     this._restoreFocusTo = document.activeElement;
     this._input?.focus();
+
+    // A continuity restore appears already-open: settle in place, no slide.
+    if (this._skipSlideOnce) {
+      this._skipSlideOnce = false;
+      if (this._panel) this._panel.style.transform = "translateY(0)";
+      return;
+    }
+
     void this._slide(true);
   }
 
@@ -391,7 +453,25 @@ export class TerminalOverlay extends LitElement {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       this._form?.requestSubmit();
+      return;
     }
+
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      this._recallHistory(e.key);
+    }
+  }
+
+  /**
+   * Steps through command history and writes the recalled line into the input.
+   *
+   * @param key - ArrowUp steps back, ArrowDown steps forward.
+   * @returns `void`.
+   */
+  private _recallHistory(key: "ArrowUp" | "ArrowDown"): void {
+    const value = key === "ArrowUp" ? this._core.history.prev() : this._core.history.next();
+    if (value === undefined || !this._input) return;
+    this._input.value = value;
   }
 
   /**
@@ -405,6 +485,7 @@ export class TerminalOverlay extends LitElement {
     const raw = this._input?.value ?? "";
     this._input.value = "";
     await this._core.run(raw);
+    this._session.setHistory(this._core.history.snapshot());
   }
 
   /** Keeps the log scrolled to the latest line. */

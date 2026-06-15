@@ -23,6 +23,7 @@ vi.mock("../../../src/_helpers/animationManager.ts", () => ({
 }));
 
 import { TerminalOverlay } from "../../../src/components/terminal-overlay.ts";
+import { TerminalSession } from "../../../src/_helpers/terminal/session.ts";
 
 async function mountOverlay() {
   const el = new TerminalOverlay();
@@ -40,6 +41,7 @@ function submit(el: TerminalOverlay, value: string) {
 
 beforeEach(() => {
   document.body.innerHTML = "";
+  sessionStorage.clear();
   animatorMock.cancel.mockClear();
   animatorMock.animate.mockClear();
 });
@@ -129,5 +131,137 @@ describe("terminal-overlay", () => {
     await el.updateComplete;
 
     expect(animatorMock.animate).toHaveBeenCalledTimes(1);
+  });
+
+  describe("history recall", () => {
+    async function pressArrow(el: TerminalOverlay, key: "ArrowUp" | "ArrowDown") {
+      const input = el.shadowRoot!.querySelector<HTMLTextAreaElement>("#overlay-input")!;
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+      input.dispatchEvent(event);
+      await el.updateComplete;
+      return event;
+    }
+
+    it("recalls the previous command into the input on ArrowUp and prevents the default", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "help");
+      await el.updateComplete;
+      await Promise.resolve();
+
+      const event = await pressArrow(el, "ArrowUp");
+
+      const input = el.shadowRoot!.querySelector<HTMLTextAreaElement>("#overlay-input")!;
+      expect(input.value).toBe("help");
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it("steps back through several commands and forward again with ArrowDown", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "help");
+      await el.updateComplete;
+      await Promise.resolve();
+      submit(el, "ls");
+      await el.updateComplete;
+      await Promise.resolve();
+
+      const input = el.shadowRoot!.querySelector<HTMLTextAreaElement>("#overlay-input")!;
+
+      await pressArrow(el, "ArrowUp");
+      expect(input.value).toBe("ls");
+      await pressArrow(el, "ArrowUp");
+      expect(input.value).toBe("help");
+
+      await pressArrow(el, "ArrowDown");
+      expect(input.value).toBe("ls");
+      await pressArrow(el, "ArrowDown");
+      expect(input.value).toBe("");
+    });
+  });
+
+  describe("session continuity", () => {
+    it("persists the open flag while open and clears the session on close", async () => {
+      const el = await mountOverlay();
+
+      el.open = true;
+      await el.updateComplete;
+      expect(new TerminalSession().read()?.open).toBe(true);
+
+      el.open = false;
+      await el.updateComplete;
+      expect(new TerminalSession().read()).toBeNull();
+    });
+
+    it("does not clear the session on the initial (never-opened) render", async () => {
+      new TerminalSession().setOpen(true);
+
+      await mountOverlay(); // open defaults to false; must not wipe an existing session
+
+      // a restore will have re-asserted open:true; the key must still exist
+      expect(new TerminalSession().read()).not.toBeNull();
+    });
+
+    it("mirrors written log lines and command history into the session", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "help");
+      // help appends several lines sequentially; persistence (onLineWritten)
+      // trails the synchronous DOM write by a microtask per line — drain them.
+      for (let i = 0; i < 12; i++) await Promise.resolve();
+
+      const snap = new TerminalSession().read()!;
+      expect(snap.log.some((l) => l.t.includes("help - list commands"))).toBe(true);
+      expect(snap.history).toContain("help");
+    });
+
+    it("restores scrollback, history and an arrival line, opening without a slide", async () => {
+      const seed = new TerminalSession();
+      seed.setOpen(true);
+      seed.appendLine("$ ls", 2);
+      seed.appendLine("blog/   3", 0);
+      seed.setHistory(["ls"]);
+
+      const el = new TerminalOverlay();
+      document.body.appendChild(el);
+      await el.updateComplete;
+      await el.restoreComplete;
+      await el.updateComplete;
+
+      // reopened
+      expect(el.open).toBe(true);
+      // scrollback replayed
+      const log = el.shadowRoot!.querySelector("#overlay-log")!;
+      expect(log.textContent).toContain("blog/   3");
+      // arrival line (status-kind cd ~<path>)
+      expect(log.textContent).toContain("cd ~");
+      // history rehydrated → ArrowUp recalls the pre-jump command
+      const input = el.shadowRoot!.querySelector<HTMLTextAreaElement>("#overlay-input")!;
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+      await el.updateComplete;
+      expect(input.value).toBe("ls");
+      // opened instantly: no slide animation on a restore
+      expect(animatorMock.animate).not.toHaveBeenCalled();
+    });
+
+    it("does not restore when the stored session is closed", async () => {
+      const seed = new TerminalSession();
+      seed.setOpen(false);
+      seed.appendLine("stale", 0);
+
+      const el = new TerminalOverlay();
+      document.body.appendChild(el);
+      await el.updateComplete;
+      await el.restoreComplete;
+
+      expect(el.open).toBe(false);
+      expect(el.shadowRoot!.querySelector("#overlay-log")!.textContent).toBe("");
+    });
   });
 });

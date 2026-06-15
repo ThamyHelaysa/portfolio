@@ -60,7 +60,20 @@ export function createSummoner(target: Window = window): () => void {
     ensureOverlay().setAttribute("open", "");
   };
 
+  /**
+   * Opens the overlay when a `[data-terminal-summon]` trigger is clicked — the
+   * header `>_` button and its mobile-menu twin, and the only summon path on
+   * touch devices (no keyboard combo). Delegated (not an inline handler) so it
+   * stays CSP-clean.
+   */
+  const onClick = (event: MouseEvent): void => {
+    const trigger = (event.target as Element | null)?.closest?.("[data-terminal-summon]");
+    if (!trigger) return;
+    ensureOverlay().setAttribute("open", "");
+  };
+
   target.addEventListener("keydown", onKeydown, true);
+  doc.addEventListener("click", onClick);
 
   // Session continuity (#79): if the overlay was open when we left the previous
   // page, re-mount it here. Deferred to idle so it never competes with the
@@ -73,5 +86,8 @@ export function createSummoner(target: Window = window): () => void {
     schedule(() => ensureOverlay());
   }
 
-  return () => target.removeEventListener("keydown", onKeydown, true);
+  return () => {
+    target.removeEventListener("keydown", onKeydown, true);
+    doc.removeEventListener("click", onClick);
+  };
 }

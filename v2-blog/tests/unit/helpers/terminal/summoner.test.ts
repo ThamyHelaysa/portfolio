@@ -86,6 +86,33 @@ describe("createSummoner", () => {
     expect(document.querySelector("terminal-overlay")).toBeNull();
   });
 
+  describe("click summon (header button / mobile)", () => {
+    it("opens the overlay when an element with [data-terminal-summon] is clicked", () => {
+      const btn = document.createElement("button");
+      btn.setAttribute("data-terminal-summon", "");
+      const icon = document.createElement("span"); // click can land on a child
+      btn.appendChild(icon);
+      document.body.appendChild(btn);
+
+      dispose = createSummoner(window);
+      icon.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+      const overlay = document.querySelector("terminal-overlay");
+      expect(overlay).not.toBeNull();
+      expect(overlay?.hasAttribute("open")).toBe(true);
+    });
+
+    it("ignores clicks outside a summon trigger", () => {
+      const other = document.createElement("button");
+      document.body.appendChild(other);
+
+      dispose = createSummoner(window);
+      other.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+      expect(document.querySelector("terminal-overlay")).toBeNull();
+    });
+  });
+
   describe("session restore", () => {
     it("auto-mounts the overlay (and its bundle) on idle when a session was left open", () => {
       new TerminalSession().setOpen(true);

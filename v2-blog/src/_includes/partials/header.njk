@@ -55,12 +55,30 @@
               {{ link.label }}{% if isCurrentPage %}*{% endif %}
             </a>
           {% endfor %}
+
+          <button
+            type="button"
+            data-terminal-summon
+            aria-label="Open terminal console"
+            class="terminal-launch terminal-launch-mobile -translate-x-8 opacity-0 group-[[isopen]]:opacity-100 group-[[isopen]]:translate-x-0 text-5xl font-serif text-accent transition-all duration-350 delay-[900ms] items-center gap-3 cursor-pointer"
+          >
+            <span class="font-mono text-4xl">&gt;_</span>
+            console
+          </button>
         </div>
       </menu-mobile>
 
       <div class="hidden md:block w-px h-4 bg-accent/20"></div>
 
       <theme-toggle class="hidden md:flex" data-template-id="theme-toggle-tmpl"></theme-toggle>
+
+      <button
+        type="button"
+        data-terminal-summon
+        aria-label="Open terminal console"
+        title="Open terminal console (Ctrl+Shift+C)"
+        class="terminal-launch terminal-launch-desktop items-center font-mono text-base text-muted hover:text-accent transition-colors cursor-pointer"
+      >&gt;_</button>
 
     </div>
 

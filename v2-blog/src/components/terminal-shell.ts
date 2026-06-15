@@ -10,6 +10,7 @@ import {
   type ShellAction,
   type ShellState,
 } from '../_helpers/terminal/shell-state.ts';
+import { markUnlocked } from '../_helpers/terminal/unlock.ts';
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -81,7 +82,7 @@ export class TerminalShell extends LitElement {
         } else {
           await this.appendToLog("commands", 0.2, CommandType.title);
           await this.appendToLog(
-            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all",
+            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all\nctrl+shift+c - summon this console on any page of the site",
             0.5,
             CommandType.logdata
           )
@@ -208,6 +209,8 @@ export class TerminalShell extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Reaching the books terminal unlocks the site-wide cheat console (#80).
+    markUnlocked();
     // this.startBootSequence();
   }
 

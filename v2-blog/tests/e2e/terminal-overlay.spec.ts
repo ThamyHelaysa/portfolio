@@ -81,10 +81,34 @@ test("session continuity: the overlay reopens with history after open navigates"
   await expect(input).toHaveValue("open ngrok");
 });
 
+test("unlock: visiting the books page reveals the site-wide terminal button", async ({ page }) => {
+  // Fresh profile (Playwright isolates storage per test): no button, locked.
+  await page.goto("/");
+  await expect(page.locator(".terminal-launch-desktop")).toBeHidden();
+  expect(
+    await page.evaluate(() => document.documentElement.classList.contains("term-unlocked"))
+  ).toBe(false);
+
+  // Visiting the books terminal sets the persistent unlock flag.
+  await page.goto("/books/");
+  await page.waitForFunction(() => localStorage.getItem("book_os:unlocked") !== null);
+
+  // Back on a regular page the button is present (revealed pre-paint) ...
+  await page.goto("/");
+  await expect(page.locator(".terminal-launch-desktop")).toBeVisible();
+
+  // ... and summons the overlay on click.
+  await page.locator(".terminal-launch-desktop").click();
+  await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
+});
+
 test("closing the overlay then navigating normally does not resurrect it", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Control+Shift+C");
   await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
+  // Wait for the lazy bundle to upgrade the element (input focused) before
+  // Escape, otherwise the keydown handler isn't wired yet.
+  await expect(page.locator("#overlay-input")).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");

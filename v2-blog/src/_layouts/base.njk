@@ -20,7 +20,13 @@
 
     {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
     {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
-    
+
+    {# Pre-paint reveal of the cheat-console summon button (#80) #}
+    {% set unlockContent %}{% include "inline-terminal-unlock.js" %}{% endset %}
+    {% set unlockHash = unlockContent | trim | cspHash %}
+    {% set cspScriptSrc = cspScriptSrc + " " + unlockHash %}
+    {% set scriptsOutput = scriptsOutput + '<script>' + (unlockContent | safe | trim) + '</script>' %}
+
     {# Handle optional page script #}
     {% if inlineScripts %}
       {% for path in inlineScripts %}

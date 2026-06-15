@@ -127,3 +127,21 @@ user-fakeid {
     white-space: nowrap;
   }
 }
+
+/* Cheat-console summon button (#80): hidden until the books page sets the
+   unlock flag, which the pre-paint boot script turns into html.term-unlocked.
+   Inlined here so the reveal is decided before first paint — no flash. */
+.terminal-launch {
+  display: none;
+}
+
+html.term-unlocked .terminal-launch-desktop {
+  display: none;
+  @media (width >= 768px) {
+    display: inline-flex;
+  }
+}
+
+html.term-unlocked .terminal-launch-mobile {
+  display: inline-flex;
+}

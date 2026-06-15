@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { LOG_CAP, SESSION_KEY, SESSION_VERSION, TerminalSession } from "../../../../src/_helpers/terminal/session.ts";
+import { SESSION_KEY, SESSION_VERSION, TerminalSession } from "../../../../src/_helpers/terminal/session.ts";
 
 /** Minimal in-memory Storage stand-in (decoupled from jsdom globals). */
 function fakeStorage(): Storage {
@@ -25,75 +25,47 @@ beforeEach(() => {
   session = new TerminalSession(storage);
 });
 
-describe("TerminalSession", () => {
-  it("reads null when nothing has been stored", () => {
-    expect(session.read()).toBeNull();
+describe("TerminalSession (command-history persistence)", () => {
+  it("reads an empty history when nothing is stored", () => {
+    expect(session.readHistory()).toEqual([]);
   });
 
-  it("persists the open flag, history and log lines, then reads them back", () => {
-    session.setOpen(true);
-    session.appendLine("$ ls", 2);
-    session.appendLine("blog/", 0);
-    session.setHistory(["ls"]);
-
-    expect(session.read()).toEqual({
-      v: SESSION_VERSION,
-      open: true,
-      history: ["ls"],
-      log: [
-        { t: "$ ls", k: 2 },
-        { t: "blog/", k: 0 },
-      ],
-    });
+  it("persists a command history and reads it back", () => {
+    session.writeHistory(["ls", "open ring"]);
+    expect(session.readHistory()).toEqual(["ls", "open ring"]);
   });
 
-  it("caps the log to the most recent LOG_CAP lines", () => {
-    for (let i = 0; i < LOG_CAP + 25; i++) session.appendLine(`line ${i}`, 0);
-
-    const snap = session.read()!;
-    expect(snap.log).toHaveLength(LOG_CAP);
-    expect(snap.log[0].t).toBe(`line 25`); // oldest 25 dropped
-    expect(snap.log[snap.log.length - 1].t).toBe(`line ${LOG_CAP + 24}`);
+  it("overwrites the prior history on each write", () => {
+    session.writeHistory(["one"]);
+    session.writeHistory(["two", "three"]);
+    expect(session.readHistory()).toEqual(["two", "three"]);
   });
 
-  it("clear() removes the stored session", () => {
-    session.setOpen(true);
-    session.clear();
-    expect(session.read()).toBeNull();
-    expect(storage.getItem(SESSION_KEY)).toBeNull();
+  it("stores under the documented key and version", () => {
+    session.writeHistory(["ls"]);
+    const raw = JSON.parse(storage.getItem(SESSION_KEY)!);
+    expect(raw.v).toBe(SESSION_VERSION);
+    expect(raw.history).toEqual(["ls"]);
   });
 
-  describe("defensive read (tampered / malformed storage)", () => {
-    const reject = (raw: string) => {
+  describe("defensive read (tampered / malformed / legacy storage)", () => {
+    const expectEmpty = (raw: string) => {
       storage.setItem(SESSION_KEY, raw);
-      expect(session.read()).toBeNull();
+      expect(session.readHistory()).toEqual([]);
     };
 
-    it("returns null and never throws on invalid JSON", () => {
-      reject("{not json");
+    it("returns [] and never throws on invalid JSON", () => {
+      expectEmpty("{not json");
     });
 
-    it("rejects a wrong or missing version", () => {
-      reject(JSON.stringify({ v: 999, open: true, history: [], log: [] }));
-      reject(JSON.stringify({ open: true, history: [], log: [] }));
+    it("ignores a wrong or missing version (e.g. a legacy #79 blob)", () => {
+      expectEmpty(JSON.stringify({ v: 1, open: true, history: ["ls"], log: [] }));
+      expectEmpty(JSON.stringify({ history: ["ls"] }));
     });
 
-    it("rejects a non-boolean open flag", () => {
-      reject(JSON.stringify({ v: SESSION_VERSION, open: "yes", history: [], log: [] }));
-    });
-
-    it("rejects a non-array history or log", () => {
-      reject(JSON.stringify({ v: SESSION_VERSION, open: true, history: "ls", log: [] }));
-      reject(JSON.stringify({ v: SESSION_VERSION, open: true, history: [], log: {} }));
-    });
-
-    it("rejects a log line with a non-string text or an unknown kind", () => {
-      reject(JSON.stringify({ v: SESSION_VERSION, open: true, history: [], log: [{ t: 5, k: 0 }] }));
-      reject(JSON.stringify({ v: SESSION_VERSION, open: true, history: [], log: [{ t: "x", k: 99 }] }));
-    });
-
-    it("rejects a history entry that is not a string", () => {
-      reject(JSON.stringify({ v: SESSION_VERSION, open: true, history: [1, 2], log: [] }));
+    it("ignores a non-array history or non-string entries", () => {
+      expectEmpty(JSON.stringify({ v: SESSION_VERSION, history: "ls" }));
+      expectEmpty(JSON.stringify({ v: SESSION_VERSION, history: [1, 2] }));
     });
   });
 });

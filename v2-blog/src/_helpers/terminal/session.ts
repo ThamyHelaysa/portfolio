@@ -1,80 +1,50 @@
 /**
- * Session-scoped persistence for the terminal overlay: it survives full-page
- * MPA navigations within a tab so the overlay can reopen mid-session with its
- * scrollback and history intact (issue #79). Stored in `sessionStorage` (not
- * local) on purpose — no ghost terminal for visitors returning days later.
+ * Session-scoped persistence of the terminal's command history (issue #93).
  *
- * Deliberately dependency-free: `summon.ts`, a tiny eager script on every page,
- * imports this to decide whether to auto-restore. Pulling in `core.ts` (and
- * thus gsap) here would bloat that critical-path bundle, so the log-line kind
- * is validated as a bare number range mirroring `CommandType`, not imported.
+ * Scope deliberately narrowed from the original continuity store (#79): the
+ * modal terminal no longer auto-reopens after navigation, so the open flag and
+ * the scrollback are gone. Only the command history survives a full-page
+ * navigation, so arrow-up recalls earlier commands when the modal is summoned
+ * again. Stored in `sessionStorage` (per-tab; no ghost terminal for returning
+ * visitors).
+ *
+ * Dependency-free so `summon.ts` and the overlay can both import it without
+ * pulling in heavier terminal code.
  */
 
-/** sessionStorage key holding the serialized session snapshot. */
+/** sessionStorage key holding the serialized history snapshot. */
 export const SESSION_KEY = "book_os:session";
 
-/** Schema version; a snapshot with any other version is discarded on read. */
-export const SESSION_VERSION = 1;
+/**
+ * Schema version. Bumped to 2 when the store was narrowed to history-only;
+ * legacy v1 continuity blobs are ignored on read.
+ */
+export const SESSION_VERSION = 2;
 
-/** Maximum scrollback lines retained; older lines are dropped on append. */
-export const LOG_CAP = 100;
-
-/** Valid `CommandType` ordinals (log, logdata, command, title, error, status). */
-const VALID_KINDS = new Set([0, 1, 2, 3, 4, 5]);
-
-/** One persisted scrollback line: text plus its `CommandType` ordinal. */
-export interface LogLine {
-  t: string;
-  k: number;
-}
-
-/** A full terminal session snapshot persisted across a page navigation. */
-export interface SessionSnapshot {
+/** Persisted command-history snapshot. */
+interface HistorySnapshot {
   v: number;
-  open: boolean;
   history: string[];
-  log: LogLine[];
-}
-
-/** An empty, closed snapshot used as the base for the first write. */
-function emptySnapshot(): SessionSnapshot {
-  return { v: SESSION_VERSION, open: false, history: [], log: [] };
 }
 
 /**
- * Validates an untrusted parsed payload into a snapshot. sessionStorage is
- * user-tamperable, so any shape deviation — wrong version, non-array fields,
- * a non-string line/history entry, or an unknown kind — discards the whole
- * blob (returns null) rather than partially trusting it.
+ * Validates an untrusted parsed payload into a history array. sessionStorage is
+ * user-tamperable (and may hold a legacy #79 blob), so any shape deviation —
+ * wrong version, non-array history, or a non-string entry — yields [].
  *
  * @param raw - The `JSON.parse`d storage payload.
- * @returns A well-formed snapshot, or null when anything is off.
+ * @returns The history entries, or [] when anything is off.
  */
-function validate(raw: unknown): SessionSnapshot | null {
-  if (!raw || typeof raw !== "object") return null;
+function validate(raw: unknown): string[] {
+  if (!raw || typeof raw !== "object") return [];
   const o = raw as Record<string, unknown>;
-
-  if (o.v !== SESSION_VERSION) return null;
-  if (typeof o.open !== "boolean") return null;
-  if (!Array.isArray(o.history) || !Array.isArray(o.log)) return null;
-
-  if (!o.history.every((h) => typeof h === "string")) return null;
-
-  const log: LogLine[] = [];
-  for (const line of o.log) {
-    if (!line || typeof line !== "object") return null;
-    const l = line as Record<string, unknown>;
-    if (typeof l.t !== "string" || typeof l.k !== "number" || !VALID_KINDS.has(l.k)) return null;
-    log.push({ t: l.t, k: l.k });
-  }
-
-  return { v: SESSION_VERSION, open: o.open, history: o.history as string[], log };
+  if (o.v !== SESSION_VERSION) return [];
+  if (!Array.isArray(o.history) || !o.history.every((h) => typeof h === "string")) return [];
+  return o.history as string[];
 }
 
 /**
- * A thin, defensive wrapper over a `Storage` holding the terminal session.
- * Writes are eager (read-modify-write per change) so a navigation at any
- * instant — terminal-driven or a plain link click — already has current state.
+ * A thin, defensive wrapper over a `Storage` holding the command history.
  */
 export class TerminalSession {
   private storage: Storage;
@@ -90,63 +60,40 @@ export class TerminalSession {
   }
 
   /**
-   * Reads and validates the stored snapshot.
+   * Reads the persisted command history.
    *
-   * @returns The snapshot, or null when absent, malformed, or tampered.
+   * @returns The history (oldest first), or [] when absent/malformed/legacy.
    */
-  read(): SessionSnapshot | null {
+  readHistory(): string[] {
     let raw: string | null = null;
     try {
       raw = this.storage.getItem(this.key);
     } catch {
-      return null;
+      return [];
     }
-    if (raw === null) return null;
+    if (raw === null) return [];
 
     try {
       return validate(JSON.parse(raw));
     } catch {
-      return null;
+      return [];
     }
   }
 
-  /** Sets the open flag, preserving history and log. */
-  setOpen(open: boolean): void {
-    const snap = this.read() ?? emptySnapshot();
-    snap.open = open;
-    this.write(snap);
-  }
-
-  /** Replaces the recall history, preserving the open flag and log. */
-  setHistory(history: string[]): void {
-    const snap = this.read() ?? emptySnapshot();
-    snap.history = Array.isArray(history) ? [...history] : [];
-    this.write(snap);
-  }
-
-  /** Appends a scrollback line, dropping the oldest beyond {@link LOG_CAP}. */
-  appendLine(t: string, k: number): void {
-    const snap = this.read() ?? emptySnapshot();
-    snap.log.push({ t, k });
-    if (snap.log.length > LOG_CAP) snap.log = snap.log.slice(-LOG_CAP);
-    this.write(snap);
-  }
-
-  /** Removes the stored session (e.g. on close). */
-  clear(): void {
-    try {
-      this.storage.removeItem(this.key);
-    } catch {
-      // storage unavailable (private mode quota, etc.) — nothing to clear
-    }
-  }
-
-  /** Serializes a snapshot to storage, swallowing quota/availability errors. */
-  private write(snap: SessionSnapshot): void {
+  /**
+   * Persists the command history, replacing any prior snapshot.
+   *
+   * @param history - The command lines, oldest first.
+   */
+  writeHistory(history: string[]): void {
+    const snap: HistorySnapshot = {
+      v: SESSION_VERSION,
+      history: Array.isArray(history) ? [...history] : [],
+    };
     try {
       this.storage.setItem(this.key, JSON.stringify(snap));
     } catch {
-      // storage full or unavailable — continuity is best-effort, never fatal
+      // storage full or unavailable — history recall is best-effort
     }
   }
 }

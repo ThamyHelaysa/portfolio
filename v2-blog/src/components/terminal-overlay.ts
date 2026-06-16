@@ -12,7 +12,10 @@ import {
   resolveOpen,
   sanitizeNavQuery,
 } from "../_helpers/terminal/site-index.ts";
-import { TerminalSession } from "../_helpers/terminal/session.ts";
+import { takeFirstBootOfSession, TerminalSession } from "../_helpers/terminal/session.ts";
+import { playFirstSummonChime } from "../_helpers/terminal/chime.ts";
+import { getTheme, setTheme, type Theme } from "../_helpers/theme.ts";
+import { IdentityManager, IDMode } from "../_helpers/identityManager.ts";
 
 /**
  * Site-wide summonable terminal — an accessible modal window (issue #93).
@@ -274,10 +277,11 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page\nexit / q - close the terminal",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page\ntheme [dark|pinky] - switch the theme\nwhoami - who are you, really\nexit / q - close the terminal",
           0.3,
           CommandType.logdata
         );
+        await this._core.append("psst — this is a cheat console. the classics still work.", 0.2, CommandType.logdata);
       },
 
       ls: async (ctx: ParsedCommand) => this._listContent(ctx),
@@ -285,6 +289,25 @@ export class TerminalOverlay extends LitElement {
 
       exit: async (ctx: ParsedCommand) => this._exit(ctx),
       q: async (ctx: ParsedCommand) => this._exit(ctx),
+
+      theme: async (ctx: ParsedCommand) => this._theme(ctx),
+      whoami: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        await this._core.append(
+          IdentityManager.getInstance().getFullIdentity(IDMode.default),
+          0.2,
+          CommandType.logdata
+        );
+      },
+
+      rosebud: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        await this._core.append("you bought one more book, your TBR thanks you", 0.2, CommandType.status);
+      },
+      motherlode: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        await this._core.append("all the books in the world and not enough time to read them", 0.2, CommandType.status);
+      },
 
       open: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
@@ -332,6 +355,57 @@ export class TerminalOverlay extends LitElement {
   private async _exit(ctx: ParsedCommand): Promise<void> {
     await this._core.append(ctx.raw, 0.2, CommandType.command);
     this.open = false;
+  }
+
+  /**
+   * `theme [dark|pinky]` — no arg toggles; an explicit value sets it. Routes
+   * through the shared theme helper so the toggle component stays in sync.
+   *
+   * @param ctx - The parsed command (optional first positional is the target).
+   * @returns A promise that settles once the result is written.
+   */
+  private async _theme(ctx: ParsedCommand): Promise<void> {
+    await this._core.append(ctx.raw, 0.2, CommandType.command);
+    const arg = (ctx.positionals[0] ?? "").toLowerCase();
+
+    let next: Theme;
+    if (!arg) {
+      next = getTheme() === "dark" ? "pinky" : "dark";
+    } else if (arg === "dark") {
+      next = "dark";
+    } else if (arg === "pinky" || arg === "light") {
+      next = "pinky";
+    } else {
+      await this._core.append(`theme: unknown "${arg}" — try: dark, pinky`, 0.2, CommandType.error);
+      return;
+    }
+
+    setTheme(next);
+    await this._core.append(`theme → ${next}`, 0.2, CommandType.status);
+  }
+
+  /**
+   * Shows the per-session boot flavour: a couple of cheat-console lines with
+   * the Sims "reticulating splines" homage, pointing at `help`.
+   *
+   * @returns A promise that settles once the boot lines are written.
+   */
+  private async _boot(): Promise<void> {
+    await this._core.append("book_os v1.0 — cheat console", 0.2, CommandType.log);
+    await this._core.append("reticulating splines... ok", 0.2, CommandType.status);
+    await this._core.append("type `help` for commands", 0.2, CommandType.logdata);
+  }
+
+  /**
+   * Reward + flavour on summon: the per-session boot lines (first summon of the
+   * session) and the once-ever chime. Both gate themselves; calling on every
+   * open is safe.
+   *
+   * @returns `void`.
+   */
+  private _onOpened(): void {
+    if (takeFirstBootOfSession()) void this._boot();
+    playFirstSummonChime();
   }
 
   /**
@@ -389,6 +463,7 @@ export class TerminalOverlay extends LitElement {
     if (changed.has("open")) {
       if (this.open) {
         this._showModal();
+        this._onOpened();
       } else if (changed.get("open")) {
         this._closeModal();
       }

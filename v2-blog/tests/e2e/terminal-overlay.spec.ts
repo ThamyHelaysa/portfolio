@@ -128,6 +128,42 @@ test("unlock: visiting the books page reveals the site-wide terminal button", as
   await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
 });
 
+test("first summon shows the boot flavour and arms the once-ever chime", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  await expect(page.locator("#overlay-log")).toContainText("reticulating splines");
+  // The chime path ran (synthesized via Web Audio) and set its persistent flag.
+  expect(await page.evaluate(() => localStorage.getItem("book_os:chimed"))).not.toBeNull();
+});
+
+test("reduced motion: the chime does not play (no flag set)", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  // Boot text still shows, but the chime is skipped and its flag stays unset.
+  await expect(page.locator("#overlay-log")).toContainText("reticulating splines");
+  expect(await page.evaluate(() => localStorage.getItem("book_os:chimed"))).toBeNull();
+});
+
+test("the theme command switches the theme and syncs the header toggle", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  await page.locator("#overlay-input").fill("theme dark");
+  await page.keyboard.press("Enter");
+
+  await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
+
+  // The header toggle synced to the new theme via the shared theme-change
+  // event (its reflected `theme` attribute flips) — no divergent state.
+  await expect(page.locator('theme-toggle[theme="dark"]').first()).toBeAttached();
+});
+
 test("mobile: summoning from the drawer closes the drawer and opens the modal", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
 

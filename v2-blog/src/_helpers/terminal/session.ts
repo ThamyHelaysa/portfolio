@@ -21,10 +21,30 @@ export const SESSION_KEY = "book_os:session";
  */
 export const SESSION_VERSION = 2;
 
+/** sessionStorage flag marking that the boot sequence has shown this session. */
+export const BOOT_KEY = "book_os:booted";
+
 /** Persisted command-history snapshot. */
 interface HistorySnapshot {
   v: number;
   history: string[];
+}
+
+/**
+ * Whether the terminal's boot flavour should show: true on the first summon of
+ * the browser session, false thereafter (it records the flag on the first call).
+ *
+ * @param storage - Backing store (defaults to `sessionStorage`).
+ * @returns `true` exactly once per session.
+ */
+export function takeFirstBootOfSession(storage: Storage = sessionStorage): boolean {
+  try {
+    if (storage.getItem(BOOT_KEY) !== null) return false;
+    storage.setItem(BOOT_KEY, "1");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

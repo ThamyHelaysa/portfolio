@@ -7,12 +7,15 @@ import {
   buildTree,
   fetchSiteIndex,
   findNode,
-  renderRootListing,
+  rootListingBlock,
   renderSubtree,
   resolveOpen,
   sanitizeNavQuery,
 } from "../_helpers/terminal/site-index.ts";
-import { TerminalSession } from "../_helpers/terminal/session.ts";
+import { takeFirstBootOfSession, TerminalSession } from "../_helpers/terminal/session.ts";
+import { playFirstSummonChime } from "../_helpers/terminal/chime.ts";
+import { getTheme, setTheme, type Theme } from "../_helpers/theme.ts";
+import { getIdentity } from "../_helpers/identity.ts";
 
 /**
  * Site-wide summonable terminal — an accessible modal window (issue #93).
@@ -245,6 +248,69 @@ export class TerminalOverlay extends LitElement {
       #overlay-status { display: none; }
     }
 
+    /* Structured blocks: columns grid, tone chips, and sections. */
+    .terminal-cols {
+      display: grid;
+      gap: 0.1rem 1.5ch;
+      margin: 0.15rem 0;
+    }
+
+    .terminal-cell {
+      white-space: pre;
+    }
+
+    .terminal-cell[data-align="end"] {
+      justify-self: end;
+      text-align: right;
+    }
+
+    [data-tone="muted"] {
+      color: var(--term-muted);
+    }
+    [data-tone="accent"] {
+      background: var(--term-accent);
+      color: var(--term-on-accent);
+    }
+    [data-tone="ok"] {
+      background: var(--term-ok-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="err"] {
+      background: var(--term-err-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="warn"] {
+      background: var(--term-warn-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="surface"] {
+      background: var(--term-surface);
+    }
+
+    /* Toned cells read as chips; muted/default stay text-only. */
+    .terminal-cell[data-tone="accent"],
+    .terminal-cell[data-tone="ok"],
+    .terminal-cell[data-tone="err"],
+    .terminal-cell[data-tone="warn"] {
+      padding: 0 0.6ch;
+      border-radius: 3px;
+    }
+
+    .terminal-section {
+      margin: 0.35rem 0;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+    }
+
+    .terminal-section-title {
+      font-size: 0.78em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--term-muted);
+      margin-bottom: 0.35rem;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -274,10 +340,11 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page\nexit / q - close the terminal",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page\ntheme [dark|pinky] - switch the theme\nwhoami - who are you, really\nexit / q - close the terminal",
           0.3,
           CommandType.logdata
         );
+        await this._core.append("psst — this is a cheat console. the classics still work.", 0.2, CommandType.logdata);
       },
 
       ls: async (ctx: ParsedCommand) => this._listContent(ctx),
@@ -285,6 +352,22 @@ export class TerminalOverlay extends LitElement {
 
       exit: async (ctx: ParsedCommand) => this._exit(ctx),
       q: async (ctx: ParsedCommand) => this._exit(ctx),
+
+      theme: async (ctx: ParsedCommand) => this._theme(ctx),
+      whoami: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        // Read fresh each run so it reflects a name chosen on the home page.
+        await this._core.append(getIdentity(), 0.2, CommandType.logdata);
+      },
+
+      rosebud: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        await this._core.append("you bought one more book, your TBR thanks you", 0.2, CommandType.status);
+      },
+      motherlode: async (ctx: ParsedCommand) => {
+        await this._core.append(ctx.raw, 0.2, CommandType.command);
+        await this._core.append("all the books in the world and not enough time to read them", 0.2, CommandType.status);
+      },
 
       open: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
@@ -335,6 +418,57 @@ export class TerminalOverlay extends LitElement {
   }
 
   /**
+   * `theme [dark|pinky]` — no arg toggles; an explicit value sets it. Routes
+   * through the shared theme helper so the toggle component stays in sync.
+   *
+   * @param ctx - The parsed command (optional first positional is the target).
+   * @returns A promise that settles once the result is written.
+   */
+  private async _theme(ctx: ParsedCommand): Promise<void> {
+    await this._core.append(ctx.raw, 0.2, CommandType.command);
+    const arg = (ctx.positionals[0] ?? "").toLowerCase();
+
+    let next: Theme;
+    if (!arg) {
+      next = getTheme() === "dark" ? "pinky" : "dark";
+    } else if (arg === "dark") {
+      next = "dark";
+    } else if (arg === "pinky" || arg === "light") {
+      next = "pinky";
+    } else {
+      await this._core.append(`theme: unknown "${arg}" — try: dark, pinky`, 0.2, CommandType.error);
+      return;
+    }
+
+    setTheme(next);
+    await this._core.append(`theme → ${next}`, 0.2, CommandType.status);
+  }
+
+  /**
+   * Shows the per-session boot flavour: a couple of cheat-console lines with
+   * the Sims "reticulating splines" homage, pointing at `help`.
+   *
+   * @returns A promise that settles once the boot lines are written.
+   */
+  private async _boot(): Promise<void> {
+    await this._core.append("book_os v1.0 — cheat console", 0.2, CommandType.log);
+    await this._core.append("reticulating splines... ok", 0.2, CommandType.status);
+    await this._core.append("type `help` for commands", 0.2, CommandType.logdata);
+  }
+
+  /**
+   * Reward + flavour on summon: the per-session boot lines (first summon of the
+   * session) and the once-ever chime. Both gate themselves; calling on every
+   * open is safe.
+   *
+   * @returns `void`.
+   */
+  private _onOpened(): void {
+    if (takeFirstBootOfSession()) void this._boot();
+    playFirstSummonChime();
+  }
+
+  /**
    * Handles `ls [target]` against the site tree:
    * - no arg → the top level (folders with counts, then leaf pages);
    * - a folder → its `tree`-style subtree;
@@ -350,9 +484,8 @@ export class TerminalOverlay extends LitElement {
     const target = sanitizeNavQuery(ctx.positionals[0] ?? "");
 
     if (!target) {
-      for (const line of renderRootListing(root)) {
-        await this._core.append(line, 0.02, CommandType.log);
-      }
+      // Structured: a tinted section with an aligned two-column grid.
+      await this._core.render(rootListingBlock(root));
       return;
     }
 
@@ -389,6 +522,7 @@ export class TerminalOverlay extends LitElement {
     if (changed.has("open")) {
       if (this.open) {
         this._showModal();
+        this._onOpened();
       } else if (changed.get("open")) {
         this._closeModal();
       }

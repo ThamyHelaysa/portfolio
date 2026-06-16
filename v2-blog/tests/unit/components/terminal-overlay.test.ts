@@ -17,6 +17,7 @@ vi.mock("../../../src/_helpers/styleLoader.ts", () => ({
 
 import { TerminalOverlay } from "../../../src/components/terminal-overlay.ts";
 import { TerminalSession } from "../../../src/_helpers/terminal/session.ts";
+import { setIdentity } from "../../../src/_helpers/identity.ts";
 
 async function mountOverlay() {
   const el = new TerminalOverlay();
@@ -42,6 +43,7 @@ async function flush() {
 beforeEach(() => {
   document.body.innerHTML = "";
   sessionStorage.clear();
+  localStorage.clear();
 });
 
 describe("terminal-overlay", () => {
@@ -151,6 +153,109 @@ describe("terminal-overlay", () => {
     });
   });
 
+  describe("delight package (#81)", () => {
+    it("shows the boot flavour on the first summon of the session", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+      await flush();
+
+      expect($(el, "#overlay-log")!.textContent).toContain("reticulating splines");
+    });
+
+    it("does not boot again on a later summon in the same session", async () => {
+      // First element consumes the per-session boot flag.
+      const first = await mountOverlay();
+      first.open = true;
+      await first.updateComplete;
+      await flush();
+
+      // A fresh element (e.g. after navigation) must not re-boot.
+      document.body.innerHTML = "";
+      const second = await mountOverlay();
+      second.open = true;
+      await second.updateComplete;
+      await flush();
+
+      expect($(second, "#overlay-log")!.textContent).not.toContain("reticulating splines");
+    });
+
+    it("help hints that cheats exist without listing them", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+      submit(el, "help");
+      await flush();
+
+      const text = $(el, "#overlay-log")!.textContent!;
+      expect(text).toContain("cheat console");
+      expect(text).not.toContain("rosebud");
+    });
+
+    it("theme switches and persists, and toggles with no argument", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "theme dark");
+      await flush();
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(localStorage.getItem("theme")).toBe("dark");
+
+      submit(el, "theme");
+      await flush();
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      expect(localStorage.getItem("theme")).toBe("pinky");
+    });
+
+    it("rejects an unknown theme argument", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "theme neon");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toMatch(/neon|unknown|usage/i);
+      expect(localStorage.getItem("theme")).not.toBe("neon");
+    });
+
+    it("whoami prints the generated identity", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "whoami");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toMatch(/::/);
+    });
+
+    it("whoami reflects an identity chosen elsewhere (not the seed default)", async () => {
+      setIdentity("ghost_reader::4242");
+
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "whoami");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toContain("ghost_reader::4242");
+    });
+
+    it("responds to the rosebud and motherlode easter eggs", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "rosebud");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toContain("TBR");
+
+      submit(el, "motherlode");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toContain("not enough time");
+    });
+  });
+
   describe("command history (persists across navigations, not scrollback)", () => {
     it("recalls prior commands with ArrowUp/ArrowDown", async () => {
       const el = await mountOverlay();
@@ -186,8 +291,9 @@ describe("terminal-overlay", () => {
     });
 
     it("rehydrates history from the session on mount, but starts with an empty log", async () => {
-      // Simulate a prior page in the same tab having run a command.
+      // Simulate a prior page in the same tab having run a command (and booted).
       new TerminalSession().writeHistory(["open ring"]);
+      sessionStorage.setItem("book_os:booted", "1"); // suppress the boot flavour
 
       const el = await mountOverlay();
       el.open = true;

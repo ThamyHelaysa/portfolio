@@ -112,6 +112,7 @@
     --term-prompt: var(--color-accent-primary);
     --term-ok-bg: #2fa46a;
     --term-err-bg: #e5484d;
+    --term-warn-bg: #c8860d;
     --term-badge-text: #fff;
   }
 
@@ -148,6 +149,7 @@
     --term-on-accent: var(--color-gray-900);
     --term-ok-bg: #46d18a;
     --term-err-bg: #ff6b6b;
+    --term-warn-bg: #ffc857;
     --term-badge-text: #15131f;
 
     --color-h1: var(--color-accent-primary);

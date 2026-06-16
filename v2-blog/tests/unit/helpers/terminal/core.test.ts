@@ -78,6 +78,59 @@ describe("TerminalCore", () => {
     expect(logEl.querySelectorAll("p")).toHaveLength(2);
   });
 
+  describe("render (structured blocks)", () => {
+    it("renders a text block as a classed paragraph (with a badge for badged kinds)", async () => {
+      const { core, logEl } = createCore();
+
+      await core.render({ type: "text", text: "hi there", kind: CommandType.status });
+
+      const p = logEl.querySelector("p.terminal-msg.status")!;
+      expect(p.textContent).toBe("hi there");
+      expect(p.getAttribute("data-badge")).toBe("OK");
+    });
+
+    it("renders a columns block as a grid with tone/align on cells, padding short rows", async () => {
+      const { core, logEl } = createCore();
+
+      await core.render({
+        type: "columns",
+        rows: [
+          [{ text: "blog/" }, { text: "3", tone: "muted", align: "end" }],
+          [{ text: "about" }],
+        ],
+      });
+
+      const grid = logEl.querySelector(".terminal-cols") as HTMLElement;
+      expect(grid).not.toBeNull();
+      // 2 columns inferred from the widest row; short row padded to 2 cells.
+      const cells = grid.querySelectorAll(".terminal-cell");
+      expect(cells).toHaveLength(4);
+      expect(grid.style.gridTemplateColumns).toContain("repeat(2");
+
+      const count = cells[1] as HTMLElement;
+      expect(count.textContent).toBe("3");
+      expect(count.dataset.tone).toBe("muted");
+      expect(count.dataset.align).toBe("end");
+    });
+
+    it("renders a section with a title, tone, and nested body", async () => {
+      const { core, logEl } = createCore();
+
+      await core.render({
+        type: "section",
+        title: "site",
+        tone: "surface",
+        body: [{ type: "text", text: "inside" }],
+      });
+
+      const section = logEl.querySelector("section.terminal-section") as HTMLElement;
+      expect(section).not.toBeNull();
+      expect(section.dataset.tone).toBe("surface");
+      expect(section.querySelector(".terminal-section-title")!.textContent).toBe("site");
+      expect(section.querySelector("p.terminal-msg")!.textContent).toBe("inside");
+    });
+  });
+
   it("passes each written line's text and kind to onLineWritten", async () => {
     const onLineWritten = vi.fn();
     const { core } = createCore({ onLineWritten });

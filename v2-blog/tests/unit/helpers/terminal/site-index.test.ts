@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, renderSubtree, resolveOpen, sanitizeNavQuery } from "../../../../src/_helpers/terminal/site-index.ts";
+import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, rootListingBlock, renderSubtree, resolveOpen, sanitizeNavQuery } from "../../../../src/_helpers/terminal/site-index.ts";
 
 const ENTRIES = parseSiteIndex([
   { section: "posts", title: "Why I never heard of Lit", url: "/blog/2025/why-i-never-heard-of-lit/" },
@@ -159,6 +159,32 @@ describe("renderRootListing", () => {
 
     // folders come before leaves
     expect(lines.findIndex((l) => l.startsWith("blog/"))).toBeLessThan(lines.indexOf("about"));
+  });
+});
+
+describe("rootListingBlock", () => {
+  it("is a surface section wrapping a columns grid: folders (name + muted count) before leaves", () => {
+    const block = rootListingBlock(buildTree(ENTRIES));
+
+    expect(block.type).toBe("section");
+    if (block.type !== "section") return;
+    expect(block.tone).toBe("surface");
+
+    const cols = block.body[0];
+    expect(cols.type).toBe("columns");
+    if (cols.type !== "columns") return;
+
+    const blogRow = cols.rows.find((r) => r[0].text === "blog/")!;
+    expect(blogRow[1].text).toBe("3");
+    expect(blogRow[1].tone).toBe("muted");
+    expect(blogRow[1].align).toBe("end");
+
+    const aboutRow = cols.rows.find((r) => r[0].text === "about")!;
+    expect(aboutRow).toBeDefined();
+
+    const blogIdx = cols.rows.findIndex((r) => r[0].text === "blog/");
+    const aboutIdx = cols.rows.findIndex((r) => r[0].text === "about");
+    expect(blogIdx).toBeLessThan(aboutIdx);
   });
 });
 

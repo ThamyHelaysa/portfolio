@@ -2,6 +2,7 @@ import { gsap } from "gsap";
 
 import { parseCommand, ParsedCommand } from "./parser.ts";
 import { CommandHistory } from "./history.ts";
+import { type Block, type Cell, flattenBlock } from "./blocks.ts";
 
 /**
  * Visual kinds for terminal log lines; the name doubles as the CSS class.
@@ -153,5 +154,86 @@ export class TerminalCore {
 
       this.opts.onLineWritten?.({ text: line, kind });
     }
+  }
+
+  /**
+   * Renders a structured block (text / columns / section) to the log. Unlike
+   * {@link append}, structured output appears instantly (no per-char typing),
+   * which suits grids and grouped layouts.
+   *
+   * @param block - The block descriptor to render.
+   * @returns A promise that settles once the block is in the DOM.
+   */
+  async render(block: Block): Promise<void> {
+    const log = this.opts.logEl();
+    if (!log) return;
+
+    log.appendChild(this.buildBlock(block));
+    this.opts.onLineWritten?.({ text: flattenBlock(block), kind: CommandType.log });
+  }
+
+  /**
+   * Builds the DOM for a block (recursing into section bodies).
+   *
+   * @param block - The block descriptor.
+   * @returns The rendered element.
+   */
+  private buildBlock(block: Block): HTMLElement {
+    switch (block.type) {
+      case "text":
+        return this.buildText(block.text, block.kind ?? CommandType.log);
+      case "columns":
+        return this.buildColumns(block.rows);
+      case "section":
+        return this.buildSection(block);
+    }
+  }
+
+  /** Builds a flat text line (same shape as {@link append}, rendered instantly). */
+  private buildText(text: string, kind: CommandType): HTMLElement {
+    const p = document.createElement("p");
+    p.className = `terminal-msg ${CommandType[kind]}`;
+    const badge = commandBadge(kind);
+    if (badge) p.dataset.badge = badge;
+    p.textContent = text;
+    return p;
+  }
+
+  /** Builds a grid of tone/aligned cells; short rows are padded so columns line up. */
+  private buildColumns(rows: Cell[][]): HTMLElement {
+    const cols = rows.reduce((max, row) => Math.max(max, row.length), 0);
+    const grid = document.createElement("div");
+    grid.className = "terminal-cols";
+    grid.style.gridTemplateColumns = `repeat(${cols}, max-content)`;
+
+    for (const row of rows) {
+      for (let i = 0; i < cols; i++) {
+        const cell = row[i] ?? { text: "" };
+        const span = document.createElement("span");
+        span.className = "terminal-cell";
+        if (cell.tone) span.dataset.tone = cell.tone;
+        if (cell.align) span.dataset.align = cell.align;
+        span.textContent = cell.text;
+        grid.appendChild(span);
+      }
+    }
+    return grid;
+  }
+
+  /** Builds a titled, optionally tinted group wrapping its nested body blocks. */
+  private buildSection(block: Extract<Block, { type: "section" }>): HTMLElement {
+    const section = document.createElement("section");
+    section.className = "terminal-section";
+    if (block.tone) section.dataset.tone = block.tone;
+
+    if (block.title) {
+      const title = document.createElement("div");
+      title.className = "terminal-section-title";
+      title.textContent = block.title;
+      section.appendChild(title);
+    }
+
+    for (const child of block.body) section.appendChild(this.buildBlock(child));
+    return section;
   }
 }

@@ -1,7 +1,8 @@
 import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 
-import { IdentityManager, IDMode } from "../_helpers/identityManager.ts";
+import { IdentityManager } from "../_helpers/identityManager.ts";
+import { getIdentity, nextRandomIdentity, setIdentity } from "../_helpers/identity.ts";
 
 @customElement('user-fakeid')
 export class UserFakeID extends LitElement {
@@ -104,7 +105,7 @@ export class UserFakeID extends LitElement {
     }
 
     if (this._userElID) {
-      this.userID = this.identity.getFullIdentity(IDMode.default);
+      this.userID = getIdentity();
     }
   }
 
@@ -122,15 +123,14 @@ export class UserFakeID extends LitElement {
 
   private async _handleRandomID(): Promise<void> {
     this.isRandom = true;
-    console.log(this.identity.getFullIdentity(IDMode.random));
-
-    this.userID = this.identity.getFullIdentity(IDMode.random);
+    this.userID = nextRandomIdentity();
     await this.identity.animateReveal(this._userElID, this.userID);
   }
 
   private setRandomID(): void {
     if (!this.userID) return;
-    this.identity.cacheName(this.userID);
+    // Persist + broadcast so other surfaces (e.g. the terminal `whoami`) agree.
+    setIdentity(this.userID);
   }
 
   protected render(): unknown {

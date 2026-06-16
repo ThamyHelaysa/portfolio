@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { SESSION_KEY, SESSION_VERSION, TerminalSession } from "../../../../src/_helpers/terminal/session.ts";
+import {
+  BOOT_KEY,
+  SESSION_KEY,
+  SESSION_VERSION,
+  takeFirstBootOfSession,
+  TerminalSession,
+} from "../../../../src/_helpers/terminal/session.ts";
 
 /** Minimal in-memory Storage stand-in (decoupled from jsdom globals). */
 function fakeStorage(): Storage {
@@ -67,5 +73,16 @@ describe("TerminalSession (command-history persistence)", () => {
       expectEmpty(JSON.stringify({ v: SESSION_VERSION, history: "ls" }));
       expectEmpty(JSON.stringify({ v: SESSION_VERSION, history: [1, 2] }));
     });
+  });
+});
+
+describe("takeFirstBootOfSession", () => {
+  it("returns true once per session, then false, and records the flag", () => {
+    const storage = fakeStorage();
+
+    expect(takeFirstBootOfSession(storage)).toBe(true);
+    expect(storage.getItem(BOOT_KEY)).not.toBeNull();
+    expect(takeFirstBootOfSession(storage)).toBe(false);
+    expect(takeFirstBootOfSession(storage)).toBe(false);
   });
 });

@@ -69,7 +69,7 @@ describe("playFirstSummonChime", () => {
     expect(storage.getItem(CHIME_KEY)).not.toBeNull();
   });
 
-  it("never plays a second time (once ever per profile)", () => {
+  it("never plays a second time in the same session", () => {
     const createAudioContext = vi.fn(() => fakeAudioContext() as unknown as AudioContext);
     const deps = { storage, prefersReducedMotion: () => false, createAudioContext };
 

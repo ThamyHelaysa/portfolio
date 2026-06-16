@@ -15,7 +15,7 @@ import {
 import { takeFirstBootOfSession, TerminalSession } from "../_helpers/terminal/session.ts";
 import { playFirstSummonChime } from "../_helpers/terminal/chime.ts";
 import { getTheme, setTheme, type Theme } from "../_helpers/theme.ts";
-import { IdentityManager, IDMode } from "../_helpers/identityManager.ts";
+import { getIdentity } from "../_helpers/identity.ts";
 
 /**
  * Site-wide summonable terminal — an accessible modal window (issue #93).
@@ -293,11 +293,8 @@ export class TerminalOverlay extends LitElement {
       theme: async (ctx: ParsedCommand) => this._theme(ctx),
       whoami: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
-        await this._core.append(
-          IdentityManager.getInstance().getFullIdentity(IDMode.default),
-          0.2,
-          CommandType.logdata
-        );
+        // Read fresh each run so it reflects a name chosen on the home page.
+        await this._core.append(getIdentity(), 0.2, CommandType.logdata);
       },
 
       rosebud: async (ctx: ParsedCommand) => {

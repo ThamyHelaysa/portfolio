@@ -128,14 +128,14 @@ test("unlock: visiting the books page reveals the site-wide terminal button", as
   await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
 });
 
-test("first summon shows the boot flavour and arms the once-ever chime", async ({ page }) => {
+test("first summon shows the boot flavour and arms the per-session chime", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Control+Shift+C");
   await expect(page.locator("#overlay-input")).toBeFocused();
 
   await expect(page.locator("#overlay-log")).toContainText("reticulating splines");
-  // The chime path ran (synthesized via Web Audio) and set its persistent flag.
-  expect(await page.evaluate(() => localStorage.getItem("book_os:chimed"))).not.toBeNull();
+  // The chime path ran (synthesized via Web Audio) and set its per-session flag.
+  expect(await page.evaluate(() => sessionStorage.getItem("book_os:chimed"))).not.toBeNull();
 });
 
 test("reduced motion: the chime does not play (no flag set)", async ({ page }) => {
@@ -146,7 +146,7 @@ test("reduced motion: the chime does not play (no flag set)", async ({ page }) =
 
   // Boot text still shows, but the chime is skipped and its flag stays unset.
   await expect(page.locator("#overlay-log")).toContainText("reticulating splines");
-  expect(await page.evaluate(() => localStorage.getItem("book_os:chimed"))).toBeNull();
+  expect(await page.evaluate(() => sessionStorage.getItem("book_os:chimed"))).toBeNull();
 });
 
 test("the theme command switches the theme and syncs the header toggle", async ({ page }) => {

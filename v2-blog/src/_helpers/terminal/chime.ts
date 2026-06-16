@@ -1,11 +1,14 @@
 /**
- * The first-ever-summon chime (issue #81): a short, synthesized ascending
- * arpeggio that plays exactly once per browser profile, evoking a 2000s game
+ * The summon chime (issue #81): a short, synthesized ascending arpeggio that
+ * plays once per browser session on the first summon, evoking a 2000s game
  * console without sampling any audio. No asset, no network request — built at
  * runtime with the Web Audio API. Skipped under `prefers-reduced-motion`.
+ *
+ * Per-session (sessionStorage), not once-ever: a returning visitor gets the
+ * little reward again on their next visit, but it stays quiet within a session.
  */
 
-/** localStorage flag marking that the once-ever chime has played. */
+/** sessionStorage flag marking that the chime has played this session. */
 export const CHIME_KEY = "book_os:chimed";
 
 /** Ascending major triad: C5 → E5 → G5 (Hz). */
@@ -34,15 +37,15 @@ function defaultAudioContext(): AudioContext | null {
 }
 
 /**
- * Plays the celebratory chime if this is the first summon ever and motion is
- * allowed. Marks the persistent flag only on a real play, so a reduced-motion
- * or Web-Audio-less visit doesn't burn the once-ever moment.
+ * Plays the celebratory chime if this is the first summon of the session and
+ * motion is allowed. Marks the session flag only on a real play, so a
+ * reduced-motion or Web-Audio-less visit doesn't burn the moment.
  *
  * @param deps - Injectable storage / motion / audio factory (for testing).
  * @returns `true` if the chime actually played.
  */
 export function playFirstSummonChime(deps: ChimeDeps = {}): boolean {
-  const storage = deps.storage ?? localStorage;
+  const storage = deps.storage ?? sessionStorage;
   const prefersReducedMotion = deps.prefersReducedMotion ?? defaultReducedMotion;
 
   if (prefersReducedMotion()) return false;
@@ -56,7 +59,7 @@ export function playFirstSummonChime(deps: ChimeDeps = {}): boolean {
   return true;
 }
 
-/** Whether the chime has already played on this profile. */
+/** Whether the chime has already played this session. */
 function hasChimed(storage: Storage): boolean {
   try {
     return storage.getItem(CHIME_KEY) !== null;

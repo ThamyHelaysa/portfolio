@@ -17,6 +17,7 @@ vi.mock("../../../src/_helpers/styleLoader.ts", () => ({
 
 import { TerminalOverlay } from "../../../src/components/terminal-overlay.ts";
 import { TerminalSession } from "../../../src/_helpers/terminal/session.ts";
+import { setIdentity } from "../../../src/_helpers/identity.ts";
 
 async function mountOverlay() {
   const el = new TerminalOverlay();
@@ -226,6 +227,18 @@ describe("terminal-overlay", () => {
       submit(el, "whoami");
       await flush();
       expect($(el, "#overlay-log")!.textContent).toMatch(/::/);
+    });
+
+    it("whoami reflects an identity chosen elsewhere (not the seed default)", async () => {
+      setIdentity("ghost_reader::4242");
+
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "whoami");
+      await flush();
+      expect($(el, "#overlay-log")!.textContent).toContain("ghost_reader::4242");
     });
 
     it("responds to the rosebud and motherlode easter eggs", async () => {

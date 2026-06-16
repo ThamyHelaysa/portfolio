@@ -7,7 +7,7 @@ import {
   buildTree,
   fetchSiteIndex,
   findNode,
-  renderRootListing,
+  rootListingBlock,
   renderSubtree,
   resolveOpen,
   sanitizeNavQuery,
@@ -248,6 +248,69 @@ export class TerminalOverlay extends LitElement {
       #overlay-status { display: none; }
     }
 
+    /* Structured blocks: columns grid, tone chips, and sections. */
+    .terminal-cols {
+      display: grid;
+      gap: 0.1rem 1.5ch;
+      margin: 0.15rem 0;
+    }
+
+    .terminal-cell {
+      white-space: pre;
+    }
+
+    .terminal-cell[data-align="end"] {
+      justify-self: end;
+      text-align: right;
+    }
+
+    [data-tone="muted"] {
+      color: var(--term-muted);
+    }
+    [data-tone="accent"] {
+      background: var(--term-accent);
+      color: var(--term-on-accent);
+    }
+    [data-tone="ok"] {
+      background: var(--term-ok-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="err"] {
+      background: var(--term-err-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="warn"] {
+      background: var(--term-warn-bg);
+      color: var(--term-badge-text);
+    }
+    [data-tone="surface"] {
+      background: var(--term-surface);
+    }
+
+    /* Toned cells read as chips; muted/default stay text-only. */
+    .terminal-cell[data-tone="accent"],
+    .terminal-cell[data-tone="ok"],
+    .terminal-cell[data-tone="err"],
+    .terminal-cell[data-tone="warn"] {
+      padding: 0 0.6ch;
+      border-radius: 3px;
+    }
+
+    .terminal-section {
+      margin: 0.35rem 0;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+    }
+
+    .terminal-section-title {
+      font-size: 0.78em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--term-muted);
+      margin-bottom: 0.35rem;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -421,9 +484,8 @@ export class TerminalOverlay extends LitElement {
     const target = sanitizeNavQuery(ctx.positionals[0] ?? "");
 
     if (!target) {
-      for (const line of renderRootListing(root)) {
-        await this._core.append(line, 0.02, CommandType.log);
-      }
+      // Structured: a tinted section with an aligned two-column grid.
+      await this._core.render(rootListingBlock(root));
       return;
     }
 

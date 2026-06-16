@@ -1,3 +1,5 @@
+import type { Block, Cell } from "./blocks.ts";
+
 /** Built URL of the site index manifest. */
 const SITE_INDEX_URL = "/assets/site-index.json";
 
@@ -98,6 +100,29 @@ export function renderRootListing(root: TreeNode): string[] {
     ...folders.map((f) => `${f.name}/   ${f.count}`),
     ...leaves.map((l) => l.name),
   ];
+}
+
+/**
+ * Builds the bare-`ls` listing as a structured block: a tinted section wrapping
+ * a two-column grid — folders (`name/` + a muted, right-aligned count) first,
+ * then leaf pages. Lets the terminal render aligned columns instead of flat text.
+ *
+ * @param root - The tree root.
+ * @returns A section block for {@link TerminalCore.render}.
+ */
+export function rootListingBlock(root: TreeNode): Block {
+  const folders = root.children.filter(isFolder);
+  const leaves = root.children.filter((n) => !isFolder(n));
+
+  const rows: Cell[][] = [
+    ...folders.map((f): Cell[] => [
+      { text: `${f.name}/` },
+      { text: String(f.count), tone: "muted", align: "end" },
+    ]),
+    ...leaves.map((l): Cell[] => [{ text: l.name }]),
+  ];
+
+  return { type: "section", title: "~/book_os", tone: "surface", body: [{ type: "columns", rows }] };
 }
 
 /** Renders a folder/leaf label: folders show `name/   count`, leaves `name`. */

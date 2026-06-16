@@ -1,7 +1,6 @@
 import { css, html, LitElement, PropertyValues } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
-import { animator } from "../_helpers/animationManager.ts";
 import { CommandType, TerminalCore } from "../_helpers/terminal/core.ts";
 import type { ParsedCommand } from "../_helpers/terminal/parser.ts";
 import {
@@ -16,61 +15,116 @@ import {
 import { TerminalSession } from "../_helpers/terminal/session.ts";
 
 /**
- * Site-wide summonable terminal overlay (the "cheat console").
- * A shadow-DOM drop-down panel built on the shared terminal core. Mounted and
- * toggled by the summoner via the reflected `open` attribute.
+ * Site-wide summonable terminal — an accessible modal window (issue #93).
+ *
+ * A shadow-DOM `<dialog>` opened with `showModal()`: focus is trapped, the
+ * background is inert, Escape and a backdrop click close it, and focus is
+ * restored on close by the platform. Desktop shows a centered terminal window
+ * with chrome; mobile goes fullscreen. Summoned deliberately (combo or button)
+ * — it never auto-opens after a navigation. Only command history persists
+ * across navigations, so arrow-up recalls earlier commands.
  */
 @customElement("terminal-overlay")
 export class TerminalOverlay extends LitElement {
 
   @property({ type: Boolean, reflect: true }) open = false;
 
-  // Critical layout lives here (synchronous) because the overlay mounts already
-  // open on first summon, before the async shadow-Tailwind fetch resolves.
   static styles = css`
     :host { display: contents; }
 
-    /* Rendered in the top layer via the Popover API so it paints above the
-       page regardless of ancestor stacking contexts (body has will-change).
-       These also override the UA popover defaults (centering, border, padding). */
-    #overlay-panel {
+    /* The terminal window. Centered by the UA in the top layer when shown via
+       showModal(); we override the UA dialog defaults (margin/padding/border). */
+    #overlay-dialog {
       position: fixed;
-      inset: 0 0 auto 0;
-      margin: 0;
-      width: auto;
-      max-width: none;
-      height: 45vh;
-      max-height: 45vh;
+      margin: auto;
       padding: 0;
-      border: 0;
-      border-bottom: 1px solid var(--term-border);
-      display: block;
-      transform: translateY(-100%);
+      width: min(720px, 92vw);
+      height: min(70vh, 560px);
+      max-width: 92vw;
+      max-height: 80vh;
+      border: 1px solid var(--term-border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--term-bg);
       color: var(--term-text);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
       font-family: var(--font-mono, ui-monospace, "IBM Plex Mono", monospace);
     }
 
-    /* A real painted fill rather than a CSS background on the popover element:
-       a top-layer popover only reliably paints its background where there is
-       content, leaving empty areas transparent. This div always paints. */
-    #overlay-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      background: var(--term-bg);
+    #overlay-dialog:not([open]) { display: none; }
+    #overlay-dialog[open] { display: flex; flex-direction: column; }
+
+    #overlay-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.55);
     }
 
-    #overlay-inner {
-      position: relative;
-      z-index: 1;
+    @media (prefers-reduced-motion: no-preference) {
+      #overlay-dialog[open] { animation: term-window-in 180ms ease both; }
+      #overlay-dialog[open]::backdrop { animation: term-backdrop-in 180ms ease both; }
+    }
+
+    @keyframes term-window-in {
+      from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes term-backdrop-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Title bar: tab label + close. */
+    #overlay-titlebar {
+      flex: none;
       display: flex;
-      flex-direction: column;
-      height: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0.5rem 0.45rem 0.9rem;
+      border-bottom: 1px solid var(--term-border);
+      background: var(--term-surface);
     }
 
-    @media (max-width: 768px) {
-      #overlay-panel { height: 60vh; max-height: 60vh; }
+    #overlay-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55ch;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--term-muted);
+    }
+
+    #overlay-tab::before {
+      content: "";
+      width: 0.6em;
+      height: 0.6em;
+      border-radius: 50%;
+      background: var(--term-accent);
+    }
+
+    #overlay-close {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--term-muted);
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    #overlay-close:hover,
+    #overlay-close:focus-visible {
+      background: var(--term-accent);
+      color: var(--term-on-accent);
+      outline: none;
     }
 
     #overlay-log {
@@ -122,6 +176,7 @@ export class TerminalOverlay extends LitElement {
     }
 
     #overlay-form {
+      flex: none;
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -135,8 +190,9 @@ export class TerminalOverlay extends LitElement {
       font-weight: 600;
     }
 
-    /* Segmented vim-style status bar. */
+    /* Segmented vim-style status bar (window footer; hidden on mobile). */
     #overlay-status {
+      flex: none;
       display: flex;
       align-items: stretch;
       font-size: 0.72rem;
@@ -176,6 +232,19 @@ export class TerminalOverlay extends LitElement {
       outline: none;
     }
 
+    /* Fullscreen on mobile; drop the footer status bar to save space. */
+    @media (max-width: 768px) {
+      #overlay-dialog {
+        width: 100dvw;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+      }
+      #overlay-status { display: none; }
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -189,35 +258,23 @@ export class TerminalOverlay extends LitElement {
     }
   `;
 
-  @query("#overlay-panel") private _panel!: HTMLElement;
+  @query("#overlay-dialog") private _dialog!: HTMLDialogElement;
   @query("#overlay-log") private _log!: HTMLElement;
   @query("#overlay-input") private _input!: HTMLTextAreaElement;
   @query("#overlay-form") private _form!: HTMLFormElement;
 
-  private _restoreFocusTo: Element | null = null;
   private _skipAnimations =
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 
-  /** Session-scoped continuity store (survives full-page navigations). */
+  /** Per-tab command-history store (survives full-page navigations). */
   private _session = new TerminalSession();
-  /** True while replaying restored scrollback, to suppress re-persisting it. */
-  private _restoring = false;
-  /** When set, the next open settles in place instead of sliding (restore). */
-  private _skipSlideOnce = false;
-  /** Resolves once any session restore on mount has finished (test hook). */
-  private _restoreComplete: Promise<void> | null = null;
-
-  /** Awaitable that settles after a mount-time session restore completes. */
-  get restoreComplete(): Promise<void> | null {
-    return this._restoreComplete;
-  }
 
   private _core = new TerminalCore({
     commands: {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\nopen <slug> - go to a page\nexit / q - close the terminal",
           0.3,
           CommandType.logdata
         );
@@ -225,6 +282,9 @@ export class TerminalOverlay extends LitElement {
 
       ls: async (ctx: ParsedCommand) => this._listContent(ctx),
       list: async (ctx: ParsedCommand) => this._listContent(ctx),
+
+      exit: async (ctx: ParsedCommand) => this._exit(ctx),
+      q: async (ctx: ParsedCommand) => this._exit(ctx),
 
       open: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
@@ -260,12 +320,19 @@ export class TerminalOverlay extends LitElement {
     },
     logEl: () => this._log,
     skipAnimations: () => this._skipAnimations,
-    onLineWritten: (line) => {
-      this._scrollToBottom();
-      // Mirror live output into the session; restore replay is already stored.
-      if (!this._restoring) this._session.appendLine(line.text, line.kind);
-    },
+    onLineWritten: () => this._scrollToBottom(),
   });
+
+  /**
+   * Closes the terminal in response to the `exit` / `q` command.
+   *
+   * @param ctx - The parsed command (echoed before closing).
+   * @returns A promise that settles once the echo is written.
+   */
+  private async _exit(ctx: ParsedCommand): Promise<void> {
+    await this._core.append(ctx.raw, 0.2, CommandType.command);
+    this.open = false;
+  }
 
   /**
    * Handles `ls [target]` against the site tree:
@@ -308,9 +375,9 @@ export class TerminalOverlay extends LitElement {
   }
 
   async firstUpdated() {
-    // Kick off restore synchronously (before the async style load) so the
-    // replay isn't gated on Tailwind and `restoreComplete` is set immediately.
-    this._restoreComplete = this._maybeRestore();
+    // Rehydrate arrow-up history from earlier in the tab (the panel itself
+    // opens fresh — no scrollback is restored, see #93).
+    this._core.history.load(this._session.readHistory());
     try {
       await adoptTailwind(this.renderRoot as ShadowRoot, "terminal-overlay-shadow.css");
     } catch (e) {
@@ -318,138 +385,63 @@ export class TerminalOverlay extends LitElement {
     }
   }
 
-  /**
-   * Restores a continued session on mount: if the stored snapshot was left
-   * open, replays its scrollback instantly, rehydrates history, reopens without
-   * sliding, and prints a `cd ~<path>` arrival line for the new page.
-   *
-   * @returns A promise that settles once restore (if any) has finished.
-   */
-  private async _maybeRestore(): Promise<void> {
-    const snap = this._session.read();
-    if (!snap || !snap.open) return;
-
-    this._restoring = true;
-    for (const line of snap.log) {
-      await this._core.append(line.t, 0, line.k);
-    }
-    this._restoring = false;
-
-    this._core.history.load(snap.history);
-
-    this._skipSlideOnce = true;
-    this.open = true;
-    await this.updateComplete;
-
-    const path = window.location.pathname.replace(/\/+$/, "");
-    await this._core.append(`cd ~${path}`, 0, CommandType.status);
-  }
-
   protected updated(changed: PropertyValues): void {
     if (changed.has("open")) {
       if (this.open) {
-        this._onOpened();
-        this._session.setOpen(true);
-      } else {
-        const wasOpen = changed.get("open") as boolean | undefined;
-        this._onClosed(wasOpen);
-        // Only a real close ends the session; the initial render (wasOpen
-        // undefined) must not wipe a session we're about to restore.
-        if (wasOpen) this._session.clear();
+        this._showModal();
+      } else if (changed.get("open")) {
+        this._closeModal();
       }
     }
   }
 
-  /**
-   * Focuses the input and slides the panel in when the overlay opens.
-   *
-   * @returns `void`.
-   */
-  private _onOpened(): void {
-    this._showPopover();
-    this._restoreFocusTo = document.activeElement;
+  /** Opens the dialog modally and focuses the prompt. */
+  private _showModal(): void {
+    if (typeof this._dialog?.showModal === "function") {
+      try {
+        this._dialog.showModal();
+      } catch {
+        // already open — ensure it is at least shown
+        this._dialog.setAttribute("open", "");
+      }
+    } else {
+      // <dialog>.showModal unsupported (older engines / jsdom): degrade to a
+      // plain open dialog so the terminal is still usable.
+      this._dialog?.setAttribute("open", "");
+    }
     this._input?.focus();
-
-    // A continuity restore appears already-open: settle in place, no slide.
-    if (this._skipSlideOnce) {
-      this._skipSlideOnce = false;
-      if (this._panel) this._panel.style.transform = "translateY(0)";
-      return;
-    }
-
-    void this._slide(true);
   }
 
-  /**
-   * Slides the panel out and restores focus when the overlay closes.
-   *
-   * @param wasOpen - Whether the overlay was previously open (skips work on first render).
-   * @returns `void`.
-   */
-  private _onClosed(wasOpen: boolean | undefined): void {
-    if (!wasOpen) return;
-
-    const restore = this._restoreFocusTo;
-    this._restoreFocusTo = null;
-
-    // Slide out, then leave the top layer; restore focus immediately.
-    void this._slide(false).then(() => this._hidePopover());
-
-    if (restore instanceof HTMLElement) {
-      restore.focus();
-    }
-  }
-
-  /** Promotes the panel into the top layer (no-op where unsupported). */
-  private _showPopover(): void {
+  /** Closes the dialog (the platform restores focus to the opener). */
+  private _closeModal(): void {
     try {
-      (this._panel as unknown as { showPopover?: () => void })?.showPopover?.();
+      this._dialog?.close?.();
     } catch {
-      // already shown or popover unsupported — safe to ignore
-    }
-  }
-
-  /** Removes the panel from the top layer (no-op where unsupported). */
-  private _hidePopover(): void {
-    try {
-      (this._panel as unknown as { hidePopover?: () => void })?.hidePopover?.();
-    } catch {
-      // already hidden or popover unsupported — safe to ignore
+      this._dialog?.removeAttribute("open");
     }
   }
 
   /**
-   * Animates the panel drop-down; reduced motion is handled by the animator.
-   *
-   * @param show - Whether the panel is sliding into view.
-   * @returns `void`.
+   * Syncs `open` when the dialog is dismissed by the platform (Escape) or by
+   * `close()`, so the component state always tracks the dialog.
    */
-  private _slide(show: boolean): Promise<void> {
-    if (!this._panel) return Promise.resolve();
-    animator.cancel(this._panel);
-    const keyframes = show
-      ? [{ transform: "translateY(-100%)" }, { transform: "translateY(0)" }]
-      : [{ transform: "translateY(0)" }, { transform: "translateY(-100%)" }];
-    return animator.animate(this._panel, keyframes, {
-      duration: 320,
-      easing: "cubic-bezier(.37,.79,.14,.93)",
-      fill: "both",
-    });
+  private _onDialogClose(): void {
+    if (this.open) this.open = false;
+  }
+
+  /** Closes the terminal when the dimmed backdrop (outside the window) is clicked. */
+  private _onDialogClick(e: MouseEvent): void {
+    if (e.target === this._dialog) this.open = false;
   }
 
   /**
-   * Handles panel-level keys: Escape closes; Enter (without Shift) submits.
+   * Handles prompt keys: Enter (without Shift) submits; Arrow Up/Down recall
+   * history. Escape is handled natively by the dialog.
    *
-   * @param e - The keydown event from the panel or its input.
+   * @param e - The keydown event from the dialog or its input.
    * @returns `void`.
    */
   private _onKeydown(e: KeyboardEvent): void {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      this.open = false;
-      return;
-    }
-
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       this._form?.requestSubmit();
@@ -475,7 +467,8 @@ export class TerminalOverlay extends LitElement {
   }
 
   /**
-   * Runs the submitted command line through the terminal core.
+   * Runs the submitted command line through the terminal core and persists the
+   * updated history for arrow-up recall after a navigation.
    *
    * @param e - The form submit event.
    * @returns A promise that settles when the command finishes.
@@ -485,7 +478,7 @@ export class TerminalOverlay extends LitElement {
     const raw = this._input?.value ?? "";
     this._input.value = "";
     await this._core.run(raw);
-    this._session.setHistory(this._core.history.snapshot());
+    this._session.writeHistory(this._core.history.snapshot());
   }
 
   /** Keeps the log scrolled to the latest line. */
@@ -495,33 +488,39 @@ export class TerminalOverlay extends LitElement {
 
   protected render(): unknown {
     return html`
-      <section
-        id="overlay-panel"
-        popover="manual"
-        role="dialog"
+      <dialog
+        id="overlay-dialog"
         aria-label="Terminal"
         @keydown=${this._onKeydown}
+        @close=${this._onDialogClose}
+        @click=${this._onDialogClick}
       >
-        <div id="overlay-bg" aria-hidden="true"></div>
-        <div id="overlay-inner">
-          <pre id="overlay-log"></pre>
-          <form id="overlay-form" @submit=${this._onSubmit}>
-            <label class="sr-only" for="overlay-input">Terminal command</label>
-            <textarea
-              id="overlay-input"
-              name="command"
-              rows="1"
-              spellcheck="false"
-              autocomplete="off"
-            ></textarea>
-          </form>
-          <div id="overlay-status" aria-hidden="true">
-            <span class="status-mode">cheat</span>
-            <span class="status-path">~/book_os</span>
-            <span class="status-id">◍ reader</span>
-          </div>
+        <header id="overlay-titlebar">
+          <span id="overlay-tab">book_os</span>
+          <button
+            id="overlay-close"
+            type="button"
+            aria-label="Close terminal"
+            @click=${() => (this.open = false)}
+          >✕</button>
+        </header>
+        <pre id="overlay-log"></pre>
+        <form id="overlay-form" @submit=${this._onSubmit}>
+          <label class="sr-only" for="overlay-input">Terminal command</label>
+          <textarea
+            id="overlay-input"
+            name="command"
+            rows="1"
+            spellcheck="false"
+            autocomplete="off"
+          ></textarea>
+        </form>
+        <div id="overlay-status" aria-hidden="true">
+          <span class="status-mode">cheat</span>
+          <span class="status-path">~/book_os</span>
+          <span class="status-id">◍ reader</span>
         </div>
-      </section>
+      </dialog>
     `;
   }
 }

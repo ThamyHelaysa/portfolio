@@ -13,8 +13,6 @@ export function matchesSummonCombo(event: KeyboardEvent): boolean {
   return (event.ctrlKey || event.metaKey) && event.shiftKey && event.code === "KeyC";
 }
 
-import { TerminalSession } from "./session.ts";
-
 /** Custom element tag for the lazily-loaded overlay. */
 const OVERLAY_TAG = "terminal-overlay";
 /** Built URL of the overlay bundle, lazy-loaded on first summon. */
@@ -75,16 +73,8 @@ export function createSummoner(target: Window = window): () => void {
   target.addEventListener("keydown", onKeydown, true);
   doc.addEventListener("click", onClick);
 
-  // Session continuity (#79): if the overlay was open when we left the previous
-  // page, re-mount it here. Deferred to idle so it never competes with the
-  // destination page's first contentful paint. The overlay self-opens and
-  // replays its scrollback during restore, so we only mount it (no open attr).
-  if (new TerminalSession().read()?.open) {
-    const schedule = target.requestIdleCallback
-      ? target.requestIdleCallback.bind(target)
-      : (cb: () => void) => target.setTimeout(cb, 50);
-    schedule(() => ensureOverlay());
-  }
+  // The overlay is summoned deliberately only (combo or button) — it never
+  // auto-opens after a navigation (issue #93, superseding #79's auto-reopen).
 
   return () => {
     target.removeEventListener("keydown", onKeydown, true);

@@ -55,7 +55,7 @@ test("the overlay is not summonable on the books terminal page", async ({ page }
   await expect(page.locator("terminal-overlay")).toHaveCount(0);
 });
 
-test("session continuity: the overlay reopens with history after open navigates", async ({ page }) => {
+test("after open navigates, the overlay does NOT reopen; history survives for re-summon", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Control+Shift+C");
 
@@ -66,19 +66,45 @@ test("session continuity: the overlay reopens with history after open navigates"
   await page.keyboard.press("Enter");
   await page.waitForURL("**/blog/2025/using-ngrok-to-test-some-web-things/");
 
-  // The overlay re-summons itself on the destination (after paint, on idle).
-  const overlay = page.locator("terminal-overlay");
-  await expect(overlay).toHaveAttribute("open", "", { timeout: 10000 });
+  // It must not auto-open on the destination (no continuity reopen).
+  await page.waitForTimeout(800);
+  await expect(page.locator("terminal-overlay")).toHaveCount(0);
 
-  // Scrollback replayed + a cd-style arrival line for the new path.
-  await expect(page.locator("#overlay-log")).toContainText(
-    "cd ~/blog/2025/using-ngrok-to-test-some-web-things"
-  );
-
-  // Arrow-up recalls the command issued before the jump.
-  await input.focus();
+  // Re-summoning gives a fresh log, but arrow-up still recalls the prior command.
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+  await expect(page.locator("#overlay-log")).toBeEmpty();
   await page.keyboard.press("ArrowUp");
-  await expect(input).toHaveValue("open ngrok");
+  await expect(page.locator("#overlay-input")).toHaveValue("open ngrok");
+});
+
+test("closes via the ✕ button", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  await page.locator("#overlay-close").click();
+  await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");
+});
+
+test("closes via the exit command", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  await page.locator("#overlay-input").fill("exit");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");
+});
+
+test("closes on a backdrop click", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Shift+C");
+  await expect(page.locator("#overlay-input")).toBeFocused();
+
+  // Click the dimmed backdrop in the top-left, outside the centered window.
+  await page.mouse.click(5, 5);
+  await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");
 });
 
 test("unlock: visiting the books page reveals the site-wide terminal button", async ({ page }) => {
@@ -102,18 +128,22 @@ test("unlock: visiting the books page reveals the site-wide terminal button", as
   await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
 });
 
-test("closing the overlay then navigating normally does not resurrect it", async ({ page }) => {
+test("mobile: summoning from the drawer closes the drawer and opens the modal", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+
+  // Unlock so the drawer's >_ console entry is present.
+  await page.goto("/books/");
+  await page.waitForFunction(() => localStorage.getItem("book_os:unlocked") !== null);
   await page.goto("/");
-  await page.keyboard.press("Control+Shift+C");
+
+  // Open the mobile drawer, then tap the summon entry.
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  const summon = page.locator("menu-mobile [data-terminal-summon]");
+  await expect(summon).toBeVisible();
+  await summon.click();
+
+  // Drawer closes; the modal opens fullscreen with focus in the input.
+  await expect(page.locator("menu-mobile")).not.toHaveAttribute("isopen", "");
   await expect(page.locator("terminal-overlay")).toHaveAttribute("open", "");
-  // Wait for the lazy bundle to upgrade the element (input focused) before
-  // Escape, otherwise the keydown handler isn't wired yet.
   await expect(page.locator("#overlay-input")).toBeFocused();
-
-  await page.keyboard.press("Escape");
-  await expect(page.locator("terminal-overlay")).not.toHaveAttribute("open", "");
-
-  await page.goto("/about/");
-  // A normal navigation after closing must not bring the overlay back.
-  await expect(page.locator("terminal-overlay")).toHaveCount(0);
 });

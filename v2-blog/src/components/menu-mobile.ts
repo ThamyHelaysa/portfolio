@@ -45,10 +45,17 @@ export class MenuMobile extends LitElement {
 
   private async _handleClickLink(e: MouseEvent) {
     const target = e.target as HTMLElement;
+
+    // A terminal summon trigger closes the drawer; the summoner (a document-
+    // level listener) independently opens the modal on the same click.
+    if (target.closest('[data-terminal-summon]')) {
+      this._handleOpen();
+      return;
+    }
+
     const link = target.closest('a');
     if (!link) return;
 
-    console.log(target, link, link?.target);
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0 || link.target === '_blank') {
       this._handleOpen();
       return;

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSummoner } from "../../../../src/_helpers/terminal/summon.ts";
-import { TerminalSession } from "../../../../src/_helpers/terminal/session.ts";
 
 let dispose: (() => void) | undefined;
 
@@ -23,18 +22,11 @@ beforeEach(() => {
   document.body.innerHTML = "";
   document.head.querySelectorAll("script").forEach((s) => s.remove());
   sessionStorage.clear();
-  // Run idle callbacks synchronously so auto-restore is observable in tests.
-  (window as unknown as { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback =
-    (cb: () => void) => {
-      cb();
-      return 0;
-    };
 });
 
 afterEach(() => {
   dispose?.();
   dispose = undefined;
-  delete (window as unknown as { requestIdleCallback?: unknown }).requestIdleCallback;
 });
 
 describe("createSummoner", () => {
@@ -113,35 +105,14 @@ describe("createSummoner", () => {
     });
   });
 
-  describe("session restore", () => {
-    it("auto-mounts the overlay (and its bundle) on idle when a session was left open", () => {
-      new TerminalSession().setOpen(true);
-
+  describe("no auto-open on navigation (#93)", () => {
+    it("never mounts the overlay on its own — only a combo or click summons it", () => {
       dispose = createSummoner(window);
 
-      // mounted without any keypress; the overlay self-opens during restore,
-      // so the summoner must NOT force the open attribute itself.
-      const overlay = document.querySelector("terminal-overlay");
-      expect(overlay).not.toBeNull();
-      expect(overlay?.hasAttribute("open")).toBe(false);
-      expect(document.head.querySelector('script[src="/components/terminal-overlay.js"]')).not.toBeNull();
-    });
-
-    it("does not auto-mount when there is no session", () => {
-      dispose = createSummoner(window);
-
+      // Just installing the summoner (as every page load does) must not mount
+      // or even fetch the overlay bundle.
       expect(document.querySelector("terminal-overlay")).toBeNull();
       expect(document.head.querySelector('script[src="/components/terminal-overlay.js"]')).toBeNull();
-    });
-
-    it("does not auto-mount when the stored session is closed", () => {
-      const s = new TerminalSession();
-      s.setOpen(true);
-      s.setOpen(false);
-
-      dispose = createSummoner(window);
-
-      expect(document.querySelector("terminal-overlay")).toBeNull();
     });
   });
 });

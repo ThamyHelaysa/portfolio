@@ -155,7 +155,7 @@ describe("TerminalCore", () => {
     await core.run("frobnicate");
 
     const error = logEl.querySelector("p.terminal-msg.error");
-    expect(error?.textContent).toBe("COMMAND NOT RECOGNIZED: frobnicate");
+    expect(error?.textContent).toBe("Command not found: frobnicate");
     expect(core.history.prev()).toBe("frobnicate");
   });
 

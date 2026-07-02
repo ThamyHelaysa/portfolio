@@ -116,7 +116,7 @@ export class TerminalCore {
     const handler = this.opts.commands[parsed.cmd];
 
     if (!handler) {
-      await this.append(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, CommandType.error);
+      await this.append(`Command not found: ${parsed.raw}`, 0, CommandType.error);
       return;
     }
 

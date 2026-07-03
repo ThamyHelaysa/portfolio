@@ -47,6 +47,7 @@ vi.mock("../../../src/_helpers/identityManager.ts", () => {
 });
 
 import { TerminalShell } from "../../../src/components/terminal-shell.ts";
+import { isUnlocked } from "../../../src/_helpers/terminal/unlock.ts";
 
 function listingMarkup() {
   return `
@@ -161,9 +162,11 @@ describe("terminal-shell startup phases", () => {
     appendSpy.mockResolvedValue(undefined);
 
     await element.startBootSequence();
+    await element.updateComplete;
 
     expect(revealSpy).not.toHaveBeenCalled();
-    expect(element.booted).toBe(true);
+    // booted is now internal state; assert its observable effect: input is enabled.
+    expect(element.querySelector("#terminal-input")?.hasAttribute("disabled")).toBe(false);
     expect(appendSpy).toHaveBeenCalled();
   });
 
@@ -269,5 +272,19 @@ describe("terminal-shell startup phases", () => {
     await Promise.resolve();
 
     expect(renderSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("terminal-shell unlock", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("unlocks the site-wide cheat console on connect (visiting the books page)", () => {
+    expect(isUnlocked()).toBe(false);
+
+    mountTerminalShell(listingMarkup());
+
+    expect(isUnlocked()).toBe(true);
   });
 });

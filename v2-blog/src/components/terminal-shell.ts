@@ -2,24 +2,15 @@ import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
 import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
-
-type ParsedCommand = {
-  raw: string;                 // original command
-  cmd: string;                 // "list", "book",
-  flags: Record<string, string | boolean>;
-  positionals: string[];       // ["5"] or ["id","5"]
-};
-
-enum CommandType {
-  "log" = 0,
-  "logdata" = 1,
-  "command" = 2,
-  "title" = 3,
-  "error" = 4,
-  "status" = 5
-}
-
-type RouteMode = "listing" | "detail";
+import { CommandType, TerminalCore } from '../_helpers/terminal/core.ts';
+import type { ParsedCommand } from '../_helpers/terminal/parser.ts';
+import {
+  createInitialShellState,
+  shellReducer,
+  type ShellAction,
+  type ShellState,
+} from '../_helpers/terminal/shell-state.ts';
+import { markUnlocked } from '../_helpers/terminal/unlock.ts';
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -28,9 +19,6 @@ export class TerminalShell extends LitElement {
     return this;
   }
 
-  @property({ type: Boolean }) booted = false;
-  @property({ type: Boolean }) sidebarOpen = false;
-  @property({ type: Boolean }) isMobile = window.innerWidth <= 768;
   @property({ type: Boolean }) quickActionsExecute = false;
   @property({ type: String, reflect: true })
   userID: string = "";
@@ -44,10 +32,6 @@ export class TerminalShell extends LitElement {
   private hasUserName = this.identity.getCachedName();
   private _resizeObs?: ResizeObserver;
   private _typingTimer?: number;
-  private _routeMode: RouteMode = "detail";
-  private _bootSequenceStarted = false;
-  private _interactionReady = false;
-  private _bookDataLoaded = false;
   private _startupRafOne?: number;
   private _startupRafTwo?: number;
   private _asciiRenderRaf?: number;
@@ -67,16 +51,23 @@ export class TerminalShell extends LitElement {
   // @query('#terminal-text') private _textAreaCLI!: HTMLDivElement;
 
 
-  @state() private booksDisplayed = 0;
-  @state() private readonly batchSize = 3;
-  @state() private history: string[] = [];
-  @state() private histIndex = 0;
-  @state() private commandCLI = "";
-  @state() private focused = false;
-  @state() private isTyping = false;
-  @state() private labelVar = '--label-width';
-  @state() private _skipAnimations =
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  private readonly batchSize = 3;
+  private readonly labelVar = '--label-width';
+
+  @state() private shell: ShellState = createInitialShellState({
+    isMobile: window.innerWidth <= 768,
+    skipAnimations: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false,
+  });
+
+  /**
+   * Applies a state transition through the pure shell reducer.
+   *
+   * @param action - The transition to apply.
+   * @returns `void`.
+   */
+  private dispatch(action: ShellAction): void {
+    this.shell = shellReducer(this.shell, action);
+  }
 
   private readonly COMMANDS: Record<
     string,
@@ -85,13 +76,13 @@ export class TerminalShell extends LitElement {
       help: async (ctx) => {
         await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
 
-        if (this.isMobile) {
+        if (this.shell.isMobile) {
           this._inputCLI?.blur();
-          this.sidebarOpen = true;
+          this.dispatch({ type: "SIDEBAR_SET", open: true });
         } else {
           await this.appendToLog("commands", 0.2, CommandType.title);
           await this.appendToLog(
-            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all",
+            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all\nctrl+shift+c - summon this console on any page of the site",
             0.5,
             CommandType.logdata
           )
@@ -109,7 +100,7 @@ export class TerminalShell extends LitElement {
         }
 
         // const art = typeof ctx.flags.art === "string" ? this._sanitizeArtId(ctx.flags.art) : undefined;
-        if (this.isMobile) { this._inputCLI?.blur(); this.sidebarOpen = false };
+        if (this.shell.isMobile) { this._inputCLI?.blur(); this.dispatch({ type: "SIDEBAR_SET", open: false }); };
         this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
 
         await this.displayNextBatch();
@@ -133,13 +124,13 @@ export class TerminalShell extends LitElement {
       },
 
       skip: async (ctx) => {
-        if (this.isMobile) {
+        if (this.shell.isMobile) {
           this._inputCLI?.blur();
-          this.sidebarOpen = false;
+          this.dispatch({ type: "SIDEBAR_SET", open: false });
         }
         if (ctx.positionals[0] === "animations") {
           await this.appendToLog(`${ctx.raw} ${ctx.positionals[0]}`, 0.2, CommandType.command);
-          await this.appendToLog(`  animations turned ${this._skipAnimations ? "on" : "off"}`, 0.2, CommandType.log);
+          await this.appendToLog(`  animations turned ${this.shell.skipAnimations ? "on" : "off"}`, 0.2, CommandType.log);
           this._toggleSkipAnim();
         } else {
           await this.appendToLog(ctx.raw, 0.2, CommandType.command);
@@ -187,6 +178,14 @@ export class TerminalShell extends LitElement {
       },
     };
 
+  // Declared after COMMANDS so the initializer can hand it to the core.
+  private _core = new TerminalCore({
+    commands: this.COMMANDS,
+    logEl: () => this.querySelector("#boot-log"),
+    skipAnimations: () => this.shell.skipAnimations,
+    onLineWritten: () => this._scrollToBottom(this._outputCLI),
+  });
+
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
     this._runRequiredOnLoadStartup();
@@ -194,16 +193,24 @@ export class TerminalShell extends LitElement {
   }
 
   protected updated(changed: Map<string, unknown>) {
-    if (changed.has("isMobile") && !this.isMobile) {
-      this.sidebarOpen = false;
-    }
-    if (changed.has("commandCLI") || changed.has("focused") || changed.has("isMobile")) {
+    if (!changed.has("shell")) return;
+    // Reposition the fake caret when the inputs that affect its position change.
+    // (The "close sidebar on desktop" rule now lives in the reducer.)
+    const prev = changed.get("shell") as ShellState | undefined;
+    if (
+      !prev ||
+      prev.command !== this.shell.command ||
+      prev.focused !== this.shell.focused ||
+      prev.isMobile !== this.shell.isMobile
+    ) {
       requestAnimationFrame(() => this._updateFakeCaretPosition());
     }
   }
 
   connectedCallback() {
     super.connectedCallback();
+    // Reaching the books terminal unlocks the site-wide cheat console (#80).
+    markUnlocked();
     // this.startBootSequence();
   }
 
@@ -244,7 +251,7 @@ export class TerminalShell extends LitElement {
    * @returns `void`.
    */
   private _runRequiredOnLoadStartup() {
-    this._routeMode = this._dataScript ? "listing" : "detail";
+    this.dispatch({ type: "INITIALIZED", routeMode: this._dataScript ? "listing" : "detail" });
     this.userID = this.hasUserName || this._fallbackUserId;
     this._syncPromptWidth();
   }
@@ -255,7 +262,7 @@ export class TerminalShell extends LitElement {
    * @returns `void`.
    */
   private _schedulePostPaintStartup() {
-    if (this._bootSequenceStarted) return;
+    if (this.shell.bootStarted) return;
 
     this._startupRafOne = requestAnimationFrame(() => {
       this._startupRafOne = undefined;
@@ -272,9 +279,9 @@ export class TerminalShell extends LitElement {
    * @returns A promise that settles when boot initialization is done.
    */
   private async _runPostPaintStartup() {
-    if (!this.isConnected || this._bootSequenceStarted) return;
+    if (!this.isConnected || this.shell.bootStarted) return;
 
-    this._bootSequenceStarted = true;
+    this.dispatch({ type: "BOOT_STARTED" });
     await this.startBootSequence();
   }
 
@@ -284,9 +291,9 @@ export class TerminalShell extends LitElement {
    * @returns `void`.
    */
   private _ensureInteractionStartup() {
-    if (this._interactionReady) return;
+    if (this.shell.interactionReady) return;
 
-    this._interactionReady = true;
+    this.dispatch({ type: "INTERACTION_READY" });
     this._ensureIdentityReady();
     this._ensureCaretObserver();
   }
@@ -325,11 +332,11 @@ export class TerminalShell extends LitElement {
    * @returns `void`.
    */
   private _ensureBookDataLoaded() {
-    if (this._bookDataLoaded || !this._dataScript) return;
+    if (this.shell.bookDataLoaded || !this._dataScript) return;
 
     this.bookData = this._parseBookDataPayload(this._dataScript.textContent);
     this._dataScript.remove();
-    this._bookDataLoaded = true;
+    this.dispatch({ type: "BOOK_DATA_LOADED" });
   }
 
   /**
@@ -401,7 +408,7 @@ export class TerminalShell extends LitElement {
         await this._deferNonCriticalTask();
         if (!this.isConnected || !this._asciiArea) return;
 
-        if (this._skipAnimations) {
+        if (this.shell.skipAnimations) {
           await this._renderAsciiForBookInstant(id);
           return;
         }
@@ -430,42 +437,28 @@ export class TerminalShell extends LitElement {
       CommandType.log
     );
 
-    if (this._routeMode === "detail") {
+    if (this.shell.routeMode === "detail") {
       await this.handleDirectAccessReveal();
     } else {
       await this.appendToLog("TYPE 'HELP' FOR COMMANDS.", 0, CommandType.log);
     }
 
-    this.booted = true;
-    this.focused = true;
+    this.dispatch({ type: "BOOTED" });
     requestAnimationFrame(() => {
       this._inputCLI?.focus();
     });
   }
 
+  /**
+   * Writes a message to the boot log through the terminal core.
+   *
+   * @param text - The message; newlines become separate log lines.
+   * @param duration - Per-line typing animation duration in seconds.
+   * @param kind - The visual kind controlling the line's CSS class.
+   * @returns A promise that settles when all lines are written.
+   */
   private async appendToLog(text: string, duration = 0.2, kind: CommandType) {
-    const log = this.querySelector("#boot-log");
-    if (!log) return;
-
-    // Normalize newlines and split
-    const lines = String(text).replace(/\r\n/g, "\n").split("\n");
-
-    for (const line of lines) {
-      const p = document.createElement("p");
-      p.className = `terminal-msg ${CommandType[kind]}`;
-      p.textContent = "";
-      log.appendChild(p);
-
-      const full = `${line}`;
-
-      if (this._skipAnimations) {
-        p.textContent = full;
-      } else {
-        await this._typeTextPromise(p, full, duration);
-      }
-
-      this._scrollToBottom(this._outputCLI);
-    }
+    await this._core.append(text, duration, kind);
   }
 
   private _handleInput(e: Event) {
@@ -473,7 +466,7 @@ export class TerminalShell extends LitElement {
     const el = e.target as HTMLTextAreaElement;
     var val = el.value;
     // this._textCLI.textContent = val;
-    this.commandCLI = val
+    this.dispatch({ type: "INPUT_CHANGED", value: val });
 
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
@@ -486,7 +479,7 @@ export class TerminalShell extends LitElement {
     if (!el) return;
 
     el.value = next;
-    this.commandCLI = next;
+    this.dispatch({ type: "INPUT_CHANGED", value: next });
 
     el.style.height = "auto";
     el.style.height = el.scrollHeight + "px";
@@ -549,32 +542,25 @@ export class TerminalShell extends LitElement {
     if (e.key.length === 1) {
       return;
     }
-    this.isTyping = true;
+    this.dispatch({ type: "TYPING_SET", typing: true });
     e.preventDefault();
   }
 
+  /**
+   * Applies ArrowUp/ArrowDown history navigation to the input field.
+   *
+   * @param type - Which direction the user is stepping through history.
+   * @returns `void`.
+   */
   private _handleHistory(type: "ArrowUp" | "ArrowDown") {
-    var histLen = this.history.length
+    const value = type === "ArrowUp"
+      ? this._core.history.prev()
+      : this._core.history.next();
 
-    if (type === "ArrowUp") {
-      if (!histLen) return;
-      this.histIndex = this.histIndex === 0
-        ? 0
-        : this.histIndex - 1;
+    if (value === undefined) return;
 
-      this._inputCLI.value = this.history[this.histIndex];
-      this.commandCLI = this._inputCLI.value;
-      return;
-    } else {
-      if (!histLen) return;
-      this.histIndex = this.histIndex === histLen
-        ? this.histIndex
-        : this.histIndex + 1;
-
-      this._inputCLI.value = this.history[this.histIndex] || "";
-      this.commandCLI = this._inputCLI.value;
-      return;
-    }
+    this._inputCLI.value = value;
+    this.dispatch({ type: "INPUT_CHANGED", value });
   }
 
   /**
@@ -603,24 +589,6 @@ export class TerminalShell extends LitElement {
     const res = await fetch(url, { cache: "force-cache" });
     if (!res.ok) throw new Error("Failed to load ASCII JSON");
     return res.json();
-  }
-
-  private _typeTextPromise(el: HTMLElement, fullText: string, durationSec = 0.5): Promise<void> {
-    return new Promise((resolve) => {
-      const state = { i: 0 };
-      gsap.to(state, {
-        i: fullText.length,
-        duration: durationSec,
-        ease: "none",
-        onUpdate: () => {
-          el.textContent = fullText.slice(0, Math.floor(state.i));
-        },
-        onComplete: () => {
-          el.textContent = fullText;
-          resolve();
-        }
-      });
-    });
   }
 
   private async _getAsciiLines(url: string) {
@@ -691,7 +659,7 @@ export class TerminalShell extends LitElement {
    */
   private async displayNextBatch() {
     this._ensureBookDataLoaded();
-    const batch = this.bookData.slice(this.booksDisplayed, this.booksDisplayed + this.batchSize);
+    const batch = this.bookData.slice(this.shell.booksDisplayed, this.shell.booksDisplayed + this.batchSize);
 
     if (batch.length === 0) {
       await this.appendToLog("Bookshelf scan complete.", 0.2, CommandType.log);
@@ -700,18 +668,18 @@ export class TerminalShell extends LitElement {
     }
 
     for (const book of batch) {
-      const artId = this.booksDisplayed + 1;
+      const artId = this.shell.booksDisplayed + 1;
       this._queueAsciiRenderForBook(artId);
 
       await this.appendToLog(`\n[${book.id}] ${book.title}`, 0.15, CommandType.logdata);
       await this.appendToLog(`      ${book.author}`, 0.15, CommandType.logdata);
 
-      this.booksDisplayed++;
+      this.dispatch({ type: "BOOKS_ADVANCED", count: 1 });
       this._scrollToBottom(this._outputCLI);
     }
 
-    if (this.bookData.length - this.booksDisplayed) {
-      await this.appendToLog(`books remaining: ${this.bookData.length - this.booksDisplayed}`, 0, CommandType.status);
+    if (this.bookData.length - this.shell.booksDisplayed) {
+      await this.appendToLog(`books remaining: ${this.bookData.length - this.shell.booksDisplayed}`, 0, CommandType.status);
     } else {
       await this.appendToLog("bookshelf scan complete.", 0.2, CommandType.status);
     }
@@ -725,44 +693,25 @@ export class TerminalShell extends LitElement {
     const raw = String(new FormData(form).get("command") ?? "");
 
     form.reset();
-    this.commandCLI = "";
+    this.dispatch({ type: "INPUT_CHANGED", value: "" });
     this._scrollToBottom(this._outputCLI);
 
     await this._executeCommand(raw);
   }
 
+  /**
+   * Runs one submitted input line through the terminal core.
+   *
+   * @param input - The raw text submitted to the terminal.
+   * @returns A promise that settles when the command finishes.
+   */
   private async _executeCommand(input: string) {
-    // const normalized = raw.trim().replace(/\s+/g, " ");
-    // const lower = normalized.toLowerCase();
-
-    const parsed = this._parseCommand(input);
-    // Ignore empty command
-    if (!parsed.raw) {
-      this._scrollToBottom(this._outputCLI);
-      return;
-    }
-
-    // Push history (avoid duplicates)
-    if (this.history.length === 0 || this.history[this.history.length - 1] !== parsed.raw) {
-      this.history.push(parsed.raw);
-    }
-    this.histIndex = this.history.length;
-
-    const handler = this.COMMANDS[parsed.cmd];
-
-    if (!handler) {
-      this.appendToLog(`COMMAND NOT RECOGNIZED: ${parsed.raw}`, 0, CommandType.error);
-      this._scrollToBottom(this._outputCLI);
-      return;
-    }
-
-    await handler(parsed);
-
+    await this._core.run(input);
     this._scrollToBottom(this._outputCLI);
   }
 
   private _insertCommand(cmd: string, mode: "replace" | "append" = "replace") {
-    const current = (this.commandCLI ?? "").trim();
+    const current = (this.shell.command ?? "").trim();
 
     const next =
       mode === "append" && current.length > 0
@@ -775,7 +724,7 @@ export class TerminalShell extends LitElement {
   private async _runCommand(cmd: string) {
     this._setTextareaValue(cmd, { focus: false, placeCaretAtEnd: true });
 
-    this.commandCLI = "";
+    this.dispatch({ type: "INPUT_CHANGED", value: "" });
     const el = this._inputCLI as HTMLTextAreaElement | null;
     if (el) {
       el.value = "";
@@ -787,41 +736,10 @@ export class TerminalShell extends LitElement {
   }
 
   private _onQuickAction(cmd: string) {
-    if (this.sidebarOpen) { this.sidebarOpen = false }
+    if (this.shell.sidebarOpen) { this.dispatch({ type: "SIDEBAR_SET", open: false }); }
     if (cmd === "help") return this._runCommand("help");
     if (this.quickActionsExecute) return this._runCommand(cmd);
     this._insertCommand(cmd, "replace");
-  }
-
-  private _parseCommand(input: string): ParsedCommand {
-    const raw = input.trim().replace(/\s+/g, " ");
-    const tokens = raw.length ? raw.split(" ") : [];
-
-    const cmd = (tokens.shift() ?? "").toLowerCase();
-
-    const flags: Record<string, string | boolean> = {};
-    const positionals: string[] = [];
-
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-
-      if (t.startsWith("--")) {
-        const name = t.slice(2).toLowerCase();
-
-        // --flag value (if next token exists and isn't another flag)
-        if (tokens[i + 1] && !tokens[i + 1].startsWith("--")) {
-          flags[name] = tokens[i + 1];
-          i++;
-        } else {
-          // --flag (boolean)
-          flags[name] = true;
-        }
-      } else {
-        positionals.push(t);
-      }
-    }
-
-    return { raw, cmd, flags, positionals };
   }
 
   // Todo: decide if id can be predetermined
@@ -851,12 +769,12 @@ export class TerminalShell extends LitElement {
   private _preventMouseCaret(e: MouseEvent) {
     e.preventDefault();
 
-    if (!this.booted) return;
+    if (!this.shell.booted) return;
 
     this._ensureInteractionStartup();
     const el = this._inputCLI; //e.currentTarget as HTMLTextAreaElement;
     el.focus();
-    this.focused = true;
+    this.dispatch({ type: "FOCUS_SET", focused: true });
 
     const end = el.value.length;
     el.setSelectionRange(end, end);
@@ -876,12 +794,12 @@ export class TerminalShell extends LitElement {
   }
 
   private _handleBlur() {
-    this.focused = false;
+    this.dispatch({ type: "FOCUS_SET", focused: false });
     requestAnimationFrame(() => this._updateFakeCaretPosition());
   }
 
   private _toggleSkipAnim() {
-    this._skipAnimations = !this._skipAnimations
+    this.dispatch({ type: "ANIMATIONS_TOGGLED" });
   }
 
   private _updateFakeCaretPosition() {
@@ -902,30 +820,28 @@ export class TerminalShell extends LitElement {
   }
 
   private _onTyping() {
-    if (!this.isTyping) {
-      this.isTyping = true;
-      this.requestUpdate();
+    if (!this.shell.isTyping) {
+      this.dispatch({ type: "TYPING_SET", typing: true });
     }
 
     // reset debounce
     clearTimeout(this._typingTimer);
     this._typingTimer = window.setTimeout(() => {
-      this.isTyping = false;
-      this.requestUpdate();
+      this.dispatch({ type: "TYPING_SET", typing: false });
     }, 500);
   }
 
 
   protected render(): unknown {
-    const anim = this._skipAnimations;
+    const anim = this.shell.skipAnimations;
 
     return html`
-      ${this.isMobile ? html`
+      ${this.shell.isMobile ? html`
         <details
           id="terminal-sidebar"
-          class="${!this._skipAnimations ? "transition" : ""}"
-          ?open=${this.sidebarOpen}
-          @toggle=${(e: any) => { this.sidebarOpen = e.currentTarget.open; }}
+          class="${!this.shell.skipAnimations ? "transition" : ""}"
+          ?open=${this.shell.sidebarOpen}
+          @toggle=${(e: any) => this.dispatch({ type: "SIDEBAR_SET", open: e.currentTarget.open })}
           >
           <summary aria-label="Commands Options">
             <span aria-hidden="true" class="ico"></span>
@@ -965,13 +881,13 @@ export class TerminalShell extends LitElement {
               <span> - get a random book to be analized</span>
             </p>
           </div>
-          <button @click="${() => (this.sidebarOpen = false)}" type="button" class="btn mobile">close options</button>
+          <button @click="${() => this.dispatch({ type: "SIDEBAR_SET", open: false })}" type="button" class="btn mobile">close options</button>
         </details>`
         :
         nothing
       }
       <div id="terminal-cli">
-        <div class="helpers ${this.isMobile ? "hidden" : ""}">
+        <div class="helpers ${this.shell.isMobile ? "hidden" : ""}">
           <button
             id="skip" 
             type="button" 
@@ -985,7 +901,7 @@ export class TerminalShell extends LitElement {
         </div>
 
         <form id="terminal-form" @submit=${this._handleSubmit}>
-          <label id="user-label" for="terminal-input" class="prompt">${!this.isMobile ? this.userID + "@BOOK_OS:~$" : ">"}</label>
+          <label id="user-label" for="terminal-input" class="prompt">${!this.shell.isMobile ? this.userID + "@BOOK_OS:~$" : ">"}</label>
           <div id="input-wrap">
             <textarea
               id="terminal-input"
@@ -996,13 +912,18 @@ export class TerminalShell extends LitElement {
               @keydown=${this._handleInputKeys}
               @mousedown=${this._preventMouseCaret}
               @selection=${this._forceCaretRules}
-              ?disabled="${!this.booted}"
+              ?disabled="${!this.shell.booted}"
               spellcheck="false"></textarea>
             <div
-              class="${!this.isTyping ? "blink" : ""} ${!this.focused ? "invisible" : ""} ${this.isMobile ? "hidden" : ""}"
-              id="terminal-text"><span id="terminal-mirror">${this.commandCLI}</span><span id="caret-anchor">&#8203;</span><span id="fake-caret" aria-hidden="true"></span></div>
+              class="${!this.shell.isTyping ? "blink" : ""} ${!this.shell.focused ? "invisible" : ""} ${this.shell.isMobile ? "hidden" : ""}"
+              id="terminal-text"><span id="terminal-mirror">${this.shell.command}</span><span id="caret-anchor">&#8203;</span><span id="fake-caret" aria-hidden="true"></span></div>
           </div>
         </form>
+        <footer id="terminal-status" aria-hidden="true">
+          <span class="status-mode">${this.shell.routeMode === "detail" ? "read" : "browse"}</span>
+          <span class="status-path">~/book_os</span>
+          <span class="status-id">◍ ${this.userID || "reader"}</span>
+        </footer>
       </div>
     `;
   }

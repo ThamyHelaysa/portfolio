@@ -58,4 +58,28 @@ describe("menu-mobile", () => {
     expect(document.body.style.overflow).toBe("initial");
     expect(animatorMock.animate).toHaveBeenCalledTimes(2);
   });
+
+  it("closes the drawer when a terminal summon trigger is clicked", async () => {
+    const element = new MenuMobile();
+    const summon = document.createElement("button");
+    summon.setAttribute("data-terminal-summon", "");
+    summon.setAttribute("slot", "content");
+    element.appendChild(summon);
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    // open the drawer
+    element.shadowRoot?.querySelector("button")?.click();
+    await element.updateComplete;
+    await Promise.resolve();
+    expect(element.isOpen).toBe(true);
+
+    // clicking the summon trigger closes it (the summoner opens the modal)
+    summon.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await element.updateComplete;
+    await Promise.resolve();
+
+    expect(element.isOpen).toBe(false);
+    expect(document.body.style.overflow).toBe("initial");
+  });
 });

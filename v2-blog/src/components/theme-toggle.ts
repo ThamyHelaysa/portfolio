@@ -1,14 +1,12 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
+import { applyTheme, getStoredTheme, setTheme, THEME_CHANGE_EVENT, type Theme } from "../_helpers/theme.ts";
 
 const THEMES = {
   pinky: "pinky",
   dark: "dark",
 } as const;
-
-type Theme = typeof THEMES[keyof typeof THEMES];
-const STORAGE_KEY = "theme";
 
 @customElement('theme-toggle')
 export class ThemeToggle extends LitElement {
@@ -24,6 +22,7 @@ export class ThemeToggle extends LitElement {
   constructor() {
     super();
     this._onSystemChange = this._onSystemChange.bind(this);
+    this._onThemeChange = this._onThemeChange.bind(this);
   }
 
   static styles = css`
@@ -55,11 +54,15 @@ export class ThemeToggle extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._initThemeState();
+    // Stay in sync when another surface (e.g. the terminal `theme` command)
+    // changes the theme via the shared helper.
+    window.addEventListener(THEME_CHANGE_EVENT, this._onThemeChange);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._mql?.removeEventListener("change", this._onSystemChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, this._onThemeChange);
   }
 
   async firstUpdated() {
@@ -72,9 +75,17 @@ export class ThemeToggle extends LitElement {
 
   protected updated(changedProperties: PropertyValues) {
     if (changedProperties.has('theme')) {
-      localStorage.setItem(STORAGE_KEY, this.theme);
+      // Persist + apply + notify other surfaces through the shared helper.
+      setTheme(this.theme);
+    }
+  }
 
-      this._applyThemeToDocument(this.theme);
+  /** Adopts a theme set elsewhere (via the shared `theme-change` event). */
+  private _onThemeChange(e: Event) {
+    const next = (e as CustomEvent<{ theme: Theme }>).detail?.theme;
+    if ((next === THEMES.dark || next === THEMES.pinky) && next !== this.theme) {
+      this._hasUserOverridden = true;
+      this.theme = next;
     }
   }
 
@@ -132,9 +143,9 @@ export class ThemeToggle extends LitElement {
 
   private _initThemeState() {
     this._mql = window.matchMedia("(prefers-color-scheme: dark)");
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const saved = getStoredTheme();
 
-    if (saved && (saved === THEMES.dark || saved === THEMES.pinky)) {
+    if (saved) {
       this.theme = saved;
       this._hasUserOverridden = true; // Saved implies previous user choice
     } else {
@@ -142,12 +153,6 @@ export class ThemeToggle extends LitElement {
       this._mql.addEventListener("change", this._onSystemChange);
     }
 
-    this._applyThemeToDocument(this.theme);
-  }
-
-  private _applyThemeToDocument(theme: Theme) {
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.classList.toggle("dark", theme === THEMES.dark);
+    applyTheme(this.theme);
   }
 }

@@ -257,8 +257,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100px;
-  height: 100px;
+
+  /* Size is owned by SharedMediaPreview (one table per preview type);
+     the fallbacks only cover the pre-first-show state. */
+  width: var(--preview-w, 100px);
+  height: var(--preview-h, 100px);
   background-color: var(--color-accent-primary);
   border: solid white;
   border-width: 0;
@@ -275,7 +278,7 @@
              scale(var(--preview-scale, 0));
 
   /* Keep transitions defined in a single place */
-  transition-property: transform, opacity, visibility, border-width;
+  transition-property: transform, opacity, visibility, border-width, width, height, border-radius;
   transition-duration: 150ms;
   transition-timing-function: ease;
   transition-delay: 0ms;
@@ -309,4 +312,76 @@
 #mediaPreview img.visible,
 #mediaPreview video.visible {
   opacity: 1;
+}
+
+/* Shape follows preview type: images keep the circle bubble,
+   videos widen into a 16:9 rounded rect so screen recordings stay legible.
+   (data-type is set by SharedMediaPreview alongside --preview-w/h.) */
+#mediaPreview[data-type="video"] {
+  border-radius: 12px;
+}
+
+/* Media kind "album": pure-CSS vinyl disc instead of the cover art —
+   grooves drawn on the wrapper background, blank label + spindle hole in
+   ::before, light sheen in ::after. The disc is rotationally symmetric, so
+   the *sheen* is what spins: it reads as light glinting off a turning
+   record. Colors derive from the accent so both themes adapt. */
+@keyframes preview-vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#mediaPreview[data-kind="album"] {
+  --vinyl-disc: color-mix(in oklab, var(--color-accent-primary) 62%, var(--color-bg-default));
+  --vinyl-groove: color-mix(in oklab, var(--color-accent-primary) 80%, var(--color-bg-default));
+  --vinyl-label: var(--color-pink-50);
+  --vinyl-hole: color-mix(in oklab, var(--color-accent-primary) 35%, black);
+
+  background-color: var(--vinyl-disc);
+  background-image: repeating-radial-gradient(
+    circle,
+    transparent 0 5px,
+    var(--vinyl-groove) 5px 6px
+  );
+}
+
+/* Artwork stays in the data (previewUrl still meaningful elsewhere) but the
+   vinyl replaces it visually. */
+#mediaPreview[data-kind="album"] img {
+  display: none;
+}
+
+/* Blank label + spindle hole. inset 30% → label is 40% of disc diameter. */
+#mediaPreview[data-kind="album"]::before {
+  content: '';
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--vinyl-hole) 0 4px, var(--vinyl-label) 5px 100%);
+}
+
+/* Spinning sheen: two soft light bands roughly opposite each other. */
+#mediaPreview[data-kind="album"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 300deg,
+    transparent 0deg,
+    rgb(255 255 255 / 22%) 40deg,
+    transparent 80deg,
+    transparent 175deg,
+    rgb(255 255 255 / 12%) 215deg,
+    transparent 255deg
+  );
+  animation: preview-vinyl-spin 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Sheen freezes into a static highlight — the disc still reads as vinyl. */
+  #mediaPreview[data-kind="album"]::after {
+    animation: none;
+  }
 }

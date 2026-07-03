@@ -110,14 +110,15 @@ describe("sharedPreview", () => {
 
     preview.show({
       src: "/assets/demo.mp4",
-      x: 90,
-      y: 100,
+      x: 400,
+      y: 300,
       type: "video",
     });
 
     expect(play).toHaveBeenCalledTimes(1);
-    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("40px");
-    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("50px");
+    // video box is 240x135, centered on the cursor
+    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("280px");
+    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("232.5px");
   });
 
   it("warns when video autoplay is blocked", async () => {
@@ -146,6 +147,58 @@ describe("sharedPreview", () => {
       "[SharedMediaPreview] Video preview autoplay failed",
       autoplayError
     );
+  });
+
+  it("sizes the bubble per preview type and exposes it to CSS", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+
+    Object.defineProperty(video!, "play", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue(undefined),
+    });
+
+    preview.show({ src: "/assets/example.webp", x: 200, y: 200 });
+
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
+    expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("100px");
+    expect(wrapper?.dataset.type).toBe("image");
+
+    preview.show({ src: "/assets/demo.mp4", x: 400, y: 300, type: "video" });
+
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("240px");
+    expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("135px");
+    expect(wrapper?.dataset.type).toBe("video");
+    // cursor placement centers on the video box, not the image box
+    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("280px");
+    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("232.5px");
+  });
+
+  it("reflects the media kind on the wrapper and clears it on hide", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/cover.jpg", x: 200, y: 200, kind: "album" });
+    expect(wrapper?.dataset.kind).toBe("album");
+
+    preview.hide();
+    expect(wrapper?.dataset.kind).toBeUndefined();
+
+    // a kindless show never leaks the previous kind
+    preview.show({ src: "/assets/cover.jpg", x: 200, y: 200, kind: "album" });
+    preview.show({ src: "/assets/other.jpg", x: 200, y: 200 });
+    expect(wrapper?.dataset.kind).toBeUndefined();
+  });
+
+  it("marks the bubble as decorative for assistive tech", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    SharedMediaPreview.getInstance();
+
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    expect(wrapper?.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("positions relative to the trigger for non-cursor placements", async () => {

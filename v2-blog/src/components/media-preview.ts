@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
+import { MediaKind, MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
 
 /**
  * A Custom Element that triggers a floating media preview (image or video)
@@ -11,6 +11,7 @@ import { MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sha
  * @element media-preview
  * @attr {string} preview-src - The source URL for the media to be previewed.
  * @attr {string} preview-type - The type of media ('image' or 'video'). Defaults to 'image'.
+ * @attr {string} media-kind - The semantic kind of the previewed thing ('album', 'book', 'game', 'project'). Drives presentation — 'album' renders as a spinning vinyl disc instead of its artwork.
  * @slot The content that triggers the preview on hover.
  * @example
  * <media-preview preview-src="/img/demo.jpg" preview-type="image">
@@ -33,6 +34,13 @@ export class MediaPreview extends LitElement {
   previewType: MediaType = 'image';
 
   /**
+   * The semantic kind of the previewed thing ('album', 'book', …).
+   * Drives presentation treatment; 'album' renders as a spinning vinyl disc.
+   */
+  @property({ attribute: 'media-kind' })
+  mediaKind: MediaKind | null = null;
+
+  /**
    * The positioning strategy. Defaults to 'cursor'.
    */
   @property({ attribute: 'preview-position' })
@@ -47,6 +55,7 @@ export class MediaPreview extends LitElement {
     preview.show({
       src: this.previewSrc,
       type: this.previewType,
+      kind: this.mediaKind ?? undefined,
       x: e.clientX,
       y: e.clientY,
       placement: this.previewPosition,
@@ -82,6 +91,7 @@ export class MediaPreview extends LitElement {
     preview.show({
       src: this.previewSrc,
       type: this.previewType,
+      kind: this.mediaKind ?? undefined,
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2,
       placement: this.previewPosition,

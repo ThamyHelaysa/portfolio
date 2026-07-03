@@ -4,10 +4,26 @@
  * from interfering with mouse events on the underlying element.
  */
 const PREVIEW_OFFSET = 12;
-const PREVIEW_SIZE = 100;
 
 export type MediaType = 'image' | 'video';
+export type MediaKind = 'album' | 'book' | 'game' | 'project';
 export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
+
+interface PreviewSize {
+  w: number;
+  h: number;
+}
+
+/**
+ * Shape follows the preview type: images render in the small circle,
+ * videos in a wider 16:9 rounded rect so screen recordings stay legible.
+ * This table is the single source of truth — CSS consumes it via the
+ * `--preview-w` / `--preview-h` custom properties set in `show()`.
+ */
+const PREVIEW_SIZES: Record<MediaType, PreviewSize> = {
+  image: { w: 100, h: 100 },
+  video: { w: 240, h: 135 },
+};
 
 interface PositionOptions {
   x: number;
@@ -19,6 +35,7 @@ interface PositionOptions {
 interface ShowOptions extends PositionOptions {
   src: string;
   type?: MediaType;
+  kind?: MediaKind;
 }
 
 /**
@@ -36,6 +53,7 @@ export class SharedMediaPreview {
   private video: HTMLVideoElement;
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
+  private _currentSize: PreviewSize;
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
@@ -58,6 +76,8 @@ export class SharedMediaPreview {
     /** The main container for the preview. */
     this._wrapper = document.createElement('div');
     this._wrapper.id = 'mediaPreview';
+    // Purely decorative glimpse — the slotted trigger carries all semantics.
+    this._wrapper.setAttribute('aria-hidden', 'true');
 
     /** Element used to display static images. */
     this.img = document.createElement('img');
@@ -79,6 +99,8 @@ export class SharedMediaPreview {
     this._currentSrc = null;
     /** Tracks the current media type ('image' or 'video'). */
     this._currentType = null;
+    /** Tracks the current bubble size so `move()` positions with the right box. */
+    this._currentSize = PREVIEW_SIZES.image;
   }
 
   private _ensureAttached(): void {
@@ -112,7 +134,7 @@ export class SharedMediaPreview {
    * Displays the preview at specific coordinates.
    * Determines whether to show video or image based on explicit type or inference.
    */
-  show({ src, type, x, y, placement = 'cursor', triggerRect }: ShowOptions): void {
+  show({ src, type, kind, x, y, placement = 'cursor', triggerRect }: ShowOptions): void {
     if (!src) return;
 
     // Determine type: use provided type or try to guess from file extension
@@ -120,6 +142,18 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     const isSameMedia = this._currentSrc === src && this._currentType === effectiveType;
     this._ensureAttached();
+
+    // Shape and size follow the type; kind drives presentation (album → vinyl disc).
+    // Both are exposed to CSS so all visuals stay declarative.
+    this._currentSize = PREVIEW_SIZES[effectiveType];
+    this._wrapper.style.setProperty('--preview-w', `${this._currentSize.w}px`);
+    this._wrapper.style.setProperty('--preview-h', `${this._currentSize.h}px`);
+    this._wrapper.dataset.type = effectiveType;
+    if (kind) {
+      this._wrapper.dataset.kind = kind;
+    } else {
+      delete this._wrapper.dataset.kind;
+    }
 
     this._setPosition({ x, y, placement, triggerRect });
 
@@ -162,6 +196,8 @@ export class SharedMediaPreview {
       this.video.pause();
     }
 
+    delete this._wrapper.dataset.kind;
+
     this._currentSrc = null;
     this._currentType = null;
   }
@@ -176,45 +212,46 @@ export class SharedMediaPreview {
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const { w, h } = this._currentSize;
 
     if (placement === 'cursor' || !triggerRect) {
       // center bubble on cursor
-      eixoX = x - PREVIEW_SIZE / 2;
-      eixoY = y - PREVIEW_SIZE / 2;
+      eixoX = x - w / 2;
+      eixoY = y - h / 2;
     } else {
       const rect = triggerRect;
       switch (placement) {
         case 'right':
           eixoX = rect.right + PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - PREVIEW_SIZE) / 2;
+          eixoY = rect.top + (rect.height - h) / 2;
           break;
 
         case 'left':
-          eixoX = rect.left - PREVIEW_SIZE - PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - PREVIEW_SIZE) / 2;
+          eixoX = rect.left - w - PREVIEW_OFFSET;
+          eixoY = rect.top + (rect.height - h) / 2;
           break;
 
         case 'top':
-          eixoX = rect.left + (rect.width - PREVIEW_SIZE) / 2;
-          eixoY = rect.top - PREVIEW_SIZE - PREVIEW_OFFSET;
+          eixoX = rect.left + (rect.width - w) / 2;
+          eixoY = rect.top - h - PREVIEW_OFFSET;
           break;
 
         case 'bottom':
-          eixoX = rect.left + (rect.width - PREVIEW_SIZE) / 2;
+          eixoX = rect.left + (rect.width - w) / 2;
           eixoY = rect.bottom + PREVIEW_OFFSET;
           break;
 
         default:
           // fallback to cursor
-          eixoX = x - PREVIEW_SIZE / 2;
-          eixoY = y - PREVIEW_SIZE / 2;
+          eixoX = x - w / 2;
+          eixoY = y - h / 2;
           break;
       }
     }
 
     // Clamp so it doesn’t overflow viewport too badly
-    const maxX = vw - PREVIEW_SIZE - PREVIEW_OFFSET;
-    const maxY = vh - PREVIEW_SIZE - PREVIEW_OFFSET;
+    const maxX = vw - w - PREVIEW_OFFSET;
+    const maxY = vh - h - PREVIEW_OFFSET;
 
     eixoX = Math.max(PREVIEW_OFFSET, Math.min(eixoX, maxX));
     eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));

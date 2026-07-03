@@ -45,6 +45,35 @@ describe("media-preview", () => {
     });
   });
 
+  it("passes the media kind through to the shared preview", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/cover.jpg";
+    element.previewType = "image";
+    element.mediaKind = "album";
+
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 10, 10));
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    wrapper?.dispatchEvent(new MouseEvent("mouseenter", { clientX: 5, clientY: 5, bubbles: true }));
+
+    expect(previewApi.show).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "album" })
+    );
+  });
+
+  it("reads the media-kind attribute", async () => {
+    const element = new MediaPreview();
+    element.setAttribute("media-kind", "album");
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    expect(element.mediaKind).toBe("album");
+  });
+
   it("does not call show when previewSrc is missing", async () => {
     const element = new MediaPreview();
     document.body.appendChild(element);
@@ -81,6 +110,7 @@ describe("media-preview", () => {
       y: 55,
       placement: "bottom",
       triggerRect: expect.any(DOMRect),
+      immediate: true,
     });
   });
 

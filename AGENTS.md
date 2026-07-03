@@ -4,6 +4,12 @@ Monorepo for t-helaysa.com: `v2-blog/` is the active Eleventy site
 (see [v2-blog/AGENTS.md](v2-blog/AGENTS.md) and [v2-blog/CLAUDE.md](v2-blog/CLAUDE.md)),
 `thamy-blog/` is the legacy Gatsby site being retired.
 
+## Hard rules
+
+- **Never add AI attribution** in anything written to this repo or GitHub:
+  no `Co-Authored-By` trailers, no "Generated with Claude Code" footers,
+  no session links — commits, PR bodies, issue bodies, comments included.
+
 ## Agent skills
 
 ### Issue tracker

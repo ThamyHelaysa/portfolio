@@ -104,35 +104,39 @@
   "favorites": [
     {
       "id": "books",
+      "kind": "book",
       "category": "Last Read",
       "title": "The Canterville Ghost and Other Stories",
       "details": "Oscar Wilde",
       "previewUrl": "../assets/images/clefairy.jpg",
-      "previewType": "img"
+      "previewType": "image"
     },
     {
       "id": "album",
+      "kind": "album",
       "category": "On Repeat",
       "title": "Cochise",
       "details": "Audio Slave",
       "previewUrl": "../assets/images/jigglypuff.png",
-      "previewType": "img"
+      "previewType": "image"
     },
     {
       "id": "game",
+      "kind": "game",
       "category": "Playing",
       "title": "Pokemon Y (3DS)",
       "details": "First time playing a Pokemon game!",
       "previewUrl": "../assets/images/pikachu.jpg",
-      "previewType": "img"
+      "previewType": "image"
     },
     {
       "id": "learning",
+      "kind": "project",
       "category": "Studying",
       "title": "Astro & Islands Architecture",
       "details": "Performance Patterns",
       "previewUrl": "../assets/images/psyduck.png",
-      "previewType": "img"
+      "previewType": "image"
     }
   ]
 }

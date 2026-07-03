@@ -96,6 +96,8 @@ export class MediaPreview extends LitElement {
       y: rect.top + rect.height / 2,
       placement: this.previewPosition,
       triggerRect: rect,
+      // Tabbing to the trigger is intent by itself — no hover-intent sampling.
+      immediate: true,
     });
   }
 

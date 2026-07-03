@@ -5,6 +5,22 @@
  */
 const PREVIEW_OFFSET = 12;
 
+/**
+ * Hover intent (see CONTEXT.md): the preview only appears once the cursor
+ * *settles* over a trigger — a fast sweep across the page never flashes it.
+ * Intent is judged from velocity: every tick the cursor's travel since the
+ * previous tick is compared against a threshold.
+ */
+const INTENT_TICK_MS = 100;
+const INTENT_MAX_TRAVEL_PX = 7;
+
+/**
+ * Warm state (see CONTEXT.md): once intent is proven the bubble survives a
+ * short linger after leave, so crossing the gap to a sibling trigger swaps
+ * the preview instead of collapsing and re-proving intent.
+ */
+const LINGER_MS = 100;
+
 export type MediaType = 'image' | 'video';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
 export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
@@ -36,6 +52,11 @@ interface ShowOptions extends PositionOptions {
   src: string;
   type?: MediaType;
   kind?: MediaKind;
+  /**
+   * Skip the hover-intent sampler and reveal at once. For interactions where
+   * intent is proven by the gesture itself (keyboard focus).
+   */
+  immediate?: boolean;
 }
 
 /**
@@ -54,6 +75,11 @@ export class SharedMediaPreview {
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
   private _currentSize: PreviewSize;
+  /** Latest cursor position, fed by show()/move(); the intent sampler reads it. */
+  private _cursor: { x: number; y: number } = { x: 0, y: 0 };
+  private _lastSample: { x: number; y: number } | null = null;
+  private _intentTimer: ReturnType<typeof setInterval> | null = null;
+  private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
@@ -90,6 +116,14 @@ export class SharedMediaPreview {
     this.video.muted = true;
     this.video.loop = true;
     this.video.playsInline = true;
+
+    // Blur-in: fresh media carries no `is-loaded` class and CSS keeps it
+    // blurred; the class lands when the data is actually there. `error` also
+    // marks it so a failed load never leaves a permanently frosted bubble.
+    this.img.addEventListener('load', () => this.img.classList.add('is-loaded'));
+    this.img.addEventListener('error', () => this.img.classList.add('is-loaded'));
+    this.video.addEventListener('canplay', () => this.video.classList.add('is-loaded'));
+    this.video.addEventListener('error', () => this.video.classList.add('is-loaded'));
 
     this._wrapper.appendChild(this.img);
     this._wrapper.appendChild(this.video);
@@ -134,17 +168,17 @@ export class SharedMediaPreview {
    * Displays the preview at specific coordinates.
    * Determines whether to show video or image based on explicit type or inference.
    */
-  show({ src, type, kind, x, y, placement = 'cursor', triggerRect }: ShowOptions): void {
+  show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false }: ShowOptions): void {
     if (!src) return;
 
     // Determine type: use provided type or try to guess from file extension
     const effectiveType = type || this.inferType(src);
     if (!effectiveType) return;
-    const isSameMedia = this._currentSrc === src && this._currentType === effectiveType;
     this._ensureAttached();
 
     // Shape and size follow the type; kind drives presentation (album → vinyl disc).
-    // Both are exposed to CSS so all visuals stay declarative.
+    // Both are exposed to CSS so all visuals stay declarative. Applying them
+    // while the bubble is still hidden (intent pending) is a visual no-op.
     this._currentSize = PREVIEW_SIZES[effectiveType];
     this._wrapper.style.setProperty('--preview-w', `${this._currentSize.w}px`);
     this._wrapper.style.setProperty('--preview-h', `${this._currentSize.h}px`);
@@ -155,18 +189,67 @@ export class SharedMediaPreview {
       delete this._wrapper.dataset.kind;
     }
 
+    this._cursor = { x, y };
     this._setPosition({ x, y, placement, triggerRect });
+
+    // Warm: bubble already up (or lingering) — intent stays proven, siblings
+    // swap instantly instead of re-sampling.
+    const warm = this._wrapper.classList.contains('is-visible');
+
+    if (immediate || warm) {
+      this._cancelIntent();
+      this._cancelLinger();
+      this._reveal(src, effectiveType);
+      return;
+    }
+
+    this._startIntent(src, effectiveType);
+  }
+
+  /**
+   * Starts (or restarts) the intent sampler: reveal once the cursor's travel
+   * over one tick drops under the threshold — i.e. it settled on the trigger.
+   */
+  private _startIntent(src: string, type: MediaType): void {
+    this._cancelIntent();
+
+    this._lastSample = { ...this._cursor };
+    this._intentTimer = setInterval(() => {
+      const dx = this._cursor.x - (this._lastSample?.x ?? 0);
+      const dy = this._cursor.y - (this._lastSample?.y ?? 0);
+
+      if (Math.hypot(dx, dy) < INTENT_MAX_TRAVEL_PX) {
+        this._cancelIntent();
+        this._reveal(src, type);
+        return;
+      }
+
+      this._lastSample = { ...this._cursor };
+    }, INTENT_TICK_MS);
+  }
+
+  private _cancelIntent(): void {
+    if (this._intentTimer !== null) {
+      clearInterval(this._intentTimer);
+      this._intentTimer = null;
+    }
+    this._lastSample = null;
+  }
+
+  /** Loads the media (if it changed) and makes the bubble visible. */
+  private _reveal(src: string, type: MediaType): void {
+    const isSameMedia = this._currentSrc === src && this._currentType === type;
 
     if (!isSameMedia) {
       // Toggle specific element visibility
-      if (effectiveType === 'video') {
+      if (type === 'video') {
         this._showVideo(src);
       } else {
         this._showImage(src);
       }
 
       this._currentSrc = src;
-      this._currentType = effectiveType;
+      this._currentType = type;
     }
 
     this._wrapper.classList.add('is-visible');
@@ -178,14 +261,42 @@ export class SharedMediaPreview {
    */
   move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
     this._ensureAttached();
+    this._cursor = { x, y };
     this._setPosition({ x, y, placement, triggerRect });
   }
 
   /**
-   * Hides the preview and pauses any active media.
-   * Cleans up internal state.
+   * Requests a hide. A pending (not yet revealed) preview is dropped at once;
+   * a visible one lingers briefly so a sibling trigger can pick it up warm.
    */
   hide(): void {
+    this._cancelIntent();
+
+    if (!this._wrapper.classList.contains('is-visible')) {
+      this._doHide();
+      return;
+    }
+
+    if (this._lingerTimer !== null) return;
+
+    this._lingerTimer = setTimeout(() => {
+      this._lingerTimer = null;
+      this._doHide();
+    }, LINGER_MS);
+  }
+
+  private _cancelLinger(): void {
+    if (this._lingerTimer !== null) {
+      clearTimeout(this._lingerTimer);
+      this._lingerTimer = null;
+    }
+  }
+
+  /**
+   * Actually hides the preview, pauses any active media and cleans up state.
+   */
+  private _doHide(): void {
+    this._cancelLinger();
     this._wrapper.classList.remove('is-visible');
 
     this.img.classList.remove('visible');
@@ -270,7 +381,13 @@ export class SharedMediaPreview {
 
     // Only update DOM attribute if src actually changed to prevent flickering
     if (this.img.src !== src) {
+      this.img.classList.remove('is-loaded');
       this.img.src = src;
+
+      // Cached image: no load event will fire, mark it ready at once.
+      if (this.img.complete && this.img.naturalWidth > 0) {
+        this.img.classList.add('is-loaded');
+      }
     }
   }
 
@@ -283,6 +400,9 @@ export class SharedMediaPreview {
     this.video.classList.add('visible');
 
     if (this.video.src !== src) {
+      // Setting src resets readyState, so `canplay` (wired in the
+      // constructor) re-marks it loaded — even for cached clips.
+      this.video.classList.remove('is-loaded');
       this.video.src = src;
     }
 

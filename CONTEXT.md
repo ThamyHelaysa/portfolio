@@ -32,6 +32,14 @@ _Avoid_: img, media format
 The *semantic* identity of the previewed thing — `album`, `book`, `game`, `project`, … Drives presentation treatment: an `album` preview renders as a pure-CSS vinyl disc (grooves, blank label, spinning light sheen) in place of its artwork; all other kinds render plain. Distinct from Preview type: a kind describes what the thing **is**, a type describes how its preview is **rendered**.
 _Avoid_: category (that's display copy), type
 
+**Hover intent**:
+The judgement that the user means to look at a trigger, not merely pass across it. Judged from cursor **velocity** — slowing or pausing over a trigger proves intent; a fast sweep never does. A Media preview only appears once intent is proven. Keyboard focus proves intent by itself.
+_Avoid_: hover delay, debounce, dwell
+
+**Warm state**:
+The window after intent has been proven while the preview is up (or lingering). While warm, moving to a sibling trigger swaps the preview instantly — intent is not re-proven per item. Leaving all triggers ends the warm state after a short linger.
+_Avoid_: grace period, open state
+
 **Preview clip**:
 A short (~3s), silent, small-format excerpt cut from a full recording — the thing a video Media preview plays. Generated ahead of time from local source recordings; the full recording never ships.
 _Avoid_: video, trailer, thumbnail

@@ -110,6 +110,7 @@ describe("media-preview", () => {
       y: 55,
       placement: "bottom",
       triggerRect: expect.any(DOMRect),
+      immediate: true,
     });
   });
 

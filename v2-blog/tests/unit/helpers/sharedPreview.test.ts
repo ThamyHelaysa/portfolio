@@ -1,9 +1,136 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("sharedPreview", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
     vi.resetModules();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defers reveal until the cursor settles over the trigger (hover intent)", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/cover.webp", x: 100, y: 100 });
+
+    // A sweep-through hover must not flash the bubble.
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+
+    // Cursor holds still for one intent tick → intent proven.
+    vi.advanceTimersByTime(100);
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+  });
+
+  it("never reveals while the cursor keeps sweeping, then reveals once it settles", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/cover.webp", x: 0, y: 0 });
+
+    // Cursor keeps travelling fast (50px per 100ms tick) — no intent.
+    for (let i = 1; i <= 5; i++) {
+      preview.move({ x: i * 50, y: 0 });
+      vi.advanceTimersByTime(100);
+    }
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+
+    // Cursor settles → intent proven on the next tick.
+    vi.advanceTimersByTime(100);
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+  });
+
+  it("reveals immediately when intent is already proven (keyboard focus)", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/cover.webp", x: 100, y: 100, immediate: true });
+
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+  });
+
+  it("stays warm across item gaps: lingers on hide and swaps siblings instantly", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const image = wrapper?.querySelector("img");
+
+    // Intent proven on item A.
+    preview.show({ src: "/assets/a.webp", x: 100, y: 100 });
+    vi.advanceTimersByTime(100);
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+    // Crossing the gap to item B: hide() lingers instead of collapsing…
+    preview.hide();
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+    // …and the sibling swaps in with no re-proving of intent.
+    preview.show({ src: "/assets/b.webp", x: 120, y: 100 });
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+    expect(image?.getAttribute("src")).toContain("/assets/b.webp");
+
+    // Leaving for good: linger expires and the bubble hides.
+    preview.hide();
+    vi.advanceTimersByTime(100);
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+  });
+
+  it("drops a pending preview when the cursor leaves before intent is proven", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/cover.webp", x: 100, y: 100 });
+    preview.hide();
+
+    vi.advanceTimersByTime(1000);
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+  });
+
+  it("marks an image loaded once it decodes, and re-blurs on media swap", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const image = wrapper?.querySelector("img");
+
+    preview.show({ src: "/assets/a.webp", x: 100, y: 100, immediate: true });
+
+    // Fresh media: still loading → CSS keeps it blurred.
+    expect(image?.classList.contains("is-loaded")).toBe(false);
+
+    image?.dispatchEvent(new Event("load"));
+    expect(image?.classList.contains("is-loaded")).toBe(true);
+
+    // Swapping to different media starts blurred again.
+    preview.show({ src: "/assets/b.webp", x: 100, y: 100, immediate: true });
+    expect(image?.classList.contains("is-loaded")).toBe(false);
+  });
+
+  it("marks a video loaded once it can play, and re-blurs on media swap", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+
+    Object.defineProperty(video!, "play", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue(undefined),
+    });
+
+    preview.show({ src: "/assets/a.mp4", x: 100, y: 100, type: "video", immediate: true });
+    expect(video?.classList.contains("is-loaded")).toBe(false);
+
+    video?.dispatchEvent(new Event("canplay"));
+    expect(video?.classList.contains("is-loaded")).toBe(true);
+
+    preview.show({ src: "/assets/b.mp4", x: 100, y: 100, type: "video", immediate: true });
+    expect(video?.classList.contains("is-loaded")).toBe(false);
   });
 
   it("creates a single shared preview instance and appends one wrapper", async () => {
@@ -34,6 +161,7 @@ describe("sharedPreview", () => {
       x: -30,
       y: -10,
     });
+    vi.advanceTimersByTime(100);
 
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
     const image = wrapper?.querySelector("img");
@@ -74,11 +202,13 @@ describe("sharedPreview", () => {
       y: 50,
       type: "video",
     });
+    vi.advanceTimersByTime(100);
 
     expect(video?.classList.contains("visible")).toBe(true);
     expect(play).toHaveBeenCalledTimes(1);
 
     preview.hide();
+    vi.advanceTimersByTime(100);
 
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
     expect(video?.classList.contains("visible")).toBe(false);
@@ -107,6 +237,7 @@ describe("sharedPreview", () => {
       y: 50,
       type: "video",
     });
+    vi.advanceTimersByTime(100);
 
     preview.show({
       src: "/assets/demo.mp4",
@@ -114,6 +245,7 @@ describe("sharedPreview", () => {
       y: 300,
       type: "video",
     });
+    vi.advanceTimersByTime(100);
 
     expect(play).toHaveBeenCalledTimes(1);
     // video box is 240x135, centered on the cursor
@@ -140,6 +272,7 @@ describe("sharedPreview", () => {
       y: 50,
       type: "video",
     });
+    vi.advanceTimersByTime(100);
 
     await Promise.resolve();
 

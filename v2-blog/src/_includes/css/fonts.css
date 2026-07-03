@@ -39,11 +39,14 @@
        url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-600italic.ttf') format('truetype');
 }
 @font-face {
-  font-display: swap;
+  /* optional: preloaded 900 (the h1 face) wins the ~100ms block window almost
+     always → real font paints on first render, no late swap mid page-transition.
+     Rare cold miss falls to the metric-matched Playfair-Fallback, never a pop. */
+  font-display: optional;
   font-family: 'Playfair Display';
   font-style: normal;
   font-weight: 900;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900.woff2') format('woff2'), 
+  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900.woff2') format('woff2'),
        url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900.ttf') format('truetype');
 }
 @font-face {

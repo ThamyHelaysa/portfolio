@@ -9,8 +9,16 @@ body {
 }
 /* content-visibility: auto;
  contain-intrinsic-size: 1000px;  */
-main {
-  view-transition-name: post;
+/* Pin the shell: header + footer carry stable view-transition-names so they are
+   carved out of the root snapshot and stay static across navigations. The root
+   snapshot then covers only the content band (viewport-fixed = scroll-proof)
+   and drives the crossfade+rise. Child combinator keeps the names unique even if
+   content ever nests a <header>/<footer>. */
+body > div > header {
+  view-transition-name: site-header;
+}
+body > div > footer {
+  view-transition-name: site-footer;
 }
 
 h1, h2, h3, h4 {

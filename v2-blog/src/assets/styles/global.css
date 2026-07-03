@@ -207,12 +207,12 @@
   }
 }
 
-::view-transition-old(post) {
-  animation: var(--animate-fade-out);
+::view-transition-old(root) {
+  animation: var(--animate-page-out);
 }
 
-::view-transition-new(post) {
-  animation: var(--animate-fade-in);
+::view-transition-new(root) {
+  animation: var(--animate-page-in);
 }
 
 .logo {

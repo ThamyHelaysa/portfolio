@@ -215,6 +215,37 @@
   animation: var(--animate-fade-in);
 }
 
+/* Theme swap (scoped to .theme-vt, toggled by setTheme in _helpers/theme.ts).
+   Kill the default root cross-fade so only the top-down clip-path sweep plays.
+   Scoping keeps page-navigation's root crossfade untouched. */
+:root.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root.theme-vt::view-transition-old(root) {
+  animation: none;
+}
+
+/* During the swap: (1) freeze live CSS transitions so the VT snapshot captures
+   the fully-swapped theme instead of elements mid-transition; (2) drop
+   will-change promotion (main + .dotted-bg use will-change:opacity) so those
+   composited layers fold back into the single root snapshot and ride the sweep
+   — otherwise only the un-promoted header/footer animate. */
+:root.theme-vt *,
+:root.theme-vt *::before,
+:root.theme-vt *::after {
+  transition: none !important;
+  will-change: auto !important;
+}
+
+/* <main> carries view-transition-name:post for the page-nav morph. During a
+   theme swap that name would split main into its own (fading) group instead of
+   the root clip — drop it so the whole page sweeps as one root snapshot. */
+:root.theme-vt main {
+  view-transition-name: none;
+}
+
 .logo {
   position: relative;
   padding-inline-end: calc(var(--spacing)*2.5);

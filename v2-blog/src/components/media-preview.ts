@@ -144,10 +144,19 @@ export class MediaPreview extends LitElement {
   /** True on touch/coarse-pointer devices — hover is unavailable there. */
   private _isTouch = false;
 
+  /** Resets aria-pressed when the shared bubble stops OUR media out from under us. */
+  private _onExternalStop = (e: Event) => {
+    const src = (e as CustomEvent<{ src?: string }>).detail?.src;
+    if (src === this.previewSrc && this._playing) {
+      this._playing = false;
+    }
+  };
+
   connectedCallback(): void {
     super.connectedCallback();
 
     this._isTouch = !!window.matchMedia?.('(hover: none)').matches;
+    window.addEventListener(SharedMediaPreview.STOPPED_EVENT, this._onExternalStop);
 
     // Touch has no hover: a single shared coordinator reveals glimpses as cards
     // scroll through the central band. Desktop keeps hover as the reveal trigger.
@@ -158,6 +167,7 @@ export class MediaPreview extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    window.removeEventListener(SharedMediaPreview.STOPPED_EVENT, this._onExternalStop);
     if (this._isTouch) {
       TouchRevealCoordinator.get()?.remove(this);
     }
@@ -255,6 +265,8 @@ export class MediaPreview extends LitElement {
       triggerRect: this.getBoundingClientRect(),
       // Anchor the grown bubble beside the card rather than over its text.
       placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
+      // Touch: lets the bubble follow this card as the page scrolls.
+      getRect: () => this.getBoundingClientRect(),
     });
   }
 
@@ -294,6 +306,8 @@ export class MediaPreview extends LitElement {
       placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
       triggerRect: rect,
       immediate: true,
+      // Keep the glimpse glued to this card as the page scrolls.
+      getRect: () => this.getBoundingClientRect(),
     });
   }
 

@@ -322,6 +322,13 @@
   }
 }
 
+/* Touch scroll-follow: while the bubble is tracking its source card the
+   translate must be instant (1:1 with the finger), so drop transform from the
+   transition. Everything else — opacity, size, border — still eases. */
+#mediaPreview.is-tracking {
+  transition-property: opacity, visibility, border-width, width, height, border-radius;
+}
+
 /* Visible state — easier & faster if you toggle a class from JS */
 #mediaPreview.is-visible {
   border-width: 2px;

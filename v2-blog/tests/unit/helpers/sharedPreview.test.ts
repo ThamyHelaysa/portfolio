@@ -383,4 +383,102 @@ describe("sharedPreview", () => {
     expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("72px");
     expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("20px");
   });
+
+  it("desktop: dismisses committed playback once scrolled past the threshold", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+
+    const pause = vi.fn();
+    Object.defineProperty(video!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
+    Object.defineProperty(video!, "pause", { configurable: true, value: pause });
+    Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
+
+    // matchMedia undefined here → coarse pointer false → desktop path.
+    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 100, 40, 40) });
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+
+    // A tiny jitter must not dismiss.
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 4 });
+    (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+
+    // Real scroll past the threshold dismisses.
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 40 });
+    (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+    expect(wrapper?.classList.contains("is-playing")).toBe(false);
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+    expect(pause).toHaveBeenCalled();
+
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
+  });
+
+  it("touch: stops committed playback when the source scrolls fully off-screen", async () => {
+    const mm = vi.fn((q: string) => ({ matches: q.includes("hover: none") })) as unknown as typeof window.matchMedia;
+    const prev = window.matchMedia;
+    window.matchMedia = mm;
+    try {
+      const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+      const preview = SharedMediaPreview.getInstance();
+      const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+      const audio = wrapper?.querySelector("audio");
+
+      const pause = vi.fn();
+      Object.defineProperty(audio!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
+      Object.defineProperty(audio!, "pause", { configurable: true, value: pause });
+      Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
+
+      let rect = new DOMRect(0, 300, 300, 80); // on-screen
+      preview.togglePlay({ src: "/assets/song.mp3", type: "audio", kind: "album", getRect: () => rect });
+      expect(preview.isPlaying()).toBe(true);
+
+      // Still partly visible → keeps playing.
+      rect = new DOMRect(0, 10, 300, 80);
+      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+      expect(preview.isPlaying()).toBe(true);
+
+      // Fully above the viewport → stop.
+      rect = new DOMRect(0, -200, 300, 80);
+      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+      expect(preview.isPlaying()).toBe(false);
+      expect(pause).toHaveBeenCalled();
+    } finally {
+      window.matchMedia = prev;
+    }
+  });
+
+  it("touch: a tracked glimpse trails its source past the top edge (vertical unclamped)", async () => {
+    const mm = vi.fn((q: string) => ({ matches: q.includes("hover: none") })) as unknown as typeof window.matchMedia;
+    const prev = window.matchMedia;
+    window.matchMedia = mm;
+    try {
+      const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+      const preview = SharedMediaPreview.getInstance();
+      const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+      let rect = new DOMRect(0, 400, 300, 40);
+      preview.show({
+        src: "/assets/cover.jpg",
+        x: 0, y: 0,
+        placement: "right",
+        triggerRect: rect,
+        immediate: true,
+        getRect: () => rect,
+      });
+      expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+      // Card scrolled above the viewport: y follows it negative, not pinned.
+      rect = new DOMRect(0, -100, 300, 40);
+      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+
+      // right placement, glimpse h=100: eixoY = -100 + (40 - 100) / 2 = -130.
+      expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("-130px");
+      expect(wrapper?.classList.contains("is-tracking")).toBe(true);
+
+      preview.hide();
+    } finally {
+      window.matchMedia = prev;
+    }
+  });
 });

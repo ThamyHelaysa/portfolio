@@ -11,6 +11,7 @@ const previewApi = {
 vi.mock("../../../src/_helpers/sharedPreview.ts", () => ({
   SharedMediaPreview: {
     getInstance: () => previewApi,
+    STOPPED_EVENT: "sharedpreview:stopped",
   },
 }));
 
@@ -198,6 +199,27 @@ describe("media-preview", () => {
     await element.updateComplete;
     wrapper?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     expect(previewApi.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears aria-pressed when the shared bubble reports our media stopped", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/song.mp3";
+    element.previewType = "audio";
+
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 40, 40));
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    wrapper?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await element.updateComplete;
+    expect(wrapper?.getAttribute("aria-pressed")).toBe("true");
+
+    // The singleton stopped this src (scroll-out / dismiss / retarget).
+    window.dispatchEvent(new CustomEvent("sharedpreview:stopped", { detail: { src: "/assets/song.mp3" } }));
+    await element.updateComplete;
+    expect(wrapper?.getAttribute("aria-pressed")).toBe("false");
   });
 
   it("is reveal-only for images — no button role, no playback on click", async () => {

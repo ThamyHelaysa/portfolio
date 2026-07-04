@@ -21,6 +21,19 @@ const INTENT_MAX_TRAVEL_PX = 7;
  */
 const LINGER_MS = 100;
 
+/**
+ * Desktop dismiss-on-scroll (ADR 0004): once committed playback is scrolled
+ * past this many pixels, it stops. A small threshold ignores trackpad jitter.
+ */
+const DESKTOP_SCROLL_STOP_PX = 8;
+
+/**
+ * Touch scroll-follow: the bubble locks to its source card 1:1 while scrolling.
+ * `is-tracking` drops the transform easing so it doesn't rubber-band; it is
+ * removed this long after the last scroll so reveal/grow/hide still animate.
+ */
+const TRACK_IDLE_MS = 120;
+
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
 export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
@@ -49,7 +62,16 @@ interface PositionOptions {
   y: number;
   placement?: PreviewPlacement;
   triggerRect?: DOMRect | null;
+  /** Skip the vertical viewport clamp so the bubble can trail its source off-screen. */
+  unclampY?: boolean;
 }
+
+/**
+ * A live source-rect provider. On touch, the singleton calls it on scroll to
+ * keep the bubble glued to its trigger card (and to know when the card has
+ * scrolled fully off-screen).
+ */
+type RectProvider = () => DOMRect;
 
 interface ShowOptions extends PositionOptions {
   src: string;
@@ -60,6 +82,8 @@ interface ShowOptions extends PositionOptions {
    * intent is proven by the gesture itself (keyboard focus, touch scroll-in).
    */
   immediate?: boolean;
+  /** Touch only: live rect provider so the glimpse tracks the card on scroll. */
+  getRect?: RectProvider;
 }
 
 interface PlayOptions {
@@ -69,6 +93,8 @@ interface PlayOptions {
   /** The trigger's rect — playback anchors the grown bubble beside it. */
   triggerRect?: DOMRect | null;
   placement?: PreviewPlacement;
+  /** Touch only: live rect provider so the grown bubble tracks the card on scroll. */
+  getRect?: RectProvider;
 }
 
 /**
@@ -81,6 +107,9 @@ interface PlayOptions {
  * `stop()` / `hide()`.
  */
 export class SharedMediaPreview {
+  /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
+  static readonly STOPPED_EVENT = 'sharedpreview:stopped';
+
   /** The single instance of the class. */
   private static instance: SharedMediaPreview;
 
@@ -101,6 +130,23 @@ export class SharedMediaPreview {
   private _lastSample: { x: number; y: number } | null = null;
   private _intentTimer: ReturnType<typeof setInterval> | null = null;
   private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // --- Touch scroll-follow / desktop dismiss-on-scroll ---
+  /** Live rect of the current source card (touch only); null when not tracking. */
+  private _trackGetRect: RectProvider | null = null;
+  private _trackListenersOn = false;
+  private _scrollRaf: number | null = null;
+  private _trackIdleTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Scroll position captured at desktop play time, for the dismiss threshold. */
+  private _playStartScrollY = 0;
+  private _onScroll = (): void => {
+    if (this._scrollRaf !== null) return;
+    this._scrollRaf = requestAnimationFrame(() => {
+      this._scrollRaf = null;
+      this._onScrollFrame();
+    });
+  };
+  private _onResize = (): void => this._reposition();
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
@@ -208,7 +254,7 @@ export class SharedMediaPreview {
    * (ADR 0004: reveal ≠ play). If a different media is currently playing,
    * hovering here stops it and retargets the single bubble to this glimpse.
    */
-  show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false }: ShowOptions): void {
+  show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false, getRect }: ShowOptions): void {
     if (!src) return;
 
     // Determine type: use provided type or try to guess from file extension
@@ -228,8 +274,15 @@ export class SharedMediaPreview {
 
     this._applyMeta(effectiveType, kind, GLIMPSE_SIZE);
 
+    this._anchorPlacement = placement;
     this._cursor = { x, y };
     this._setPosition({ x, y, placement, triggerRect });
+
+    // Touch: keep the glimpse glued to its card as the page scrolls. Desktop
+    // glimpses follow the cursor instead, so no rect provider is passed.
+    if (getRect && this._coarsePointer()) {
+      this._startTracking(getRect);
+    }
 
     // Warm: bubble already up (or lingering) — intent stays proven, siblings
     // swap instantly instead of re-sampling.
@@ -253,7 +306,7 @@ export class SharedMediaPreview {
    *
    * @returns the resulting playing state (true = now playing).
    */
-  togglePlay({ src, type, kind, triggerRect, placement = 'right' }: PlayOptions): boolean {
+  togglePlay({ src, type, kind, triggerRect, placement = 'right', getRect }: PlayOptions): boolean {
     if (!src) return false;
 
     const effectiveType = type || this.inferType(src);
@@ -287,13 +340,27 @@ export class SharedMediaPreview {
     this._positionAnchored();
     this._startCurrentMedia();
 
+    // Touch: follow the source card on scroll, stopping once it is fully gone.
+    // Desktop: any real scroll dismisses playback (no follow), so we only need
+    // the listener and the baseline scroll position.
+    if (this._coarsePointer()) {
+      this._startTracking(getRect ?? null);
+    } else {
+      this._playStartScrollY = this._scrollY();
+      this._startTracking(null);
+    }
+
     return true;
   }
 
-  /** Stops committed playback and collapses the bubble back to hidden. */
+  /**
+   * Stops committed playback and collapses the bubble at once. Unlike `hide()`,
+   * an explicit stop never lingers — the warm linger is for hover gaps, not for
+   * a deliberate stop / scroll-out / dismiss.
+   */
   stop(): void {
     this._stopPlayback();
-    this.hide();
+    this._doHide();
   }
 
   /**
@@ -305,11 +372,106 @@ export class SharedMediaPreview {
     if (this._currentSrc === src) this.hide();
   }
 
+  /** Coarse pointer (touch): drives follow-on-scroll and the smaller grown size. */
+  private _coarsePointer(): boolean {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(hover: none)').matches;
+  }
+
+  private _scrollY(): number {
+    return typeof window !== 'undefined' ? window.scrollY : 0;
+  }
+
   /** Grown-bubble size: smaller on coarse-pointer (touch) devices. */
   private _grownSize(): PreviewSize {
-    const coarse = typeof window !== 'undefined'
-      && !!window.matchMedia?.('(hover: none)').matches;
-    return coarse ? GROWN_SIZE_TOUCH : GROWN_SIZE;
+    return this._coarsePointer() ? GROWN_SIZE_TOUCH : GROWN_SIZE;
+  }
+
+  /**
+   * Begins tracking scroll while the bubble is visible. `getRect` is the live
+   * source-rect provider on touch (null on desktop, where scroll only dismisses
+   * playback). Idempotent — attaches the window listeners once.
+   */
+  private _startTracking(getRect: RectProvider | null): void {
+    this._trackGetRect = getRect;
+    if (this._trackListenersOn || typeof window === 'undefined') return;
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    window.addEventListener('resize', this._onResize, { passive: true });
+    this._trackListenersOn = true;
+  }
+
+  /** Detaches scroll tracking and clears its transient state. */
+  private _stopTracking(): void {
+    if (this._trackListenersOn && typeof window !== 'undefined') {
+      window.removeEventListener('scroll', this._onScroll);
+      window.removeEventListener('resize', this._onResize);
+    }
+    this._trackListenersOn = false;
+    this._trackGetRect = null;
+    if (this._scrollRaf !== null) {
+      cancelAnimationFrame(this._scrollRaf);
+      this._scrollRaf = null;
+    }
+    if (this._trackIdleTimer !== null) {
+      clearTimeout(this._trackIdleTimer);
+      this._trackIdleTimer = null;
+    }
+    this._wrapper.classList.remove('is-tracking');
+  }
+
+  /**
+   * One throttled scroll frame. Touch: reposition the bubble to its card and
+   * stop committed playback once the card is fully off-screen. Desktop: dismiss
+   * committed playback once scrolled past the threshold.
+   */
+  private _onScrollFrame(): void {
+    if (!this._wrapper.classList.contains('is-visible')) {
+      this._stopTracking();
+      return;
+    }
+
+    if (this._coarsePointer()) {
+      if (this._trackGetRect) {
+        this._markTracking();
+        this._reposition();
+
+        // Committed playback ends when its source has fully left the viewport.
+        if (this._isPlaying) {
+          const rect = this._trackGetRect();
+          if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+            this.stop();
+          }
+        }
+      }
+      return;
+    }
+
+    // Desktop: scrolling away from a playing preview dismisses it.
+    if (this._isPlaying && Math.abs(this._scrollY() - this._playStartScrollY) > DESKTOP_SCROLL_STOP_PX) {
+      this.stop();
+    }
+  }
+
+  /** Adds the instant-tracking class and schedules its removal after scroll idles. */
+  private _markTracking(): void {
+    this._wrapper.classList.add('is-tracking');
+    if (this._trackIdleTimer !== null) clearTimeout(this._trackIdleTimer);
+    this._trackIdleTimer = setTimeout(() => {
+      this._trackIdleTimer = null;
+      this._wrapper.classList.remove('is-tracking');
+    }, TRACK_IDLE_MS);
+  }
+
+  /** Repositions the bubble from the live source rect, trailing it off-screen. */
+  private _reposition(): void {
+    const rect = this._trackGetRect?.();
+    if (!rect) return;
+    this._setPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      placement: this._anchorPlacement,
+      triggerRect: rect,
+      unclampY: true,
+    });
   }
 
   /**
@@ -429,6 +591,9 @@ export class SharedMediaPreview {
    * WITHOUT hiding the bubble — callers decide whether to hide or retarget.
    */
   private _stopPlayback(): void {
+    const wasPlaying = this._isPlaying;
+    const stoppedSrc = this._currentSrc;
+
     if (!this.video.paused) this.video.pause();
     if (!this.audio.paused) this.audio.pause();
 
@@ -436,6 +601,12 @@ export class SharedMediaPreview {
     this._anchorRect = null;
     this._wrapper.classList.remove('is-playing', 'is-grown');
     this._applyMeta(this._currentType ?? 'image', this._wrapper.dataset.kind as MediaKind | undefined, GLIMPSE_SIZE);
+
+    // Playback can end without the owning card knowing (scroll-out, dismiss, or
+    // another card taking over). Announce it so that card can drop aria-pressed.
+    if (wasPlaying && stoppedSrc && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(SharedMediaPreview.STOPPED_EVENT, { detail: { src: stoppedSrc } }));
+    }
   }
 
   /**
@@ -443,6 +614,7 @@ export class SharedMediaPreview {
    */
   private _doHide(): void {
     this._cancelLinger();
+    this._stopTracking();
     this._wrapper.classList.remove('is-visible');
 
     this.img.classList.remove('visible');
@@ -474,14 +646,11 @@ export class SharedMediaPreview {
    * viewport-centered if no rect was captured at play time.
    */
   private _positionAnchored(): void {
-    if (!this._anchorRect) {
+    // Prefer the live rect (touch follow) over the play-time snapshot.
+    const rect = this._trackGetRect?.() ?? this._anchorRect;
+
+    if (!rect) {
       const { w, h } = this._currentSize;
-      this._setPosition({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-        placement: 'cursor',
-        triggerRect: null,
-      });
       // Center via cursor placement using viewport middle.
       this._wrapper.style.setProperty('--preview-x', `${(window.innerWidth - w) / 2}px`);
       this._wrapper.style.setProperty('--preview-y', `${(window.innerHeight - h) / 2}px`);
@@ -489,10 +658,10 @@ export class SharedMediaPreview {
     }
 
     this._setPosition({
-      x: this._anchorRect.left + this._anchorRect.width / 2,
-      y: this._anchorRect.top + this._anchorRect.height / 2,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
       placement: this._anchorPlacement,
-      triggerRect: this._anchorRect,
+      triggerRect: rect,
     });
   }
 
@@ -500,7 +669,7 @@ export class SharedMediaPreview {
    * Calculates and applies CSS variables for positioning.
    * Applies an offset to center the preview relative to the cursor.
    */
-  private _setPosition({ x, y, placement, triggerRect }: PositionOptions): void {
+  private _setPosition({ x, y, placement, triggerRect, unclampY = false }: PositionOptions): void {
     let eixoX = 0;
     let eixoY = 0;
 
@@ -543,12 +712,17 @@ export class SharedMediaPreview {
       }
     }
 
-    // Clamp so it doesn’t overflow viewport too badly
+    // Clamp so it doesn’t overflow viewport too badly. During touch follow the
+    // vertical clamp is skipped so the bubble can trail its card off-screen
+    // instead of pinning to an edge; horizontal stays clamped so the
+    // right-anchored bubble never flies off a full-width mobile card.
     const maxX = vw - w - PREVIEW_OFFSET;
     const maxY = vh - h - PREVIEW_OFFSET;
 
     eixoX = Math.max(PREVIEW_OFFSET, Math.min(eixoX, maxX));
-    eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));
+    if (!unclampY) {
+      eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));
+    }
 
     this._wrapper.style.setProperty('--preview-x', `${eixoX}px`);
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { MediaKind, MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
 
@@ -113,6 +113,28 @@ class TouchRevealCoordinator {
 export class MediaPreview extends LitElement {
 
   /**
+   * Cursor feedback on the trigger card: playable types show a play glyph
+   * (paused) or a stop glyph (playing); images hide the cursor for now. The
+   * glyphs are inline-SVG data-URI cursors (a soft dark disc + white icon so
+   * they read on either theme), with hotspot at the disc centre.
+   */
+  static styles = css`
+    :host([preview-type="video"]),
+    :host([preview-type="audio"]) {
+      cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><circle cx='14' cy='14' r='13' fill='rgba(0,0,0,0.55)'/><path d='M11 8.5l8 5.5-8 5.5z' fill='white'/></svg>") 14 14, pointer;
+    }
+
+    :host([preview-type="video"][playing]),
+    :host([preview-type="audio"][playing]) {
+      cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><circle cx='14' cy='14' r='13' fill='rgba(0,0,0,0.55)'/><rect x='10' y='10' width='8' height='8' rx='1.5' fill='white'/></svg>") 14 14, pointer;
+    }
+
+    :host([preview-type="image"]) {
+      cursor: none;
+    }
+  `;
+
+  /**
    * The source URL for the media to be previewed.
    */
   @property({ attribute: 'preview-src' })
@@ -178,6 +200,11 @@ export class MediaPreview extends LitElement {
       SharedMediaPreview.getInstance().stop();
       this._playing = false;
     }
+  }
+
+  protected updated(): void {
+    // Reflect play state to the host so the cursor CSS (:host([playing])) tracks it.
+    this.toggleAttribute('playing', this._playing);
   }
 
   private get _isPlayable(): boolean {

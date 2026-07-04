@@ -108,7 +108,7 @@
       "category": "Last Read",
       "title": "The Canterville Ghost and Other Stories",
       "details": "Oscar Wilde",
-      "previewUrl": "../assets/images/clefairy.jpg",
+      "previewUrl": "/assets/images/previews/canterville-ghost.jpg",
       "previewType": "image"
     },
     {
@@ -116,9 +116,9 @@
       "kind": "album",
       "category": "On Repeat",
       "title": "Cochise",
-      "details": "Audio Slave",
-      "previewUrl": "../assets/images/jigglypuff.png",
-      "previewType": "image"
+      "details": "Audioslave",
+      "previewUrl": "/assets/audio/previews/audioslave-cochise.preview.mp3",
+      "previewType": "audio"
     },
     {
       "id": "game",
@@ -126,7 +126,7 @@
       "category": "Playing",
       "title": "Pokemon Y (3DS)",
       "details": "First time playing a Pokemon game!",
-      "previewUrl": "../assets/images/pikachu.jpg",
+      "previewUrl": "/assets/images/pikachu.jpg",
       "previewType": "image"
     },
     {
@@ -135,7 +135,7 @@
       "category": "Studying",
       "title": "Team Topologies",
       "details": "Mathew Skelton & Manuel Pais",
-      "previewUrl": "../assets/images/psyduck.png",
+      "previewUrl": "/assets/images/previews/team-topologies.jpg",
       "previewType": "image"
     }
   ]

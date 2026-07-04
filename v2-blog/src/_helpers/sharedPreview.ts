@@ -21,7 +21,7 @@ const INTENT_MAX_TRAVEL_PX = 7;
  */
 const LINGER_MS = 100;
 
-export type MediaType = 'image' | 'video';
+export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
 export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
 
@@ -31,15 +31,16 @@ interface PreviewSize {
 }
 
 /**
- * Shape follows the preview type: images render in the small circle,
- * videos in a wider 16:9 rounded rect so screen recordings stay legible.
- * This table is the single source of truth — CSS consumes it via the
- * `--preview-w` / `--preview-h` custom properties set in `show()`.
+ * Two sizes, both circles (ADR 0004: circle always, grow on play). The glimpse
+ * is the small reveal-on-approach bubble; committing to playback grows it to a
+ * watchable disc anchored beside the trigger. Video is center-cropped into the
+ * circle via `object-fit: cover`. CSS reads these through `--preview-w/h`.
  */
-const PREVIEW_SIZES: Record<MediaType, PreviewSize> = {
-  image: { w: 100, h: 100 },
-  video: { w: 240, h: 135 },
-};
+const GLIMPSE_SIZE: PreviewSize = { w: 100, h: 100 };
+const GROWN_SIZE: PreviewSize = { w: 220, h: 220 };
+
+/** Media types that have a play/pause commit step. Images are reveal-only. */
+const PLAYABLE_TYPES: ReadonlySet<MediaType> = new Set(['video', 'audio']);
 
 interface PositionOptions {
   x: number;
@@ -54,16 +55,28 @@ interface ShowOptions extends PositionOptions {
   kind?: MediaKind;
   /**
    * Skip the hover-intent sampler and reveal at once. For interactions where
-   * intent is proven by the gesture itself (keyboard focus).
+   * intent is proven by the gesture itself (keyboard focus, touch scroll-in).
    */
   immediate?: boolean;
 }
 
+interface PlayOptions {
+  src: string;
+  type?: MediaType;
+  kind?: MediaKind;
+  /** The trigger's rect — playback anchors the grown bubble beside it. */
+  triggerRect?: DOMRect | null;
+  placement?: PreviewPlacement;
+}
+
 /**
  * A Singleton class that manages a global media preview overlay.
- * * This class is responsible for creating a single DOM structure attached to the body
- * and reusing it to display images or videos. It handles positioning, 
- * visibility toggling, and resource management (like pausing videos when hidden).
+ *
+ * ONE shared DOM node, reused for every trigger (ADR 0004). It is purely
+ * decorative (`aria-hidden`, `pointer-events: none`) — all interaction lives on
+ * the trigger card, which drives this via `show()` (reveal a paused glimpse),
+ * `togglePlay()` (commit to playback: anchor + grow + start media), and
+ * `stop()` / `hide()`.
  */
 export class SharedMediaPreview {
   /** The single instance of the class. */
@@ -72,9 +85,15 @@ export class SharedMediaPreview {
   private _wrapper: HTMLDivElement;
   private img: HTMLImageElement;
   private video: HTMLVideoElement;
+  private audio: HTMLAudioElement;
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
   private _currentSize: PreviewSize;
+  /** True once a trigger commits to playback: bubble is grown + anchored. */
+  private _isPlaying = false;
+  /** The trigger rect captured at play time; the grown bubble anchors to it. */
+  private _anchorRect: DOMRect | null = null;
+  private _anchorPlacement: PreviewPlacement = 'right';
   /** Latest cursor position, fed by show()/move(); the intent sampler reads it. */
   private _cursor: { x: number; y: number } = { x: 0, y: 0 };
   private _lastSample: { x: number; y: number } | null = null;
@@ -93,10 +112,9 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Initializes the shared DOM elements.
-   * Creates a wrapper div containing both an `img` and `video` element,
-   * configures default video settings (autoplay, mute, loop), and appends
-   * the structure to the document body.
+   * Initializes the shared DOM elements: a wrapper div holding an `img`, a
+   * `video`, and an `audio` element. Media is created paused — nothing plays
+   * until a trigger commits via `togglePlay()`.
    */
   private constructor() {
     /** The main container for the preview. */
@@ -108,14 +126,18 @@ export class SharedMediaPreview {
     /** Element used to display static images. */
     this.img = document.createElement('img');
 
-    /** Element used to display video content. */
+    /** Element used to display (muted, silent) video clips on commit. */
     this.video = document.createElement('video');
-
-    // Configure video for background-like behavior (no sound, auto loop)
-    this.video.autoplay = true;
+    // No autoplay: reveal shows a paused first frame; playback is committed.
     this.video.muted = true;
     this.video.loop = true;
     this.video.playsInline = true;
+    this.video.preload = 'auto';
+
+    /** Element used to play audio previews (albums) on commit. */
+    this.audio = document.createElement('audio');
+    this.audio.loop = true;
+    this.audio.preload = 'auto';
 
     // Blur-in: fresh media carries no `is-loaded` class and CSS keeps it
     // blurred; the class lands when the data is actually there. `error` also
@@ -127,14 +149,15 @@ export class SharedMediaPreview {
 
     this._wrapper.appendChild(this.img);
     this._wrapper.appendChild(this.video);
+    this._wrapper.appendChild(this.audio);
     this._ensureAttached();
 
     /** Tracks the currently loaded source to avoid redundant reloading. */
     this._currentSrc = null;
-    /** Tracks the current media type ('image' or 'video'). */
+    /** Tracks the current media type ('image' | 'video' | 'audio'). */
     this._currentType = null;
     /** Tracks the current bubble size so `move()` positions with the right box. */
-    this._currentSize = PREVIEW_SIZES.image;
+    this._currentSize = GLIMPSE_SIZE;
   }
 
   private _ensureAttached(): void {
@@ -157,16 +180,31 @@ export class SharedMediaPreview {
     if (/\.(png|jpe?g|gif|webp|avif|svg)$/.test(lower)) {
       return 'image';
     }
-    if (/\.(mp4|webm|ogg)$/.test(lower)) {
+    if (/\.(mp4|webm|ogv)$/.test(lower)) {
       return 'video';
+    }
+    if (/\.(mp3|wav|m4a|aac|ogg|oga)$/.test(lower)) {
+      return 'audio';
     }
 
     return undefined;
   }
 
+  /** Whether a type has a play/pause commit step (video/audio) vs reveal-only. */
+  isPlayable(type: MediaType | null | undefined): boolean {
+    return !!type && PLAYABLE_TYPES.has(type);
+  }
+
+  /** True while a trigger's playback is committed (bubble grown + anchored). */
+  isPlaying(src?: string): boolean {
+    if (!this._isPlaying) return false;
+    return src ? this._currentSrc === src : true;
+  }
+
   /**
-   * Displays the preview at specific coordinates.
-   * Determines whether to show video or image based on explicit type or inference.
+   * Reveals a paused glimpse at specific coordinates. NEVER starts playback
+   * (ADR 0004: reveal ≠ play). If a different media is currently playing,
+   * hovering here stops it and retargets the single bubble to this glimpse.
    */
   show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false }: ShowOptions): void {
     if (!src) return;
@@ -176,18 +214,17 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     this._ensureAttached();
 
-    // Shape and size follow the type; kind drives presentation (album → vinyl disc).
-    // Both are exposed to CSS so all visuals stay declarative. Applying them
-    // while the bubble is still hidden (intent pending) is a visual no-op.
-    this._currentSize = PREVIEW_SIZES[effectiveType];
-    this._wrapper.style.setProperty('--preview-w', `${this._currentSize.w}px`);
-    this._wrapper.style.setProperty('--preview-h', `${this._currentSize.h}px`);
-    this._wrapper.dataset.type = effectiveType;
-    if (kind) {
-      this._wrapper.dataset.kind = kind;
-    } else {
-      delete this._wrapper.dataset.kind;
+    // The card that committed to playback owns the grown bubble — approaching it
+    // again must not shrink it back to a glimpse.
+    if (this._isPlaying && this._currentSrc === src) return;
+
+    // Hovering a different card while one plays: stop it, then reveal this
+    // glimpse (retarget the single bubble).
+    if (this._isPlaying) {
+      this._stopPlayback();
     }
+
+    this._applyMeta(effectiveType, kind, GLIMPSE_SIZE);
 
     this._cursor = { x, y };
     this._setPosition({ x, y, placement, triggerRect });
@@ -204,6 +241,57 @@ export class SharedMediaPreview {
     }
 
     this._startIntent(src, effectiveType);
+  }
+
+  /**
+   * Commits to (or ends) playback for a trigger. Toggle semantics: calling it
+   * for the media already playing stops it; otherwise it anchors the bubble
+   * beside the trigger, grows it, and starts the media. Images have no
+   * playback — the call reveals the glimpse instead.
+   *
+   * @returns the resulting playing state (true = now playing).
+   */
+  togglePlay({ src, type, kind, triggerRect, placement = 'right' }: PlayOptions): boolean {
+    if (!src) return false;
+
+    const effectiveType = type || this.inferType(src);
+    if (!effectiveType) return false;
+
+    // Reveal-only types never enter the playing state.
+    if (!this.isPlayable(effectiveType)) {
+      this._reveal(src, effectiveType);
+      return false;
+    }
+
+    // Second commit on the live media → stop.
+    if (this._isPlaying && this._currentSrc === src) {
+      this.stop();
+      return false;
+    }
+
+    this._ensureAttached();
+    this._cancelIntent();
+    this._cancelLinger();
+
+    // Load the media (glimpse first frame) then start it, grown + anchored.
+    this._applyMeta(effectiveType, kind, GROWN_SIZE);
+    this._reveal(src, effectiveType);
+
+    this._isPlaying = true;
+    this._anchorRect = triggerRect ?? null;
+    this._anchorPlacement = placement;
+    this._wrapper.classList.add('is-playing', 'is-grown');
+
+    this._positionAnchored();
+    this._startCurrentMedia();
+
+    return true;
+  }
+
+  /** Stops committed playback and collapses the bubble back to hidden. */
+  stop(): void {
+    this._stopPlayback();
+    this.hide();
   }
 
   /**
@@ -236,14 +324,32 @@ export class SharedMediaPreview {
     this._lastSample = null;
   }
 
-  /** Loads the media (if it changed) and makes the bubble visible. */
+  /**
+   * Applies size + type/kind metadata to the wrapper. Exposed to CSS via
+   * `--preview-w/h` and `data-type` / `data-kind`. Applying it while hidden is
+   * a visual no-op.
+   */
+  private _applyMeta(type: MediaType, kind: MediaKind | undefined, size: PreviewSize): void {
+    this._currentSize = size;
+    this._wrapper.style.setProperty('--preview-w', `${size.w}px`);
+    this._wrapper.style.setProperty('--preview-h', `${size.h}px`);
+    this._wrapper.dataset.type = type;
+    if (kind) {
+      this._wrapper.dataset.kind = kind;
+    } else {
+      delete this._wrapper.dataset.kind;
+    }
+  }
+
+  /** Loads the media (if it changed) and makes the bubble visible — paused. */
   private _reveal(src: string, type: MediaType): void {
     const isSameMedia = this._currentSrc === src && this._currentType === type;
 
     if (!isSameMedia) {
-      // Toggle specific element visibility
       if (type === 'video') {
-        this._showVideo(src);
+        this._loadVideo(src);
+      } else if (type === 'audio') {
+        this._loadAudio(src);
       } else {
         this._showImage(src);
       }
@@ -256,10 +362,11 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Updates the position of the preview element.
-   * Usually called during mousemove events.
+   * Updates the position of the preview element during mousemove. No-op while
+   * playback is committed — the grown bubble stays anchored to its trigger.
    */
   move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
+    if (this._isPlaying) return;
     this._ensureAttached();
     this._cursor = { x, y };
     this._setPosition({ x, y, placement, triggerRect });
@@ -268,9 +375,16 @@ export class SharedMediaPreview {
   /**
    * Requests a hide. A pending (not yet revealed) preview is dropped at once;
    * a visible one lingers briefly so a sibling trigger can pick it up warm.
+   * Committed playback stops immediately (no linger on an explicit leave).
    */
   hide(): void {
     this._cancelIntent();
+
+    if (this._isPlaying) {
+      this._stopPlayback();
+      this._doHide();
+      return;
+    }
 
     if (!this._wrapper.classList.contains('is-visible')) {
       this._doHide();
@@ -293,6 +407,20 @@ export class SharedMediaPreview {
   }
 
   /**
+   * Pauses any playing media and clears the anchored/grown playback state,
+   * WITHOUT hiding the bubble — callers decide whether to hide or retarget.
+   */
+  private _stopPlayback(): void {
+    if (!this.video.paused) this.video.pause();
+    if (!this.audio.paused) this.audio.pause();
+
+    this._isPlaying = false;
+    this._anchorRect = null;
+    this._wrapper.classList.remove('is-playing', 'is-grown');
+    this._applyMeta(this._currentType ?? 'image', this._wrapper.dataset.kind as MediaKind | undefined, GLIMPSE_SIZE);
+  }
+
+  /**
    * Actually hides the preview, pauses any active media and cleans up state.
    */
   private _doHide(): void {
@@ -302,15 +430,52 @@ export class SharedMediaPreview {
     this.img.classList.remove('visible');
     this.video.classList.remove('visible');
 
-    // Pause video to save resources when not visible
-    if (!this.video.paused) {
-      this.video.pause();
-    }
+    if (!this.video.paused) this.video.pause();
+    if (!this.audio.paused) this.audio.pause();
 
     delete this._wrapper.dataset.kind;
 
     this._currentSrc = null;
     this._currentType = null;
+  }
+
+  /** Starts whichever media element matches the current type. */
+  private _startCurrentMedia(): void {
+    const el = this._currentType === 'video' ? this.video
+      : this._currentType === 'audio' ? this.audio
+        : null;
+    if (!el) return;
+
+    el.play().catch((error) => {
+      console.warn('[SharedMediaPreview] Preview playback failed', error);
+    });
+  }
+
+  /**
+   * Positions the grown, anchored bubble beside its trigger rect. Falls back to
+   * viewport-centered if no rect was captured at play time.
+   */
+  private _positionAnchored(): void {
+    if (!this._anchorRect) {
+      const { w, h } = this._currentSize;
+      this._setPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        placement: 'cursor',
+        triggerRect: null,
+      });
+      // Center via cursor placement using viewport middle.
+      this._wrapper.style.setProperty('--preview-x', `${(window.innerWidth - w) / 2}px`);
+      this._wrapper.style.setProperty('--preview-y', `${(window.innerHeight - h) / 2}px`);
+      return;
+    }
+
+    this._setPosition({
+      x: this._anchorRect.left + this._anchorRect.width / 2,
+      y: this._anchorRect.top + this._anchorRect.height / 2,
+      placement: this._anchorPlacement,
+      triggerRect: this._anchorRect,
+    });
   }
 
   /**
@@ -372,10 +537,9 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Internal helper to activate the image element and deactivate the video.
+   * Internal helper to activate the image element and deactivate video.
    */
   private _showImage(src: string): void {
-    // Switch active classes
     this.video.classList.remove('visible');
     this.img.classList.add('visible');
 
@@ -392,10 +556,10 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Internal helper to activate the video element and deactivate the image.
-   * Handles the play promise to prevent errors.
+   * Loads a video and shows its (paused) first frame. Playback is deferred to
+   * the commit step (`togglePlay`).
    */
-  private _showVideo(src: string): void {
+  private _loadVideo(src: string): void {
     this.img.classList.remove('visible');
     this.video.classList.add('visible');
 
@@ -405,11 +569,20 @@ export class SharedMediaPreview {
       this.video.classList.remove('is-loaded');
       this.video.src = src;
     }
+  }
 
-    // Attempt to play. Catch prevents errors if the user hasn't interacted with the document yet
-    // or if the browser blocks autoplay.
-    this.video.play().catch((error) => {
-      console.warn('[SharedMediaPreview] Video preview autoplay failed', error);
-    });
+  /**
+   * Loads an audio source. Audio has no visual — the wrapper's `data-kind`
+   * (e.g. album → vinyl) provides the imagery; playback is deferred to commit.
+   */
+  private _loadAudio(src: string): void {
+    // Audio carries no picture: the image element stays hidden, the vinyl (or
+    // bare accent circle) is the visual.
+    this.img.classList.remove('visible');
+    this.video.classList.remove('visible');
+
+    if (this.audio.src !== src) {
+      this.audio.src = src;
+    }
   }
 }

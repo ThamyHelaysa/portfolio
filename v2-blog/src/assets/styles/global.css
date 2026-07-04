@@ -359,13 +359,22 @@
   #mediaPreview video {
     transition-property: opacity;
   }
+
+  /* Snap the reveal + grow: no travelling/scaling motion, only opacity.
+     Playback itself is never blocked — only the animation of getting there. */
+  #mediaPreview {
+    transition-property: opacity, visibility;
+  }
 }
 
-/* Shape follows preview type: images keep the circle bubble,
-   videos widen into a 16:9 rounded rect so screen recordings stay legible.
-   (data-type is set by SharedMediaPreview alongside --preview-w/h.) */
-#mediaPreview[data-type="video"] {
-  border-radius: 12px;
+/* Circle always (ADR 0004): every type — video included — renders in the round
+   bubble, center-cropped via object-fit: cover. Committing to playback grows
+   the bubble (JS swaps --preview-w/h to the larger box) and anchors it beside
+   the trigger; `.is-grown` is the hook for anything that must react to the
+   larger state. Size itself is driven by the custom properties, so the growth
+   just rides the width/height transition already defined above. */
+#mediaPreview.is-grown {
+  border-width: 3px;
 }
 
 /* Media kind "album": pure-CSS vinyl disc instead of the cover art —
@@ -423,7 +432,14 @@
     rgb(255 255 255 / 12%) 215deg,
     transparent 255deg
   );
+  /* Spin is bound to playback (ADR 0004): the sheen sits still on a revealed
+     glimpse and only turns once the album commits to playing. */
   animation: preview-vinyl-spin 4s linear infinite;
+  animation-play-state: paused;
+}
+
+#mediaPreview.is-playing[data-kind="album"]::after {
+  animation-play-state: running;
 }
 
 @media (prefers-reduced-motion: reduce) {

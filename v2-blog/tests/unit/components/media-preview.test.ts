@@ -4,6 +4,8 @@ const previewApi = {
   show: vi.fn(),
   move: vi.fn(),
   hide: vi.fn(),
+  togglePlay: vi.fn(() => true),
+  stop: vi.fn(),
 };
 
 vi.mock("../../../src/_helpers/sharedPreview.ts", () => ({
@@ -19,6 +21,9 @@ describe("media-preview", () => {
     previewApi.show.mockReset();
     previewApi.move.mockReset();
     previewApi.hide.mockReset();
+    previewApi.togglePlay.mockReset();
+    previewApi.togglePlay.mockReturnValue(true);
+    previewApi.stop.mockReset();
   });
 
   it("delegates mouseenter to the shared preview with component positioning", async () => {
@@ -147,5 +152,67 @@ describe("media-preview", () => {
       triggerRect: expect.any(DOMRect),
     });
     expect(previewApi.hide).toHaveBeenCalledTimes(1);
+  });
+
+  it("commits playback on click for a playable type and reflects aria-pressed", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/song.mp3";
+    element.previewType = "audio";
+    element.mediaKind = "album";
+
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 40, 40));
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    // Playable types become a real button for assistive tech.
+    expect(wrapper?.getAttribute("role")).toBe("button");
+    expect(wrapper?.getAttribute("aria-pressed")).toBe("false");
+
+    wrapper?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(previewApi.togglePlay).toHaveBeenCalledWith(
+      expect.objectContaining({ src: "/assets/song.mp3", type: "audio", kind: "album" })
+    );
+
+    await element.updateComplete;
+    expect(wrapper?.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("commits playback on Enter/Space and stops on Escape", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/demo.mp4";
+    element.previewType = "video";
+
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 40, 40));
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+
+    wrapper?.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    expect(previewApi.togglePlay).toHaveBeenCalledTimes(1);
+
+    await element.updateComplete;
+    wrapper?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(previewApi.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it("is reveal-only for images — no button role, no playback on click", async () => {
+    const element = new MediaPreview();
+    element.previewSrc = "/assets/cover.jpg";
+    element.previewType = "image";
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    const wrapper = element.shadowRoot?.querySelector(".wrapper");
+    expect(wrapper?.getAttribute("role")).toBeNull();
+    expect(wrapper?.getAttribute("aria-pressed")).toBeNull();
+
+    wrapper?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(previewApi.togglePlay).not.toHaveBeenCalled();
   });
 });

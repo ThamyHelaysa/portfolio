@@ -149,6 +149,7 @@ describe("sharedPreview", () => {
 
     expect(preview.inferType("/assets/example.webp")).toBe("image");
     expect(preview.inferType("/assets/example.mp4")).toBe("video");
+    expect(preview.inferType("/assets/example.mp3")).toBe("audio");
     expect(preview.inferType("/assets/example.txt")).toBeUndefined();
   });
 
@@ -175,7 +176,7 @@ describe("sharedPreview", () => {
     expect(image?.getAttribute("src")).toContain("/assets/example.webp");
   });
 
-  it("shows a video preview and pauses it when hidden", async () => {
+  it("reveals a video paused and plays only on commit, pausing on hide", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -183,106 +184,116 @@ describe("sharedPreview", () => {
 
     const play = vi.fn().mockResolvedValue(undefined);
     const pause = vi.fn();
-    Object.defineProperty(video!, "play", {
-      configurable: true,
-      value: play,
-    });
-    Object.defineProperty(video!, "pause", {
-      configurable: true,
-      value: pause,
-    });
-    Object.defineProperty(video!, "paused", {
-      configurable: true,
-      get: () => false,
-    });
+    Object.defineProperty(video!, "play", { configurable: true, value: play });
+    Object.defineProperty(video!, "pause", { configurable: true, value: pause });
+    Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
-    preview.show({
-      src: "/assets/demo.mp4",
-      x: 40,
-      y: 50,
-      type: "video",
-    });
+    // Reveal shows the clip paused — reveal ≠ play (ADR 0004).
+    preview.show({ src: "/assets/demo.mp4", x: 40, y: 50, type: "video" });
     vi.advanceTimersByTime(100);
 
     expect(video?.classList.contains("visible")).toBe(true);
+    expect(play).not.toHaveBeenCalled();
+
+    // Commit: playback starts, the bubble grows and anchors.
+    preview.togglePlay({
+      src: "/assets/demo.mp4",
+      type: "video",
+      triggerRect: new DOMRect(0, 0, 40, 40),
+    });
+
     expect(play).toHaveBeenCalledTimes(1);
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+    expect(wrapper?.classList.contains("is-grown")).toBe(true);
 
+    // Leaving stops playback and hides.
     preview.hide();
-    vi.advanceTimersByTime(100);
 
+    expect(pause).toHaveBeenCalled();
+    expect(wrapper?.classList.contains("is-playing")).toBe(false);
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
-    expect(video?.classList.contains("visible")).toBe(false);
-    expect(pause).toHaveBeenCalledTimes(1);
   });
 
-  it("does not replay the same visible video repeatedly", async () => {
+  it("toggles committed playback off on a second commit", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
     const video = wrapper?.querySelector("video");
 
     const play = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(video!, "play", {
-      configurable: true,
-      value: play,
-    });
-    Object.defineProperty(video!, "paused", {
-      configurable: true,
-      get: () => false,
-    });
+    const pause = vi.fn();
+    Object.defineProperty(video!, "play", { configurable: true, value: play });
+    Object.defineProperty(video!, "pause", { configurable: true, value: pause });
+    Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
-    preview.show({
-      src: "/assets/demo.mp4",
-      x: 40,
-      y: 50,
-      type: "video",
-    });
-    vi.advanceTimersByTime(100);
+    const rect = new DOMRect(0, 0, 40, 40);
 
-    preview.show({
-      src: "/assets/demo.mp4",
-      x: 400,
-      y: 300,
-      type: "video",
-    });
-    vi.advanceTimersByTime(100);
-
+    const first = preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: rect });
+    expect(first).toBe(true);
     expect(play).toHaveBeenCalledTimes(1);
-    // video box is 240x135, centered on the cursor
-    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("280px");
-    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("232.5px");
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+
+    const second = preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: rect });
+    expect(second).toBe(false);
+    expect(pause).toHaveBeenCalled();
+    expect(wrapper?.classList.contains("is-playing")).toBe(false);
   });
 
-  it("warns when video autoplay is blocked", async () => {
+  it("plays audio on commit and reports the playing state", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const audio = wrapper?.querySelector("audio");
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const pause = vi.fn();
+    Object.defineProperty(audio!, "play", { configurable: true, value: play });
+    Object.defineProperty(audio!, "pause", { configurable: true, value: pause });
+    Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
+
+    const playing = preview.togglePlay({
+      src: "/assets/song.mp3",
+      type: "audio",
+      kind: "album",
+      triggerRect: new DOMRect(0, 0, 40, 40),
+    });
+
+    expect(playing).toBe(true);
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(preview.isPlaying("/assets/song.mp3")).toBe(true);
+    expect(wrapper?.dataset.kind).toBe("album");
+    // The album disc spins only while playing (CSS reads is-playing).
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+
+    preview.stop();
+    expect(pause).toHaveBeenCalled();
+    expect(preview.isPlaying()).toBe(false);
+  });
+
+  it("warns when committed playback is blocked", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
     const video = wrapper?.querySelector("video");
-    const autoplayError = new Error("blocked");
+    const blockedError = new Error("blocked");
 
     Object.defineProperty(video!, "play", {
       configurable: true,
-      value: vi.fn().mockRejectedValue(autoplayError),
+      value: vi.fn().mockRejectedValue(blockedError),
     });
 
-    preview.show({
-      src: "/assets/demo.mp4",
-      x: 40,
-      y: 50,
-      type: "video",
-    });
-    vi.advanceTimersByTime(100);
+    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 0, 40, 40) });
 
     await Promise.resolve();
 
     expect(warn).toHaveBeenCalledWith(
-      "[SharedMediaPreview] Video preview autoplay failed",
-      autoplayError
+      "[SharedMediaPreview] Preview playback failed",
+      blockedError
     );
   });
 
-  it("sizes the bubble per preview type and exposes it to CSS", async () => {
+  it("keeps every glimpse a 100x100 circle and grows to 220 on commit", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -292,21 +303,24 @@ describe("sharedPreview", () => {
       configurable: true,
       value: vi.fn().mockResolvedValue(undefined),
     });
+    Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
+    // Image glimpse: small circle.
     preview.show({ src: "/assets/example.webp", x: 200, y: 200 });
-
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("100px");
     expect(wrapper?.dataset.type).toBe("image");
 
+    // Video glimpse is the SAME small circle — no more 16:9 rect.
     preview.show({ src: "/assets/demo.mp4", x: 400, y: 300, type: "video" });
-
-    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("240px");
-    expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("135px");
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
+    expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("100px");
     expect(wrapper?.dataset.type).toBe("video");
-    // cursor placement centers on the video box, not the image box
-    expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("280px");
-    expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("232.5px");
+
+    // Committing grows it.
+    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 0, 40, 40) });
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("220px");
+    expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("220px");
   });
 
   it("reflects the media kind on the wrapper and clears it on hide", async () => {

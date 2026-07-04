@@ -270,6 +270,10 @@ export default function (eleventyConfig: any) {
   });
 
   eleventyConfig.addPassthroughCopy({
+    "src/assets/audio": "assets/audio"
+  });
+
+  eleventyConfig.addPassthroughCopy({
     "src/assets/asciiart": "assets/asciiart"
   });
 

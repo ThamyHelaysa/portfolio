@@ -3,6 +3,93 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { MediaKind, MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
 
 /**
+ * Touch scroll-reveal is coordinated across ALL <media-preview> cards by a
+ * single shared observer — never one observer per card. With per-card
+ * observers a fast scroll fires several callbacks in one tick and the last one
+ * processed wins the single shared bubble, so a far-off card can reveal out of
+ * order. Here, any crossing triggers ONE recompute over live geometry that
+ * picks the card nearest the viewport centre, so the result is order- and
+ * speed-independent.
+ */
+class TouchRevealCoordinator {
+  private static _instance: TouchRevealCoordinator | null = null;
+  private _observer: IntersectionObserver;
+  private _cards = new Set<MediaPreview>();
+  private _current: MediaPreview | null = null;
+
+  static get(): TouchRevealCoordinator | null {
+    if (typeof IntersectionObserver === 'undefined') return null;
+    if (!this._instance) this._instance = new TouchRevealCoordinator();
+    return this._instance;
+  }
+
+  private constructor() {
+    this._observer = new IntersectionObserver(() => this._recompute(), {
+      // Reveal zone is the central half of the viewport; any crossing in or out
+      // of it is enough to trigger a fresh recompute.
+      rootMargin: '-25% 0px -25% 0px',
+      threshold: [0, 0.5, 1],
+    });
+  }
+
+  add(card: MediaPreview): void {
+    this._cards.add(card);
+    this._observer.observe(card);
+  }
+
+  remove(card: MediaPreview): void {
+    this._cards.delete(card);
+    this._observer.unobserve(card);
+    if (this._current === card) this._current = null;
+  }
+
+  /**
+   * Picks the card whose centre is closest to the viewport centre among those
+   * at least half inside the central band, and reveals it. Reads live rects, so
+   * it is immune to stale entry snapshots and callback ordering.
+   */
+  private _recompute(): void {
+    const preview = SharedMediaPreview.getInstance();
+    // A committed, playing card owns the bubble — scrolling must not steal it.
+    if (preview.isPlaying()) return;
+
+    const vh = window.innerHeight;
+    const mid = vh / 2;
+    const bandTop = vh * 0.25;
+    const bandBottom = vh * 0.75;
+
+    let best: MediaPreview | null = null;
+    let bestDist = Infinity;
+
+    for (const card of this._cards) {
+      if (!card.previewSrc) continue;
+      const rect = card.getBoundingClientRect();
+      if (rect.height <= 0) continue;
+
+      const overlap = Math.max(0, Math.min(rect.bottom, bandBottom) - Math.max(rect.top, bandTop));
+      // Card must be at least half inside the central band to qualify.
+      if (overlap / rect.height < 0.5) continue;
+
+      const dist = Math.abs(rect.top + rect.height / 2 - mid);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = card;
+      }
+    }
+
+    if (best) {
+      if (best !== this._current) {
+        this._current = best;
+        best.revealFromScroll();
+      }
+    } else if (this._current) {
+      this._current = null;
+      preview.hide();
+    }
+  }
+}
+
+/**
  * A Custom Element that triggers a floating media preview when the user
  * approaches the slotted content.
  *
@@ -57,34 +144,23 @@ export class MediaPreview extends LitElement {
   /** True on touch/coarse-pointer devices — hover is unavailable there. */
   private _isTouch = false;
 
-  private _io: IntersectionObserver | null = null;
-
   connectedCallback(): void {
     super.connectedCallback();
 
     this._isTouch = !!window.matchMedia?.('(hover: none)').matches;
 
-    // Touch has no hover: reveal glimpses as cards scroll into view, one at a
-    // time through the shared bubble. Desktop keeps hover as the reveal trigger.
-    if (this._isTouch && typeof IntersectionObserver !== 'undefined') {
-      this._io = new IntersectionObserver(
-        (entries) => this._onIntersect(entries),
-        {
-          // Reveal zone is the central *half* of the viewport (a 50%-tall band,
-          // trimmed 25% off top and bottom). A card reveals once it fills at
-          // least half of that band — dense thresholds so the crossing is caught.
-          rootMargin: '-25% 0px -25% 0px',
-          threshold: Array.from({ length: 21 }, (_, i) => i / 20),
-        },
-      );
-      this._io.observe(this);
+    // Touch has no hover: a single shared coordinator reveals glimpses as cards
+    // scroll through the central band. Desktop keeps hover as the reveal trigger.
+    if (this._isTouch) {
+      TouchRevealCoordinator.get()?.add(this);
     }
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._io?.disconnect();
-    this._io = null;
+    if (this._isTouch) {
+      TouchRevealCoordinator.get()?.remove(this);
+    }
 
     // Drop any playback this trigger owns so a removed card can't leave the
     // shared bubble stuck open.
@@ -202,36 +278,23 @@ export class MediaPreview extends LitElement {
     }
   }
 
-  // --- Touch: scroll-into-view reveal ---
+  // --- Touch: scroll-into-view reveal (driven by TouchRevealCoordinator) ---
 
-  private _onIntersect(entries: IntersectionObserverEntry[]) {
-    const entry = entries[0];
-    if (!entry || !this.previewSrc) return;
+  /** Reveals this card's glimpse. Called only by the shared coordinator. */
+  revealFromScroll(): void {
+    if (!this.previewSrc) return;
 
-    const preview = SharedMediaPreview.getInstance();
-
-    // How much of THIS card sits inside the central-half band. Cards are short
-    // text blocks, so measure the card's own coverage, not the band's — a card
-    // reveals once at least half of it has entered the reveal zone.
-    const covered = entry.intersectionRatio;
-
-    if (entry.isIntersecting && covered >= 0.5) {
-      const rect = this.getBoundingClientRect();
-      preview.show({
-        src: this.previewSrc,
-        type: this.previewType,
-        kind: this.mediaKind ?? undefined,
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
-        triggerRect: rect,
-        immediate: true,
-      });
-    } else if (!this._playing) {
-      // Scrolled below the reveal threshold — drop this card's glimpse, but only
-      // if it still owns the shared bubble (a sibling may already have claimed it).
-      preview.hideIfCurrent(this.previewSrc);
-    }
+    const rect = this.getBoundingClientRect();
+    SharedMediaPreview.getInstance().show({
+      src: this.previewSrc,
+      type: this.previewType,
+      kind: this.mediaKind ?? undefined,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
+      triggerRect: rect,
+      immediate: true,
+    });
   }
 
   // --- Render ---

@@ -38,6 +38,8 @@ interface PreviewSize {
  */
 const GLIMPSE_SIZE: PreviewSize = { w: 100, h: 100 };
 const GROWN_SIZE: PreviewSize = { w: 220, h: 220 };
+/** Touch screens are small — the grown disc shrinks so it stays on-screen. */
+const GROWN_SIZE_TOUCH: PreviewSize = { w: 150, h: 150 };
 
 /** Media types that have a play/pause commit step. Images are reveal-only. */
 const PLAYABLE_TYPES: ReadonlySet<MediaType> = new Set(['video', 'audio']);
@@ -274,7 +276,7 @@ export class SharedMediaPreview {
     this._cancelLinger();
 
     // Load the media (glimpse first frame) then start it, grown + anchored.
-    this._applyMeta(effectiveType, kind, GROWN_SIZE);
+    this._applyMeta(effectiveType, kind, this._grownSize());
     this._reveal(src, effectiveType);
 
     this._isPlaying = true;
@@ -292,6 +294,22 @@ export class SharedMediaPreview {
   stop(): void {
     this._stopPlayback();
     this.hide();
+  }
+
+  /**
+   * Hides the bubble only if it is currently showing `src`. Lets a trigger that
+   * scrolled out of view drop its own glimpse without clobbering a sibling that
+   * already retargeted the single shared bubble.
+   */
+  hideIfCurrent(src: string): void {
+    if (this._currentSrc === src) this.hide();
+  }
+
+  /** Grown-bubble size: smaller on coarse-pointer (touch) devices. */
+  private _grownSize(): PreviewSize {
+    const coarse = typeof window !== 'undefined'
+      && !!window.matchMedia?.('(hover: none)').matches;
+    return coarse ? GROWN_SIZE_TOUCH : GROWN_SIZE;
   }
 
   /**

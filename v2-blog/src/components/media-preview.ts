@@ -69,7 +69,13 @@ export class MediaPreview extends LitElement {
     if (this._isTouch && typeof IntersectionObserver !== 'undefined') {
       this._io = new IntersectionObserver(
         (entries) => this._onIntersect(entries),
-        { threshold: 0.6 },
+        {
+          // Reveal zone is the central *half* of the viewport (a 50%-tall band,
+          // trimmed 25% off top and bottom). A card reveals once it fills at
+          // least half of that band — dense thresholds so the crossing is caught.
+          rootMargin: '-25% 0px -25% 0px',
+          threshold: Array.from({ length: 21 }, (_, i) => i / 20),
+        },
       );
       this._io.observe(this);
     }
@@ -204,7 +210,12 @@ export class MediaPreview extends LitElement {
 
     const preview = SharedMediaPreview.getInstance();
 
-    if (entry.isIntersecting) {
+    // How much of THIS card sits inside the central-half band. Cards are short
+    // text blocks, so measure the card's own coverage, not the band's — a card
+    // reveals once at least half of it has entered the reveal zone.
+    const covered = entry.intersectionRatio;
+
+    if (entry.isIntersecting && covered >= 0.5) {
       const rect = this.getBoundingClientRect();
       preview.show({
         src: this.previewSrc,
@@ -217,8 +228,9 @@ export class MediaPreview extends LitElement {
         immediate: true,
       });
     } else if (!this._playing) {
-      // Scrolled away and not committed — let the ephemeral glimpse go.
-      preview.hide();
+      // Scrolled below the reveal threshold — drop this card's glimpse, but only
+      // if it still owns the shared bubble (a sibling may already have claimed it).
+      preview.hideIfCurrent(this.previewSrc);
     }
   }
 

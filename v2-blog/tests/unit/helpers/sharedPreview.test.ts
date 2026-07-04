@@ -340,6 +340,24 @@ describe("sharedPreview", () => {
     expect(wrapper?.dataset.kind).toBeUndefined();
   });
 
+  it("hideIfCurrent only hides when the given src still owns the bubble", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.show({ src: "/assets/b.webp", x: 100, y: 100, immediate: true });
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+    // A card that no longer owns the bubble must not hide it.
+    preview.hideIfCurrent("/assets/a.webp");
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+    // The owning card can.
+    preview.hideIfCurrent("/assets/b.webp");
+    vi.advanceTimersByTime(100);
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+  });
+
   it("marks the bubble as decorative for assistive tech", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     SharedMediaPreview.getInstance();

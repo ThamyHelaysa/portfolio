@@ -46,8 +46,10 @@ const TRACK_IDLE_MS = 120;
  * radius are transitioned. Instead the bubble fully retracts in its current
  * shape, then the new one is revealed with geometry snapped while hidden. This
  * is one transition duration — kept in sync with the CSS (~150ms) plus slack.
+ * The same window governs the post-collapse teardown on a plain hide.
  */
 const SWAP_MS = 180;
+const HIDE_MS = SWAP_MS;
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
@@ -165,6 +167,8 @@ export class SharedMediaPreview {
   private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
   /** Pending shape-swap (album ↔ other): retract-then-reveal in flight. */
   private _swapTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Pending post-collapse teardown: resets the hidden bubble's visuals. */
+  private _teardownTimer: ReturnType<typeof setTimeout> | null = null;
 
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
@@ -275,8 +279,9 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     this._ensureAttached();
 
-    // A new target supersedes any pending shape-swap retract.
+    // A new target supersedes any pending shape-swap retract or hide teardown.
     this._cancelSwap();
+    this._cancelTeardown();
 
     const rect = trigger.getRect();
     const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
@@ -348,15 +353,16 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Sequential shape-swap (album ↔ other). Retract the current bubble in its
-   * own shape, then — once fully hidden — drop the old kind/presentation and
-   * reveal the new target with geometry snapped instantly (`is-swapping`) so
-   * only opacity + scale animate the entrance. No square↔circle morph.
+   * Sequential shape-swap (album ↔ other). Collapse the current bubble in its
+   * own shape (only scale + opacity animate), then — once hidden — tear down the
+   * old visuals and reveal the new target. Its geometry is set while invisible,
+   * so the square↔circle change is never seen; only the entrance animates.
    */
   private _deferReveal(trigger: PreviewTrigger, opts: RevealOptions): void {
     if (this._isPlaying) this._stopPlayback();
     this._cancelIntent();
     this._cancelLinger();
+    this._pauseAllMedia();
     this._stopTracking();
 
     // Phase 1: collapse in the current shape (nothing else changes yet).
@@ -364,23 +370,10 @@ export class SharedMediaPreview {
 
     this._swapTimer = setTimeout(() => {
       this._swapTimer = null;
-
-      // Phase 2 (hidden): retire the old visual so the new geometry can be set
-      // without any leftover shape bleeding into the reveal.
-      this._active?.deactivate();
-      this._active = null;
-      this._activePresentation?.deactivate();
-      this._activePresentation = null;
-      this._currentSrc = null;
-      this._currentType = null;
-      delete this._wrapper.dataset.kind;
-      this._wrapper.style.removeProperty('--album-cover');
-
-      // Snap geometry (width/radius instant under is-swapping); the reveal below
-      // re-adds is-visible so transform + opacity animate the entrance.
-      this._wrapper.classList.add('is-swapping');
+      // Phase 2 (hidden): retire the old visuals, then reveal the new target —
+      // it applies the new geometry while still invisible and fades in.
+      this._teardown();
       this.reveal(trigger, { ...opts, immediate: true });
-      setTimeout(() => this._wrapper.classList.remove('is-swapping'), SWAP_MS);
     }, SWAP_MS);
   }
 
@@ -720,26 +713,49 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Actually hides the preview, pauses any active media and cleans up state.
+   * Collapses the bubble, then tears down its visuals once it is hidden.
+   *
+   * Only scale + opacity animate (never forms/sizes), so the bubble must keep
+   * its current shape/artwork *through* the collapse — otherwise the shape or
+   * cover would visibly change under a still-opaque bubble (the "morph"). Media
+   * and scroll-tracking stop at once; the shape/kind/src reset waits until the
+   * scale-down has hidden it (`_teardown`).
    */
   private _doHide(): void {
     this._cancelLinger();
     this._cancelSwap();
-    this._stopTracking();
-    this._wrapper.classList.remove('is-visible', 'is-swapping');
-
-    this._active?.deactivate();
     this._pauseAllMedia();
-    this._active = null;
+    this._stopTracking();
+    this._wrapper.classList.remove('is-visible');
 
+    this._cancelTeardown();
+    this._teardownTimer = setTimeout(() => {
+      this._teardownTimer = null;
+      this._teardown();
+    }, HIDE_MS);
+  }
+
+  /**
+   * Resets the hidden bubble's visuals: retire the active channel + presentation
+   * and clear the kind/size/src. Runs only while the bubble is invisible (after
+   * a collapse), so the geometry snap it causes is never seen.
+   */
+  private _teardown(): void {
+    this._active?.deactivate();
+    this._active = null;
     this._activePresentation?.deactivate();
     this._activePresentation = null;
-
     delete this._wrapper.dataset.kind;
     this._wrapper.style.removeProperty('--album-cover');
-
     this._currentSrc = null;
     this._currentType = null;
+  }
+
+  private _cancelTeardown(): void {
+    if (this._teardownTimer !== null) {
+      clearTimeout(this._teardownTimer);
+      this._teardownTimer = null;
+    }
   }
 
   /** Pauses every channel's media (no-op for the image channel). */

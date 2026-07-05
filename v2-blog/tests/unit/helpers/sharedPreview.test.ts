@@ -305,8 +305,10 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-playing")).toBe(true);
     expect(wrapper?.classList.contains("is-grown")).toBe(false);
 
-    // Hide clears the presentation and the album sizing var.
+    // Stop collapses now; the presentation + album sizing var are cleared once
+    // the bubble has hidden (teardown runs after the scale-down).
     preview.stop();
+    vi.advanceTimersByTime(200);
     expect(presentation?.classList.contains("visible")).toBe(false);
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
   });
@@ -330,17 +332,12 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
     expect(wrapper?.dataset.kind).toBe("album");
 
-    // Once retracted, the round glimpse appears with geometry snapped (is-swapping)
-    // so only the entrance animates.
+    // Once retracted (hidden), the round glimpse appears — geometry was applied
+    // while invisible, so it never morphed on screen.
     vi.advanceTimersByTime(200);
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
-    expect(wrapper?.classList.contains("is-swapping")).toBe(true);
-
-    // is-swapping is dropped after the entrance so future grows still ease.
-    vi.advanceTimersByTime(200);
-    expect(wrapper?.classList.contains("is-swapping")).toBe(false);
   });
 
   it("other → other: same round shape swaps instantly (no retract)", async () => {
@@ -352,7 +349,7 @@ describe("sharedPreview", () => {
     preview.reveal(trigger("/assets/b.webp"), { immediate: true });
     // No shape boundary crossed → warm instant swap, never a retract/defer.
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
-    expect(wrapper?.classList.contains("is-swapping")).toBe(false);
+    expect(preview.isPlaying()).toBe(false);
   });
 
   it("warns when committed playback is blocked", async () => {
@@ -408,7 +405,7 @@ describe("sharedPreview", () => {
     expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("220px");
   });
 
-  it("reflects the media kind on the wrapper and clears it on hide", async () => {
+  it("reflects the media kind on the wrapper and clears it after the hide collapse", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -416,10 +413,14 @@ describe("sharedPreview", () => {
     preview.reveal(trigger("/assets/cover.jpg", { kind: "album" }), { cursor: { x: 200, y: 200 } });
     expect(wrapper?.dataset.kind).toBe("album");
 
+    // The kind persists through the collapse (only scale + opacity animate, never
+    // the shape) and is cleared once the bubble is hidden.
     preview.hide();
+    expect(wrapper?.dataset.kind).toBe("album");
+    vi.advanceTimersByTime(200);
     expect(wrapper?.dataset.kind).toBeUndefined();
 
-    // a kindless reveal never leaks the previous kind
+    // a kindless reveal never leaks the previous kind (applied while hidden)
     preview.reveal(trigger("/assets/cover.jpg", { kind: "album" }), { cursor: { x: 200, y: 200 } });
     preview.reveal(trigger("/assets/other.jpg"), { cursor: { x: 200, y: 200 } });
     expect(wrapper?.dataset.kind).toBeUndefined();

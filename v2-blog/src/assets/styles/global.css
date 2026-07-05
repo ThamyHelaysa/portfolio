@@ -308,8 +308,11 @@
   transform: translate3d(var(--preview-x, 0px), var(--preview-y, 0px), 0)
              scale(var(--preview-scale, 0));
 
-  /* Keep transitions defined in a single place */
-  transition-property: transform, opacity, visibility, border-width, width, height, border-radius;
+  /* Only scale (transform) + opacity ever animate — never forms or sizes.
+     Shape/size/kind changes are made while the bubble is hidden (scale 0), so
+     a square album never morphs into a round bubble; the scale-down/up + fade
+     masks the swap. Geometry props are deliberately absent from this list. */
+  transition-property: transform, opacity, visibility;
   transition-duration: 150ms;
   transition-timing-function: ease;
   transition-delay: 0ms;
@@ -327,17 +330,9 @@
 
 /* Touch scroll-follow: while the bubble is tracking its source card the
    translate must be instant (1:1 with the finger), so drop transform from the
-   transition. Everything else — opacity, size, border — still eases. */
+   transition too — leaving only opacity/visibility. */
 #mediaPreview.is-tracking {
-  transition-property: opacity, visibility, border-width, width, height, border-radius;
-}
-
-/* Shape-swap (album ↔ other, ADR 0005): the singleton is re-shaped while hidden
-   between a retract and a fresh reveal, so the geometry props must NOT ease
-   (that is the square↔circle morph). Only the entrance — transform + opacity —
-   animates. Dropped again once the entrance has played. */
-#mediaPreview.is-swapping {
-  transition-property: transform, opacity, visibility;
+  transition-property: opacity, visibility;
 }
 
 /* Visible state — easier & faster if you toggle a class from JS */
@@ -380,8 +375,7 @@
 
   /* Snap the reveal + grow: no travelling/scaling motion, only opacity.
      Playback itself is never blocked — only the animation of getting there. */
-  #mediaPreview,
-  #mediaPreview.is-swapping {
+  #mediaPreview {
     transition-property: opacity, visibility;
   }
 }

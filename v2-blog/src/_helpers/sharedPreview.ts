@@ -69,28 +69,33 @@ interface PositionOptions {
  */
 type RectProvider = () => DOMRect;
 
-interface ShowOptions extends PositionOptions {
+/**
+ * Everything the singleton needs to identify and locate a trigger card. The
+ * card hands this over; the singleton pulls the rect, derives the coordinates,
+ * and applies the `'cursor' → 'right'` anchor coercion itself — the card no
+ * longer speaks the positioning vocabulary (ADR 0004).
+ */
+export interface PreviewTrigger {
   src: string;
   type?: MediaType;
   kind?: MediaKind;
+  /** The card's positioning strategy. Coerced to 'right' when anchored/grown. */
+  placement: PreviewPlacement;
+  /** Live rect of the card — read for anchoring and touch scroll-follow. */
+  getRect: RectProvider;
+}
+
+/** Per-interaction reveal intent, layered over a {@link PreviewTrigger}. */
+export interface RevealOptions {
+  /** Desktop pointer position; absent for focus/scroll (centre on the rect). */
+  cursor?: { x: number; y: number };
   /**
    * Skip the hover-intent sampler and reveal at once. For interactions where
    * intent is proven by the gesture itself (keyboard focus, touch scroll-in).
    */
   immediate?: boolean;
-  /** Touch only: live rect provider so the glimpse tracks the card on scroll. */
-  getRect?: RectProvider;
-}
-
-interface PlayOptions {
-  src: string;
-  type?: MediaType;
-  kind?: MediaKind;
-  /** The trigger's rect — playback anchors the grown bubble beside it. */
-  triggerRect?: DOMRect | null;
-  placement?: PreviewPlacement;
-  /** Touch only: live rect provider so the grown bubble tracks the card on scroll. */
-  getRect?: RectProvider;
+  /** Anchor beside the card instead of on the cursor (touch scroll-reveal). */
+  anchor?: boolean;
 }
 
 /**
@@ -98,9 +103,9 @@ interface PlayOptions {
  *
  * ONE shared DOM node, reused for every trigger (ADR 0004). It is purely
  * decorative (`aria-hidden`, `pointer-events: none`) — all interaction lives on
- * the trigger card, which drives this via `show()` (reveal a paused glimpse),
- * `togglePlay()` (commit to playback: anchor + grow + start media), and
- * `stop()` / `hide()`.
+ * the trigger card, which drives this by handing over a {@link PreviewTrigger}:
+ * `reveal()` (reveal a paused glimpse), `commit()` (anchor + grow + start
+ * media), and `move()` / `stop()` / `hide()`.
  */
 export class SharedMediaPreview {
   /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
@@ -246,38 +251,44 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Reveals a paused glimpse at specific coordinates. NEVER starts playback
-   * (ADR 0004: reveal ≠ play). If a different media is currently playing,
-   * hovering here stops it and retargets the single bubble to this glimpse.
+   * Reveals a paused glimpse for a trigger. NEVER starts playback (ADR 0004:
+   * reveal ≠ play). The singleton pulls the rect from the trigger and derives
+   * the coordinates: with a `cursor` it centres there, otherwise on the rect's
+   * centre; `anchor` beside the card (touch scroll-reveal). If a different media
+   * is currently playing, revealing here stops it and retargets the bubble.
    */
-  show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false, getRect }: ShowOptions): void {
+  reveal(trigger: PreviewTrigger, { cursor, immediate = false, anchor = false }: RevealOptions = {}): void {
+    const { src } = trigger;
     if (!src) return;
 
-    // Determine type: use provided type or try to guess from file extension
-    const effectiveType = type || this.inferType(src);
+    const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return;
     this._ensureAttached();
+
+    const rect = trigger.getRect();
+    const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
+    const point = cursor ?? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 
     // The card that committed to playback owns the grown bubble — approaching it
     // again must not shrink it back to a glimpse.
     if (this._isPlaying && this._currentSrc === src) return;
 
-    // Hovering a different card while one plays: stop it, then reveal this
+    // Revealing a different card while one plays: stop it, then reveal this
     // glimpse (retarget the single bubble).
     if (this._isPlaying) {
       this._stopPlayback();
     }
 
-    this._applyMeta(effectiveType, kind, GLIMPSE_SIZE);
+    this._applyMeta(effectiveType, trigger.kind, GLIMPSE_SIZE);
 
     this._anchorPlacement = placement;
-    this._cursor = { x, y };
-    this._setPosition({ x, y, placement, triggerRect });
+    this._cursor = point;
+    this._setPosition({ x: point.x, y: point.y, placement, triggerRect: rect });
 
     // Touch: keep the glimpse glued to its card as the page scrolls. Desktop
-    // glimpses follow the cursor instead, so no rect provider is passed.
-    if (getRect && this._coarsePointer()) {
-      this._startTracking(getRect);
+    // glimpses follow the cursor instead.
+    if (this._coarsePointer()) {
+      this._startTracking(trigger.getRect);
     }
 
     // Warm: bubble already up (or lingering) — intent stays proven, siblings
@@ -294,6 +305,11 @@ export class SharedMediaPreview {
     this._startIntent(src, effectiveType);
   }
 
+  /** Grown/anchored placement never sits on the cursor: 'cursor' becomes 'right'. */
+  private _anchorPlacementFor(placement: PreviewPlacement): PreviewPlacement {
+    return placement === 'cursor' ? 'right' : placement;
+  }
+
   /**
    * Commits to (or ends) playback for a trigger. Toggle semantics: calling it
    * for the media already playing stops it; otherwise it anchors the bubble
@@ -302,10 +318,11 @@ export class SharedMediaPreview {
    *
    * @returns the resulting playing state (true = now playing).
    */
-  togglePlay({ src, type, kind, triggerRect, placement = 'right', getRect }: PlayOptions): boolean {
+  commit(trigger: PreviewTrigger): boolean {
+    const { src } = trigger;
     if (!src) return false;
 
-    const effectiveType = type || this.inferType(src);
+    const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return false;
 
     // Reveal-only types never enter the playing state.
@@ -324,12 +341,16 @@ export class SharedMediaPreview {
     this._cancelIntent();
     this._cancelLinger();
 
+    const rect = trigger.getRect();
+    // Grown playback always anchors beside the card, never on the cursor.
+    const placement = this._anchorPlacementFor(trigger.placement);
+
     // Load the media (glimpse first frame) then start it, grown + anchored.
-    this._applyMeta(effectiveType, kind, this._grownSize());
+    this._applyMeta(effectiveType, trigger.kind, this._grownSize());
     this._reveal(src, effectiveType);
 
     this._isPlaying = true;
-    this._anchorRect = triggerRect ?? null;
+    this._anchorRect = rect;
     this._anchorPlacement = placement;
     this._wrapper.classList.add('is-playing', 'is-grown');
 
@@ -340,7 +361,7 @@ export class SharedMediaPreview {
     // Desktop: any real scroll dismisses playback (no follow), so we only need
     // the listener and the baseline scroll position.
     if (this._coarsePointer()) {
-      this._startTracking(getRect ?? null);
+      this._startTracking(trigger.getRect);
     } else {
       this._playStartScrollY = this._scrollY();
       this._startTracking(null);
@@ -538,14 +559,14 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Updates the position of the preview element during mousemove. No-op while
+   * Repositions the glimpse to a new cursor point during mousemove. No-op while
    * playback is committed — the grown bubble stays anchored to its trigger.
    */
-  move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
+  move(trigger: PreviewTrigger, cursor: { x: number; y: number }): void {
     if (this._isPlaying) return;
     this._ensureAttached();
-    this._cursor = { x, y };
-    this._setPosition({ x, y, placement, triggerRect });
+    this._cursor = cursor;
+    this._setPosition({ x: cursor.x, y: cursor.y, placement: trigger.placement, triggerRect: trigger.getRect() });
   }
 
   /**

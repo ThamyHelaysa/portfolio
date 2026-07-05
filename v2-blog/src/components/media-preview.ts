@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { MediaKind, MediaType, PreviewPlacement, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
+import { MediaKind, MediaType, PreviewPlacement, PreviewTrigger, SharedMediaPreview } from "../_helpers/sharedPreview.ts";
 
 /**
  * Touch scroll-reveal is coordinated across ALL <media-preview> cards by a
@@ -211,37 +211,31 @@ export class MediaPreview extends LitElement {
     return this.previewType === 'video' || this.previewType === 'audio';
   }
 
+  /**
+   * The trigger descriptor handed to the shared bubble. Carries the card's
+   * identity + a live rect provider; the bubble derives coordinates, placement,
+   * and scroll-follow from it (ADR 0004). Callers guard on `previewSrc` first.
+   */
+  private get _trigger(): PreviewTrigger {
+    return {
+      src: this.previewSrc as string,
+      type: this.previewType,
+      kind: this.mediaKind ?? undefined,
+      placement: this.previewPosition,
+      getRect: () => this.getBoundingClientRect(),
+    };
+  }
+
   // --- Desktop hover: reveal glimpse (paused) ---
 
   private _handleMouseEnter(e: MouseEvent) {
     if (this._isTouch || !this.previewSrc) return;
-
-    const preview = SharedMediaPreview.getInstance();
-    const rect = this.getBoundingClientRect();
-
-    preview.show({
-      src: this.previewSrc,
-      type: this.previewType,
-      kind: this.mediaKind ?? undefined,
-      x: e.clientX,
-      y: e.clientY,
-      placement: this.previewPosition,
-      triggerRect: rect,
-    });
+    SharedMediaPreview.getInstance().reveal(this._trigger, { cursor: { x: e.clientX, y: e.clientY } });
   }
 
   private _handleMouseMove(e: MouseEvent) {
     if (this._isTouch || !this.previewSrc) return;
-
-    const preview = SharedMediaPreview.getInstance();
-    const rect = this.getBoundingClientRect();
-
-    preview.move({
-      x: e.clientX,
-      y: e.clientY,
-      placement: this.previewPosition,
-      triggerRect: rect,
-    });
+    SharedMediaPreview.getInstance().move(this._trigger, { x: e.clientX, y: e.clientY });
   }
 
   private _handleMouseLeave() {
@@ -252,21 +246,8 @@ export class MediaPreview extends LitElement {
 
   private _handleFocusIn() {
     if (!this.previewSrc) return;
-
-    const preview = SharedMediaPreview.getInstance();
-    const rect = this.getBoundingClientRect();
-
-    preview.show({
-      src: this.previewSrc,
-      type: this.previewType,
-      kind: this.mediaKind ?? undefined,
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-      placement: this.previewPosition,
-      triggerRect: rect,
-      // Tabbing to the trigger is intent by itself — no hover-intent sampling.
-      immediate: true,
-    });
+    // Tabbing to the trigger is intent by itself — no hover-intent sampling.
+    SharedMediaPreview.getInstance().reveal(this._trigger, { immediate: true });
   }
 
   private _handleFocusOut(e: FocusEvent) {
@@ -283,18 +264,7 @@ export class MediaPreview extends LitElement {
   /** Toggles playback for playable types; a no-op reveal for images. */
   private _commit() {
     if (!this.previewSrc || !this._isPlayable) return;
-
-    const preview = SharedMediaPreview.getInstance();
-    this._playing = preview.togglePlay({
-      src: this.previewSrc,
-      type: this.previewType,
-      kind: this.mediaKind ?? undefined,
-      triggerRect: this.getBoundingClientRect(),
-      // Anchor the grown bubble beside the card rather than over its text.
-      placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
-      // Touch: lets the bubble follow this card as the page scrolls.
-      getRect: () => this.getBoundingClientRect(),
-    });
+    this._playing = SharedMediaPreview.getInstance().commit(this._trigger);
   }
 
   private _handleClick() {
@@ -322,20 +292,8 @@ export class MediaPreview extends LitElement {
   /** Reveals this card's glimpse. Called only by the shared coordinator. */
   revealFromScroll(): void {
     if (!this.previewSrc) return;
-
-    const rect = this.getBoundingClientRect();
-    SharedMediaPreview.getInstance().show({
-      src: this.previewSrc,
-      type: this.previewType,
-      kind: this.mediaKind ?? undefined,
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-      placement: this.previewPosition === 'cursor' ? 'right' : this.previewPosition,
-      triggerRect: rect,
-      immediate: true,
-      // Keep the glimpse glued to this card as the page scrolls.
-      getRect: () => this.getBoundingClientRect(),
-    });
+    // Touch has no cursor: anchor the glimpse beside the card, glued on scroll.
+    SharedMediaPreview.getInstance().reveal(this._trigger, { immediate: true, anchor: true });
   }
 
   // --- Render ---

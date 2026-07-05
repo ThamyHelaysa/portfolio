@@ -1,9 +1,11 @@
-/**
- * Offset in pixels to position the preview element relative to the cursor.
- * This ensures the cursor remains visible and prevents the preview
- * from interfering with mouse events on the underlying element.
- */
-const PREVIEW_OFFSET = 12;
+import {
+  PREVIEW_OFFSET,
+  computePreviewPosition,
+  type PreviewPlacement,
+  type PreviewSize,
+} from './previewGeometry.ts';
+
+export type { PreviewPlacement } from './previewGeometry.ts';
 
 /**
  * Hover intent (see CONTEXT.md): the preview only appears once the cursor
@@ -36,12 +38,6 @@ const TRACK_IDLE_MS = 120;
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
-export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
-
-interface PreviewSize {
-  w: number;
-  h: number;
-}
 
 /**
  * Two sizes, both circles (ADR 0004: circle always, grow on play). The glimpse
@@ -646,83 +642,32 @@ export class SharedMediaPreview {
    * viewport-centered if no rect was captured at play time.
    */
   private _positionAnchored(): void {
-    // Prefer the live rect (touch follow) over the play-time snapshot.
+    // Prefer the live rect (touch follow) over the play-time snapshot. A null
+    // rect with the anchored placement resolves to viewport-center inside
+    // `computePreviewPosition` (the play-commit fallback).
     const rect = this._trackGetRect?.() ?? this._anchorRect;
 
-    if (!rect) {
-      const { w, h } = this._currentSize;
-      // Center via cursor placement using viewport middle.
-      this._wrapper.style.setProperty('--preview-x', `${(window.innerWidth - w) / 2}px`);
-      this._wrapper.style.setProperty('--preview-y', `${(window.innerHeight - h) / 2}px`);
-      return;
-    }
-
     this._setPosition({
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
+      x: rect ? rect.left + rect.width / 2 : 0,
+      y: rect ? rect.top + rect.height / 2 : 0,
       placement: this._anchorPlacement,
       triggerRect: rect,
     });
   }
 
   /**
-   * Calculates and applies CSS variables for positioning.
-   * Applies an offset to center the preview relative to the cursor.
+   * Resolves the bubble position (pure geometry, see `previewGeometry.ts`) and
+   * writes it to the `--preview-x/y` CSS variables.
    */
-  private _setPosition({ x, y, placement, triggerRect, unclampY = false }: PositionOptions): void {
-    let eixoX = 0;
-    let eixoY = 0;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const { w, h } = this._currentSize;
-
-    if (placement === 'cursor' || !triggerRect) {
-      // center bubble on cursor
-      eixoX = x - w / 2;
-      eixoY = y - h / 2;
-    } else {
-      const rect = triggerRect;
-      switch (placement) {
-        case 'right':
-          eixoX = rect.right + PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - h) / 2;
-          break;
-
-        case 'left':
-          eixoX = rect.left - w - PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - h) / 2;
-          break;
-
-        case 'top':
-          eixoX = rect.left + (rect.width - w) / 2;
-          eixoY = rect.top - h - PREVIEW_OFFSET;
-          break;
-
-        case 'bottom':
-          eixoX = rect.left + (rect.width - w) / 2;
-          eixoY = rect.bottom + PREVIEW_OFFSET;
-          break;
-
-        default:
-          // fallback to cursor
-          eixoX = x - w / 2;
-          eixoY = y - h / 2;
-          break;
-      }
-    }
-
-    // Clamp so it doesn’t overflow viewport too badly. During touch follow the
-    // vertical clamp is skipped so the bubble can trail its card off-screen
-    // instead of pinning to an edge; horizontal stays clamped so the
-    // right-anchored bubble never flies off a full-width mobile card.
-    const maxX = vw - w - PREVIEW_OFFSET;
-    const maxY = vh - h - PREVIEW_OFFSET;
-
-    eixoX = Math.max(PREVIEW_OFFSET, Math.min(eixoX, maxX));
-    if (!unclampY) {
-      eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));
-    }
+  private _setPosition({ x, y, placement = 'cursor', triggerRect, unclampY = false }: PositionOptions): void {
+    const { x: eixoX, y: eixoY } = computePreviewPosition({
+      placement,
+      triggerRect: triggerRect ?? null,
+      cursor: { x, y },
+      size: this._currentSize,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      unclampY,
+    });
 
     this._wrapper.style.setProperty('--preview-x', `${eixoX}px`);
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);

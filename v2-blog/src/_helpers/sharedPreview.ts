@@ -1,9 +1,13 @@
-/**
- * Offset in pixels to position the preview element relative to the cursor.
- * This ensures the cursor remains visible and prevents the preview
- * from interfering with mouse events on the underlying element.
- */
-const PREVIEW_OFFSET = 12;
+import {
+  PREVIEW_OFFSET,
+  computePreviewPosition,
+  type PreviewPlacement,
+  type PreviewSize,
+} from './previewGeometry.ts';
+import { ScrollAnchor } from './scrollAnchor.ts';
+import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
+
+export type { PreviewPlacement } from './previewGeometry.ts';
 
 /**
  * Hover intent (see CONTEXT.md): the preview only appears once the cursor
@@ -36,12 +40,6 @@ const TRACK_IDLE_MS = 120;
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
-export type PreviewPlacement = 'cursor' | 'top' | 'bottom' | 'left' | 'right';
-
-interface PreviewSize {
-  w: number;
-  h: number;
-}
 
 /**
  * Two sizes, both circles (ADR 0004: circle always, grow on play). The glimpse
@@ -73,28 +71,33 @@ interface PositionOptions {
  */
 type RectProvider = () => DOMRect;
 
-interface ShowOptions extends PositionOptions {
+/**
+ * Everything the singleton needs to identify and locate a trigger card. The
+ * card hands this over; the singleton pulls the rect, derives the coordinates,
+ * and applies the `'cursor' → 'right'` anchor coercion itself — the card no
+ * longer speaks the positioning vocabulary (ADR 0004).
+ */
+export interface PreviewTrigger {
   src: string;
   type?: MediaType;
   kind?: MediaKind;
+  /** The card's positioning strategy. Coerced to 'right' when anchored/grown. */
+  placement: PreviewPlacement;
+  /** Live rect of the card — read for anchoring and touch scroll-follow. */
+  getRect: RectProvider;
+}
+
+/** Per-interaction reveal intent, layered over a {@link PreviewTrigger}. */
+export interface RevealOptions {
+  /** Desktop pointer position; absent for focus/scroll (centre on the rect). */
+  cursor?: { x: number; y: number };
   /**
    * Skip the hover-intent sampler and reveal at once. For interactions where
    * intent is proven by the gesture itself (keyboard focus, touch scroll-in).
    */
   immediate?: boolean;
-  /** Touch only: live rect provider so the glimpse tracks the card on scroll. */
-  getRect?: RectProvider;
-}
-
-interface PlayOptions {
-  src: string;
-  type?: MediaType;
-  kind?: MediaKind;
-  /** The trigger's rect — playback anchors the grown bubble beside it. */
-  triggerRect?: DOMRect | null;
-  placement?: PreviewPlacement;
-  /** Touch only: live rect provider so the grown bubble tracks the card on scroll. */
-  getRect?: RectProvider;
+  /** Anchor beside the card instead of on the cursor (touch scroll-reveal). */
+  anchor?: boolean;
 }
 
 /**
@@ -102,9 +105,9 @@ interface PlayOptions {
  *
  * ONE shared DOM node, reused for every trigger (ADR 0004). It is purely
  * decorative (`aria-hidden`, `pointer-events: none`) — all interaction lives on
- * the trigger card, which drives this via `show()` (reveal a paused glimpse),
- * `togglePlay()` (commit to playback: anchor + grow + start media), and
- * `stop()` / `hide()`.
+ * the trigger card, which drives this by handing over a {@link PreviewTrigger}:
+ * `reveal()` (reveal a paused glimpse), `commit()` (anchor + grow + start
+ * media), and `move()` / `stop()` / `hide()`.
  */
 export class SharedMediaPreview {
   /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
@@ -114,9 +117,10 @@ export class SharedMediaPreview {
   private static instance: SharedMediaPreview;
 
   private _wrapper: HTMLDivElement;
-  private img: HTMLImageElement;
-  private video: HTMLVideoElement;
-  private audio: HTMLAudioElement;
+  /** One playback element per media type; exactly one is active at a time. */
+  private _channels = createMediaChannels();
+  /** The channel currently revealed in the bubble, if any. */
+  private _active: MediaChannel | null = null;
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
   private _currentSize: PreviewSize;
@@ -134,19 +138,14 @@ export class SharedMediaPreview {
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
   private _trackGetRect: RectProvider | null = null;
-  private _trackListenersOn = false;
-  private _scrollRaf: number | null = null;
   private _trackIdleTimer: ReturnType<typeof setTimeout> | null = null;
   /** Scroll position captured at desktop play time, for the dismiss threshold. */
   private _playStartScrollY = 0;
-  private _onScroll = (): void => {
-    if (this._scrollRaf !== null) return;
-    this._scrollRaf = requestAnimationFrame(() => {
-      this._scrollRaf = null;
-      this._onScrollFrame();
-    });
-  };
-  private _onResize = (): void => this._reposition();
+  /** Owns the scroll/resize listener + rAF lifecycle; policy stays here. */
+  private _scrollAnchor = new ScrollAnchor({
+    onScrollFrame: () => this._onScrollFrame(),
+    onResize: () => this._reposition(),
+  });
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
@@ -160,9 +159,9 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Initializes the shared DOM elements: a wrapper div holding an `img`, a
-   * `video`, and an `audio` element. Media is created paused — nothing plays
-   * until a trigger commits via `togglePlay()`.
+   * Initializes the bubble: a wrapper div holding one element per media channel
+   * (image / video / audio). Each channel creates and configures its own
+   * element (see `previewChannels.ts`); media is paused until a trigger commits.
    */
   private constructor() {
     /** The main container for the preview. */
@@ -171,33 +170,9 @@ export class SharedMediaPreview {
     // Purely decorative glimpse — the slotted trigger carries all semantics.
     this._wrapper.setAttribute('aria-hidden', 'true');
 
-    /** Element used to display static images. */
-    this.img = document.createElement('img');
-
-    /** Element used to display (muted, silent) video clips on commit. */
-    this.video = document.createElement('video');
-    // No autoplay: reveal shows a paused first frame; playback is committed.
-    this.video.muted = true;
-    this.video.loop = true;
-    this.video.playsInline = true;
-    this.video.preload = 'auto';
-
-    /** Element used to play audio previews (albums) on commit. */
-    this.audio = document.createElement('audio');
-    this.audio.loop = true;
-    this.audio.preload = 'auto';
-
-    // Blur-in: fresh media carries no `is-loaded` class and CSS keeps it
-    // blurred; the class lands when the data is actually there. `error` also
-    // marks it so a failed load never leaves a permanently frosted bubble.
-    this.img.addEventListener('load', () => this.img.classList.add('is-loaded'));
-    this.img.addEventListener('error', () => this.img.classList.add('is-loaded'));
-    this.video.addEventListener('canplay', () => this.video.classList.add('is-loaded'));
-    this.video.addEventListener('error', () => this.video.classList.add('is-loaded'));
-
-    this._wrapper.appendChild(this.img);
-    this._wrapper.appendChild(this.video);
-    this._wrapper.appendChild(this.audio);
+    for (const type of ['image', 'video', 'audio'] as const) {
+      this._wrapper.appendChild(this._channels[type].el);
+    }
     this._ensureAttached();
 
     /** Tracks the currently loaded source to avoid redundant reloading. */
@@ -250,38 +225,44 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Reveals a paused glimpse at specific coordinates. NEVER starts playback
-   * (ADR 0004: reveal ≠ play). If a different media is currently playing,
-   * hovering here stops it and retargets the single bubble to this glimpse.
+   * Reveals a paused glimpse for a trigger. NEVER starts playback (ADR 0004:
+   * reveal ≠ play). The singleton pulls the rect from the trigger and derives
+   * the coordinates: with a `cursor` it centres there, otherwise on the rect's
+   * centre; `anchor` beside the card (touch scroll-reveal). If a different media
+   * is currently playing, revealing here stops it and retargets the bubble.
    */
-  show({ src, type, kind, x, y, placement = 'cursor', triggerRect, immediate = false, getRect }: ShowOptions): void {
+  reveal(trigger: PreviewTrigger, { cursor, immediate = false, anchor = false }: RevealOptions = {}): void {
+    const { src } = trigger;
     if (!src) return;
 
-    // Determine type: use provided type or try to guess from file extension
-    const effectiveType = type || this.inferType(src);
+    const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return;
     this._ensureAttached();
+
+    const rect = trigger.getRect();
+    const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
+    const point = cursor ?? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 
     // The card that committed to playback owns the grown bubble — approaching it
     // again must not shrink it back to a glimpse.
     if (this._isPlaying && this._currentSrc === src) return;
 
-    // Hovering a different card while one plays: stop it, then reveal this
+    // Revealing a different card while one plays: stop it, then reveal this
     // glimpse (retarget the single bubble).
     if (this._isPlaying) {
       this._stopPlayback();
     }
 
-    this._applyMeta(effectiveType, kind, GLIMPSE_SIZE);
+    this._applyMeta(effectiveType, trigger.kind, GLIMPSE_SIZE);
 
     this._anchorPlacement = placement;
-    this._cursor = { x, y };
-    this._setPosition({ x, y, placement, triggerRect });
+    this._cursor = point;
+    this._setPosition({ x: point.x, y: point.y, placement, triggerRect: rect });
 
     // Touch: keep the glimpse glued to its card as the page scrolls. Desktop
-    // glimpses follow the cursor instead, so no rect provider is passed.
-    if (getRect && this._coarsePointer()) {
-      this._startTracking(getRect);
+    // glimpses follow the cursor instead.
+    if (this._coarsePointer()) {
+      this._startTracking(trigger.getRect);
     }
 
     // Warm: bubble already up (or lingering) — intent stays proven, siblings
@@ -298,6 +279,11 @@ export class SharedMediaPreview {
     this._startIntent(src, effectiveType);
   }
 
+  /** Grown/anchored placement never sits on the cursor: 'cursor' becomes 'right'. */
+  private _anchorPlacementFor(placement: PreviewPlacement): PreviewPlacement {
+    return placement === 'cursor' ? 'right' : placement;
+  }
+
   /**
    * Commits to (or ends) playback for a trigger. Toggle semantics: calling it
    * for the media already playing stops it; otherwise it anchors the bubble
@@ -306,10 +292,11 @@ export class SharedMediaPreview {
    *
    * @returns the resulting playing state (true = now playing).
    */
-  togglePlay({ src, type, kind, triggerRect, placement = 'right', getRect }: PlayOptions): boolean {
+  commit(trigger: PreviewTrigger): boolean {
+    const { src } = trigger;
     if (!src) return false;
 
-    const effectiveType = type || this.inferType(src);
+    const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return false;
 
     // Reveal-only types never enter the playing state.
@@ -328,12 +315,16 @@ export class SharedMediaPreview {
     this._cancelIntent();
     this._cancelLinger();
 
+    const rect = trigger.getRect();
+    // Grown playback always anchors beside the card, never on the cursor.
+    const placement = this._anchorPlacementFor(trigger.placement);
+
     // Load the media (glimpse first frame) then start it, grown + anchored.
-    this._applyMeta(effectiveType, kind, this._grownSize());
+    this._applyMeta(effectiveType, trigger.kind, this._grownSize());
     this._reveal(src, effectiveType);
 
     this._isPlaying = true;
-    this._anchorRect = triggerRect ?? null;
+    this._anchorRect = rect;
     this._anchorPlacement = placement;
     this._wrapper.classList.add('is-playing', 'is-grown');
 
@@ -344,7 +335,7 @@ export class SharedMediaPreview {
     // Desktop: any real scroll dismisses playback (no follow), so we only need
     // the listener and the baseline scroll position.
     if (this._coarsePointer()) {
-      this._startTracking(getRect ?? null);
+      this._startTracking(trigger.getRect);
     } else {
       this._playStartScrollY = this._scrollY();
       this._startTracking(null);
@@ -393,24 +384,13 @@ export class SharedMediaPreview {
    */
   private _startTracking(getRect: RectProvider | null): void {
     this._trackGetRect = getRect;
-    if (this._trackListenersOn || typeof window === 'undefined') return;
-    window.addEventListener('scroll', this._onScroll, { passive: true });
-    window.addEventListener('resize', this._onResize, { passive: true });
-    this._trackListenersOn = true;
+    this._scrollAnchor.start();
   }
 
   /** Detaches scroll tracking and clears its transient state. */
   private _stopTracking(): void {
-    if (this._trackListenersOn && typeof window !== 'undefined') {
-      window.removeEventListener('scroll', this._onScroll);
-      window.removeEventListener('resize', this._onResize);
-    }
-    this._trackListenersOn = false;
+    this._scrollAnchor.stop();
     this._trackGetRect = null;
-    if (this._scrollRaf !== null) {
-      cancelAnimationFrame(this._scrollRaf);
-      this._scrollRaf = null;
-    }
     if (this._trackIdleTimer !== null) {
       clearTimeout(this._trackIdleTimer);
       this._trackIdleTimer = null;
@@ -526,14 +506,13 @@ export class SharedMediaPreview {
     const isSameMedia = this._currentSrc === src && this._currentType === type;
 
     if (!isSameMedia) {
-      if (type === 'video') {
-        this._loadVideo(src);
-      } else if (type === 'audio') {
-        this._loadAudio(src);
-      } else {
-        this._showImage(src);
-      }
+      const channel = this._channels[type];
+      // Exactly one channel is visible at a time: retire the outgoing one.
+      if (this._active && this._active !== channel) this._active.deactivate();
+      channel.load(src);
+      channel.activate();
 
+      this._active = channel;
       this._currentSrc = src;
       this._currentType = type;
     }
@@ -542,14 +521,14 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Updates the position of the preview element during mousemove. No-op while
+   * Repositions the glimpse to a new cursor point during mousemove. No-op while
    * playback is committed — the grown bubble stays anchored to its trigger.
    */
-  move({ x, y, placement = 'cursor', triggerRect }: PositionOptions): void {
+  move(trigger: PreviewTrigger, cursor: { x: number; y: number }): void {
     if (this._isPlaying) return;
     this._ensureAttached();
-    this._cursor = { x, y };
-    this._setPosition({ x, y, placement, triggerRect });
+    this._cursor = cursor;
+    this._setPosition({ x: cursor.x, y: cursor.y, placement: trigger.placement, triggerRect: trigger.getRect() });
   }
 
   /**
@@ -594,8 +573,7 @@ export class SharedMediaPreview {
     const wasPlaying = this._isPlaying;
     const stoppedSrc = this._currentSrc;
 
-    if (!this.video.paused) this.video.pause();
-    if (!this.audio.paused) this.audio.pause();
+    this._pauseAllMedia();
 
     this._isPlaying = false;
     this._anchorRect = null;
@@ -617,11 +595,9 @@ export class SharedMediaPreview {
     this._stopTracking();
     this._wrapper.classList.remove('is-visible');
 
-    this.img.classList.remove('visible');
-    this.video.classList.remove('visible');
-
-    if (!this.video.paused) this.video.pause();
-    if (!this.audio.paused) this.audio.pause();
+    this._active?.deactivate();
+    this._pauseAllMedia();
+    this._active = null;
 
     delete this._wrapper.dataset.kind;
 
@@ -629,16 +605,21 @@ export class SharedMediaPreview {
     this._currentType = null;
   }
 
-  /** Starts whichever media element matches the current type. */
-  private _startCurrentMedia(): void {
-    const el = this._currentType === 'video' ? this.video
-      : this._currentType === 'audio' ? this.audio
-        : null;
-    if (!el) return;
+  /** Pauses every channel's media (no-op for the image channel). */
+  private _pauseAllMedia(): void {
+    for (const type of ['image', 'video', 'audio'] as const) {
+      this._channels[type].pause();
+    }
+  }
 
-    el.play().catch((error) => {
-      console.warn('[SharedMediaPreview] Preview playback failed', error);
-    });
+  /** Starts playback on the active channel (a no-op for the image channel). */
+  private _startCurrentMedia(): void {
+    const result = this._active?.play();
+    if (result) {
+      result.catch((error) => {
+        console.warn('[SharedMediaPreview] Preview playback failed', error);
+      });
+    }
   }
 
   /**
@@ -646,135 +627,34 @@ export class SharedMediaPreview {
    * viewport-centered if no rect was captured at play time.
    */
   private _positionAnchored(): void {
-    // Prefer the live rect (touch follow) over the play-time snapshot.
+    // Prefer the live rect (touch follow) over the play-time snapshot. A null
+    // rect with the anchored placement resolves to viewport-center inside
+    // `computePreviewPosition` (the play-commit fallback).
     const rect = this._trackGetRect?.() ?? this._anchorRect;
 
-    if (!rect) {
-      const { w, h } = this._currentSize;
-      // Center via cursor placement using viewport middle.
-      this._wrapper.style.setProperty('--preview-x', `${(window.innerWidth - w) / 2}px`);
-      this._wrapper.style.setProperty('--preview-y', `${(window.innerHeight - h) / 2}px`);
-      return;
-    }
-
     this._setPosition({
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
+      x: rect ? rect.left + rect.width / 2 : 0,
+      y: rect ? rect.top + rect.height / 2 : 0,
       placement: this._anchorPlacement,
       triggerRect: rect,
     });
   }
 
   /**
-   * Calculates and applies CSS variables for positioning.
-   * Applies an offset to center the preview relative to the cursor.
+   * Resolves the bubble position (pure geometry, see `previewGeometry.ts`) and
+   * writes it to the `--preview-x/y` CSS variables.
    */
-  private _setPosition({ x, y, placement, triggerRect, unclampY = false }: PositionOptions): void {
-    let eixoX = 0;
-    let eixoY = 0;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const { w, h } = this._currentSize;
-
-    if (placement === 'cursor' || !triggerRect) {
-      // center bubble on cursor
-      eixoX = x - w / 2;
-      eixoY = y - h / 2;
-    } else {
-      const rect = triggerRect;
-      switch (placement) {
-        case 'right':
-          eixoX = rect.right + PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - h) / 2;
-          break;
-
-        case 'left':
-          eixoX = rect.left - w - PREVIEW_OFFSET;
-          eixoY = rect.top + (rect.height - h) / 2;
-          break;
-
-        case 'top':
-          eixoX = rect.left + (rect.width - w) / 2;
-          eixoY = rect.top - h - PREVIEW_OFFSET;
-          break;
-
-        case 'bottom':
-          eixoX = rect.left + (rect.width - w) / 2;
-          eixoY = rect.bottom + PREVIEW_OFFSET;
-          break;
-
-        default:
-          // fallback to cursor
-          eixoX = x - w / 2;
-          eixoY = y - h / 2;
-          break;
-      }
-    }
-
-    // Clamp so it doesn’t overflow viewport too badly. During touch follow the
-    // vertical clamp is skipped so the bubble can trail its card off-screen
-    // instead of pinning to an edge; horizontal stays clamped so the
-    // right-anchored bubble never flies off a full-width mobile card.
-    const maxX = vw - w - PREVIEW_OFFSET;
-    const maxY = vh - h - PREVIEW_OFFSET;
-
-    eixoX = Math.max(PREVIEW_OFFSET, Math.min(eixoX, maxX));
-    if (!unclampY) {
-      eixoY = Math.max(PREVIEW_OFFSET, Math.min(eixoY, maxY));
-    }
+  private _setPosition({ x, y, placement = 'cursor', triggerRect, unclampY = false }: PositionOptions): void {
+    const { x: eixoX, y: eixoY } = computePreviewPosition({
+      placement,
+      triggerRect: triggerRect ?? null,
+      cursor: { x, y },
+      size: this._currentSize,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      unclampY,
+    });
 
     this._wrapper.style.setProperty('--preview-x', `${eixoX}px`);
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);
-  }
-
-  /**
-   * Internal helper to activate the image element and deactivate video.
-   */
-  private _showImage(src: string): void {
-    this.video.classList.remove('visible');
-    this.img.classList.add('visible');
-
-    // Only update DOM attribute if src actually changed to prevent flickering
-    if (this.img.src !== src) {
-      this.img.classList.remove('is-loaded');
-      this.img.src = src;
-
-      // Cached image: no load event will fire, mark it ready at once.
-      if (this.img.complete && this.img.naturalWidth > 0) {
-        this.img.classList.add('is-loaded');
-      }
-    }
-  }
-
-  /**
-   * Loads a video and shows its (paused) first frame. Playback is deferred to
-   * the commit step (`togglePlay`).
-   */
-  private _loadVideo(src: string): void {
-    this.img.classList.remove('visible');
-    this.video.classList.add('visible');
-
-    if (this.video.src !== src) {
-      // Setting src resets readyState, so `canplay` (wired in the
-      // constructor) re-marks it loaded — even for cached clips.
-      this.video.classList.remove('is-loaded');
-      this.video.src = src;
-    }
-  }
-
-  /**
-   * Loads an audio source. Audio has no visual — the wrapper's `data-kind`
-   * (e.g. album → vinyl) provides the imagery; playback is deferred to commit.
-   */
-  private _loadAudio(src: string): void {
-    // Audio carries no picture: the image element stays hidden, the vinyl (or
-    // bare accent circle) is the visual.
-    this.img.classList.remove('visible');
-    this.video.classList.remove('visible');
-
-    if (this.audio.src !== src) {
-      this.audio.src = src;
-    }
   }
 }

@@ -1,4 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PreviewTrigger } from "../../../src/_helpers/sharedPreview.ts";
+
+/** Builds a trigger descriptor; override placement/getRect/type/kind per test. */
+function trigger(src: string, over: Partial<PreviewTrigger> = {}): PreviewTrigger {
+  return {
+    src,
+    placement: "cursor",
+    getRect: () => new DOMRect(0, 0, 40, 40),
+    ...over,
+  };
+}
 
 describe("sharedPreview", () => {
   beforeEach(() => {
@@ -16,7 +27,7 @@ describe("sharedPreview", () => {
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
-    preview.show({ src: "/assets/cover.webp", x: 100, y: 100 });
+    preview.reveal(trigger("/assets/cover.webp"), { cursor: { x: 100, y: 100 } });
 
     // A sweep-through hover must not flash the bubble.
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
@@ -30,12 +41,13 @@ describe("sharedPreview", () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const t = trigger("/assets/cover.webp");
 
-    preview.show({ src: "/assets/cover.webp", x: 0, y: 0 });
+    preview.reveal(t, { cursor: { x: 0, y: 0 } });
 
     // Cursor keeps travelling fast (50px per 100ms tick) — no intent.
     for (let i = 1; i <= 5; i++) {
-      preview.move({ x: i * 50, y: 0 });
+      preview.move(t, { x: i * 50, y: 0 });
       vi.advanceTimersByTime(100);
     }
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
@@ -50,7 +62,7 @@ describe("sharedPreview", () => {
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
-    preview.show({ src: "/assets/cover.webp", x: 100, y: 100, immediate: true });
+    preview.reveal(trigger("/assets/cover.webp"), { cursor: { x: 100, y: 100 }, immediate: true });
 
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
   });
@@ -62,7 +74,7 @@ describe("sharedPreview", () => {
     const image = wrapper?.querySelector("img");
 
     // Intent proven on item A.
-    preview.show({ src: "/assets/a.webp", x: 100, y: 100 });
+    preview.reveal(trigger("/assets/a.webp"), { cursor: { x: 100, y: 100 } });
     vi.advanceTimersByTime(100);
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
 
@@ -71,7 +83,7 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
 
     // …and the sibling swaps in with no re-proving of intent.
-    preview.show({ src: "/assets/b.webp", x: 120, y: 100 });
+    preview.reveal(trigger("/assets/b.webp"), { cursor: { x: 120, y: 100 } });
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
     expect(image?.getAttribute("src")).toContain("/assets/b.webp");
 
@@ -86,7 +98,7 @@ describe("sharedPreview", () => {
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
-    preview.show({ src: "/assets/cover.webp", x: 100, y: 100 });
+    preview.reveal(trigger("/assets/cover.webp"), { cursor: { x: 100, y: 100 } });
     preview.hide();
 
     vi.advanceTimersByTime(1000);
@@ -99,7 +111,7 @@ describe("sharedPreview", () => {
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
     const image = wrapper?.querySelector("img");
 
-    preview.show({ src: "/assets/a.webp", x: 100, y: 100, immediate: true });
+    preview.reveal(trigger("/assets/a.webp"), { cursor: { x: 100, y: 100 }, immediate: true });
 
     // Fresh media: still loading → CSS keeps it blurred.
     expect(image?.classList.contains("is-loaded")).toBe(false);
@@ -108,7 +120,7 @@ describe("sharedPreview", () => {
     expect(image?.classList.contains("is-loaded")).toBe(true);
 
     // Swapping to different media starts blurred again.
-    preview.show({ src: "/assets/b.webp", x: 100, y: 100, immediate: true });
+    preview.reveal(trigger("/assets/b.webp"), { cursor: { x: 100, y: 100 }, immediate: true });
     expect(image?.classList.contains("is-loaded")).toBe(false);
   });
 
@@ -123,13 +135,13 @@ describe("sharedPreview", () => {
       value: vi.fn().mockResolvedValue(undefined),
     });
 
-    preview.show({ src: "/assets/a.mp4", x: 100, y: 100, type: "video", immediate: true });
+    preview.reveal(trigger("/assets/a.mp4", { type: "video" }), { cursor: { x: 100, y: 100 }, immediate: true });
     expect(video?.classList.contains("is-loaded")).toBe(false);
 
     video?.dispatchEvent(new Event("canplay"));
     expect(video?.classList.contains("is-loaded")).toBe(true);
 
-    preview.show({ src: "/assets/b.mp4", x: 100, y: 100, type: "video", immediate: true });
+    preview.reveal(trigger("/assets/b.mp4", { type: "video" }), { cursor: { x: 100, y: 100 }, immediate: true });
     expect(video?.classList.contains("is-loaded")).toBe(false);
   });
 
@@ -157,11 +169,7 @@ describe("sharedPreview", () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
 
-    preview.show({
-      src: "/assets/example.webp",
-      x: -30,
-      y: -10,
-    });
+    preview.reveal(trigger("/assets/example.webp"), { cursor: { x: -30, y: -10 } });
     vi.advanceTimersByTime(100);
 
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -189,18 +197,14 @@ describe("sharedPreview", () => {
     Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
     // Reveal shows the clip paused — reveal ≠ play (ADR 0004).
-    preview.show({ src: "/assets/demo.mp4", x: 40, y: 50, type: "video" });
+    preview.reveal(trigger("/assets/demo.mp4", { type: "video" }), { cursor: { x: 40, y: 50 } });
     vi.advanceTimersByTime(100);
 
     expect(video?.classList.contains("visible")).toBe(true);
     expect(play).not.toHaveBeenCalled();
 
     // Commit: playback starts, the bubble grows and anchors.
-    preview.togglePlay({
-      src: "/assets/demo.mp4",
-      type: "video",
-      triggerRect: new DOMRect(0, 0, 40, 40),
-    });
+    preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) }));
 
     expect(play).toHaveBeenCalledTimes(1);
     expect(wrapper?.classList.contains("is-playing")).toBe(true);
@@ -226,14 +230,14 @@ describe("sharedPreview", () => {
     Object.defineProperty(video!, "pause", { configurable: true, value: pause });
     Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
-    const rect = new DOMRect(0, 0, 40, 40);
+    const t = trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) });
 
-    const first = preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: rect });
+    const first = preview.commit(t);
     expect(first).toBe(true);
     expect(play).toHaveBeenCalledTimes(1);
     expect(wrapper?.classList.contains("is-playing")).toBe(true);
 
-    const second = preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: rect });
+    const second = preview.commit(t);
     expect(second).toBe(false);
     expect(pause).toHaveBeenCalled();
     expect(wrapper?.classList.contains("is-playing")).toBe(false);
@@ -251,12 +255,9 @@ describe("sharedPreview", () => {
     Object.defineProperty(audio!, "pause", { configurable: true, value: pause });
     Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
 
-    const playing = preview.togglePlay({
-      src: "/assets/song.mp3",
-      type: "audio",
-      kind: "album",
-      triggerRect: new DOMRect(0, 0, 40, 40),
-    });
+    const playing = preview.commit(
+      trigger("/assets/song.mp3", { type: "audio", kind: "album", getRect: () => new DOMRect(0, 0, 40, 40) })
+    );
 
     expect(playing).toBe(true);
     expect(play).toHaveBeenCalledTimes(1);
@@ -283,7 +284,7 @@ describe("sharedPreview", () => {
       value: vi.fn().mockRejectedValue(blockedError),
     });
 
-    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 0, 40, 40) });
+    preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) }));
 
     await Promise.resolve();
 
@@ -306,19 +307,19 @@ describe("sharedPreview", () => {
     Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
     // Image glimpse: small circle.
-    preview.show({ src: "/assets/example.webp", x: 200, y: 200 });
+    preview.reveal(trigger("/assets/example.webp"), { cursor: { x: 200, y: 200 } });
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("100px");
     expect(wrapper?.dataset.type).toBe("image");
 
     // Video glimpse is the SAME small circle — no more 16:9 rect.
-    preview.show({ src: "/assets/demo.mp4", x: 400, y: 300, type: "video" });
+    preview.reveal(trigger("/assets/demo.mp4", { type: "video" }), { cursor: { x: 400, y: 300 } });
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("100px");
     expect(wrapper?.dataset.type).toBe("video");
 
     // Committing grows it.
-    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 0, 40, 40) });
+    preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) }));
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("220px");
     expect(wrapper?.style.getPropertyValue("--preview-h")).toBe("220px");
   });
@@ -328,15 +329,15 @@ describe("sharedPreview", () => {
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
-    preview.show({ src: "/assets/cover.jpg", x: 200, y: 200, kind: "album" });
+    preview.reveal(trigger("/assets/cover.jpg", { kind: "album" }), { cursor: { x: 200, y: 200 } });
     expect(wrapper?.dataset.kind).toBe("album");
 
     preview.hide();
     expect(wrapper?.dataset.kind).toBeUndefined();
 
-    // a kindless show never leaks the previous kind
-    preview.show({ src: "/assets/cover.jpg", x: 200, y: 200, kind: "album" });
-    preview.show({ src: "/assets/other.jpg", x: 200, y: 200 });
+    // a kindless reveal never leaks the previous kind
+    preview.reveal(trigger("/assets/cover.jpg", { kind: "album" }), { cursor: { x: 200, y: 200 } });
+    preview.reveal(trigger("/assets/other.jpg"), { cursor: { x: 200, y: 200 } });
     expect(wrapper?.dataset.kind).toBeUndefined();
   });
 
@@ -345,7 +346,7 @@ describe("sharedPreview", () => {
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
-    preview.show({ src: "/assets/b.webp", x: 100, y: 100, immediate: true });
+    preview.reveal(trigger("/assets/b.webp"), { cursor: { x: 100, y: 100 }, immediate: true });
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
 
     // A card that no longer owns the bubble must not hide it.
@@ -370,13 +371,9 @@ describe("sharedPreview", () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
 
-    preview.show({
-      src: "/assets/example.jpg",
-      x: 0,
-      y: 0,
-      placement: "right",
-      triggerRect: new DOMRect(20, 50, 40, 40),
-    });
+    preview.reveal(
+      trigger("/assets/example.jpg", { placement: "right", getRect: () => new DOMRect(20, 50, 40, 40) })
+    );
 
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
@@ -396,7 +393,7 @@ describe("sharedPreview", () => {
     Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
 
     // matchMedia undefined here → coarse pointer false → desktop path.
-    preview.togglePlay({ src: "/assets/demo.mp4", type: "video", triggerRect: new DOMRect(0, 100, 40, 40) });
+    preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 100, 40, 40) }));
     expect(wrapper?.classList.contains("is-playing")).toBe(true);
 
     // A tiny jitter must not dismiss.
@@ -430,7 +427,7 @@ describe("sharedPreview", () => {
       Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
 
       let rect = new DOMRect(0, 300, 300, 80); // on-screen
-      preview.togglePlay({ src: "/assets/song.mp3", type: "audio", kind: "album", getRect: () => rect });
+      preview.commit(trigger("/assets/song.mp3", { type: "audio", kind: "album", getRect: () => rect }));
       expect(preview.isPlaying()).toBe(true);
 
       // Still partly visible → keeps playing.
@@ -458,14 +455,10 @@ describe("sharedPreview", () => {
       const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
 
       let rect = new DOMRect(0, 400, 300, 40);
-      preview.show({
-        src: "/assets/cover.jpg",
-        x: 0, y: 0,
-        placement: "right",
-        triggerRect: rect,
-        immediate: true,
-        getRect: () => rect,
-      });
+      preview.reveal(
+        trigger("/assets/cover.jpg", { placement: "right", getRect: () => rect }),
+        { immediate: true }
+      );
       expect(wrapper?.classList.contains("is-visible")).toBe(true);
 
       // Card scrolled above the viewport: y follows it negative, not pinned.

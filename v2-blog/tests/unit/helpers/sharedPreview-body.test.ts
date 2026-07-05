@@ -24,11 +24,10 @@ describe("sharedPreview body attachment", () => {
       get: () => originalBody,
     });
 
-    preview.show({
-      src: "/assets/example.webp",
-      x: 20,
-      y: 30,
-    });
+    preview.reveal(
+      { src: "/assets/example.webp", placement: "cursor", getRect: () => new DOMRect(0, 0, 40, 40) },
+      { cursor: { x: 20, y: 30 } }
+    );
 
     expect(document.querySelectorAll("#mediaPreview")).toHaveLength(1);
   });

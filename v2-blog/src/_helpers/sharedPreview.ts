@@ -39,6 +39,16 @@ const DESKTOP_SCROLL_STOP_PX = 8;
  */
 const TRACK_IDLE_MS = 120;
 
+/**
+ * Shape-swap sequencing (album ↔ other). The album box is a square that opts
+ * out of the round bubble (ADR 0005); a warm swap across that boundary would
+ * otherwise morph the single shared node (square → circle) because width /
+ * radius are transitioned. Instead the bubble fully retracts in its current
+ * shape, then the new one is revealed with geometry snapped while hidden. This
+ * is one transition duration — kept in sync with the CSS (~150ms) plus slack.
+ */
+const SWAP_MS = 180;
+
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
 
@@ -153,6 +163,8 @@ export class SharedMediaPreview {
   private _lastSample: { x: number; y: number } | null = null;
   private _intentTimer: ReturnType<typeof setInterval> | null = null;
   private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Pending shape-swap (album ↔ other): retract-then-reveal in flight. */
+  private _swapTimer: ReturnType<typeof setTimeout> | null = null;
 
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
@@ -263,6 +275,9 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     this._ensureAttached();
 
+    // A new target supersedes any pending shape-swap retract.
+    this._cancelSwap();
+
     const rect = trigger.getRect();
     const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
     const point = cursor ?? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
@@ -270,6 +285,17 @@ export class SharedMediaPreview {
     // The card that committed to playback owns the grown bubble — approaching it
     // again must not shrink it back to a glimpse.
     if (this._isPlaying && this._currentSrc === src) return;
+
+    // Crossing the album shape boundary while visible: retract the current
+    // bubble fully first, then reveal the new one (ADR 0005) so a square album
+    // never morphs into a round bubble. Skipped under reduced motion, where the
+    // geometry never animates anyway (no morph to hide).
+    const visible = this._wrapper.classList.contains('is-visible');
+    const shapeSwap = (this._wrapper.dataset.kind === 'album') !== (trigger.kind === 'album');
+    if (visible && shapeSwap && !this._reducedMotion()) {
+      this._deferReveal(trigger, { cursor, immediate, anchor });
+      return;
+    }
 
     // Revealing a different card while one plays: stop it, then reveal this
     // glimpse (retarget the single bubble).
@@ -308,6 +334,54 @@ export class SharedMediaPreview {
   /** Grown/anchored placement never sits on the cursor: 'cursor' becomes 'right'. */
   private _anchorPlacementFor(placement: PreviewPlacement): PreviewPlacement {
     return placement === 'cursor' ? 'right' : placement;
+  }
+
+  private _reducedMotion(): boolean {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  private _cancelSwap(): void {
+    if (this._swapTimer !== null) {
+      clearTimeout(this._swapTimer);
+      this._swapTimer = null;
+    }
+  }
+
+  /**
+   * Sequential shape-swap (album ↔ other). Retract the current bubble in its
+   * own shape, then — once fully hidden — drop the old kind/presentation and
+   * reveal the new target with geometry snapped instantly (`is-swapping`) so
+   * only opacity + scale animate the entrance. No square↔circle morph.
+   */
+  private _deferReveal(trigger: PreviewTrigger, opts: RevealOptions): void {
+    if (this._isPlaying) this._stopPlayback();
+    this._cancelIntent();
+    this._cancelLinger();
+    this._stopTracking();
+
+    // Phase 1: collapse in the current shape (nothing else changes yet).
+    this._wrapper.classList.remove('is-visible');
+
+    this._swapTimer = setTimeout(() => {
+      this._swapTimer = null;
+
+      // Phase 2 (hidden): retire the old visual so the new geometry can be set
+      // without any leftover shape bleeding into the reveal.
+      this._active?.deactivate();
+      this._active = null;
+      this._activePresentation?.deactivate();
+      this._activePresentation = null;
+      this._currentSrc = null;
+      this._currentType = null;
+      delete this._wrapper.dataset.kind;
+      this._wrapper.style.removeProperty('--album-cover');
+
+      // Snap geometry (width/radius instant under is-swapping); the reveal below
+      // re-adds is-visible so transform + opacity animate the entrance.
+      this._wrapper.classList.add('is-swapping');
+      this.reveal(trigger, { ...opts, immediate: true });
+      setTimeout(() => this._wrapper.classList.remove('is-swapping'), SWAP_MS);
+    }, SWAP_MS);
   }
 
   /**
@@ -650,8 +724,9 @@ export class SharedMediaPreview {
    */
   private _doHide(): void {
     this._cancelLinger();
+    this._cancelSwap();
     this._stopTracking();
-    this._wrapper.classList.remove('is-visible');
+    this._wrapper.classList.remove('is-visible', 'is-swapping');
 
     this._active?.deactivate();
     this._pauseAllMedia();

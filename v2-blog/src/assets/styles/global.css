@@ -332,6 +332,14 @@
   transition-property: opacity, visibility, border-width, width, height, border-radius;
 }
 
+/* Shape-swap (album ↔ other, ADR 0005): the singleton is re-shaped while hidden
+   between a retract and a fresh reveal, so the geometry props must NOT ease
+   (that is the square↔circle morph). Only the entrance — transform + opacity —
+   animates. Dropped again once the entrance has played. */
+#mediaPreview.is-swapping {
+  transition-property: transform, opacity, visibility;
+}
+
 /* Visible state — easier & faster if you toggle a class from JS */
 #mediaPreview.is-visible {
   border-width: 2px;
@@ -372,7 +380,8 @@
 
   /* Snap the reveal + grow: no travelling/scaling motion, only opacity.
      Playback itself is never blocked — only the animation of getting there. */
-  #mediaPreview {
+  #mediaPreview,
+  #mediaPreview.is-swapping {
     transition-property: opacity, visibility;
   }
 }

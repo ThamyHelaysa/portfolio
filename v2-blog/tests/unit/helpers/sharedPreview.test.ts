@@ -311,6 +311,50 @@ describe("sharedPreview", () => {
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
   });
 
+  it("album → other: retracts fully before revealing, never morphing the shape", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    // Album glimpse up.
+    preview.reveal(
+      trigger("/assets/song.mp3", { type: "audio", kind: "album", cover: "/assets/art.jpeg" }),
+      { immediate: true }
+    );
+    expect(wrapper?.dataset.kind).toBe("album");
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+
+    // Hovering a round (image) card must NOT re-shape in place: the album is
+    // still the shown kind and the bubble has begun retracting.
+    preview.reveal(trigger("/assets/pic.webp"), { immediate: true });
+    expect(wrapper?.classList.contains("is-visible")).toBe(false);
+    expect(wrapper?.dataset.kind).toBe("album");
+
+    // Once retracted, the round glimpse appears with geometry snapped (is-swapping)
+    // so only the entrance animates.
+    vi.advanceTimersByTime(200);
+    expect(wrapper?.dataset.kind).toBeUndefined();
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+    expect(wrapper?.classList.contains("is-swapping")).toBe(true);
+
+    // is-swapping is dropped after the entrance so future grows still ease.
+    vi.advanceTimersByTime(200);
+    expect(wrapper?.classList.contains("is-swapping")).toBe(false);
+  });
+
+  it("other → other: same round shape swaps instantly (no retract)", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    preview.reveal(trigger("/assets/a.webp"), { immediate: true });
+    preview.reveal(trigger("/assets/b.webp"), { immediate: true });
+    // No shape boundary crossed → warm instant swap, never a retract/defer.
+    expect(wrapper?.classList.contains("is-visible")).toBe(true);
+    expect(wrapper?.classList.contains("is-swapping")).toBe(false);
+  });
+
   it("warns when committed playback is blocked", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");

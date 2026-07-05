@@ -14,6 +14,17 @@ async function flush() {
   await Promise.resolve();
 }
 
+/**
+ * Simulates the Container's collapse transition finishing, resolving the
+ * `PreviewContainer.hide()` promise `_doHide`/`_deferReveal` are awaiting
+ * (ADR 0006 — the real CSS transition fires this in the browser).
+ */
+function collapse(wrapper: HTMLElement | null | undefined) {
+  const event = new Event("transitionend") as unknown as { propertyName: string };
+  Object.defineProperty(event, "propertyName", { value: "opacity" });
+  wrapper?.dispatchEvent(event as unknown as Event);
+}
+
 /** Builds a trigger descriptor; override placement/getRect/type/kind per test. */
 function trigger(src: string, over: Partial<PreviewTrigger> = {}): PreviewTrigger {
   return {
@@ -341,7 +352,8 @@ describe("sharedPreview", () => {
 
     // Stop collapses; the Face + album var clear once hidden (after the collapse).
     preview.stop();
-    vi.advanceTimersByTime(200);
+    collapse(wrapper);
+    await flush();
     expect(face?.classList.contains("is-active")).toBe(false);
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
   });
@@ -367,7 +379,8 @@ describe("sharedPreview", () => {
 
     // Once retracted (hidden), the round glimpse appears — geometry was applied
     // while invisible, so it never morphed on screen.
-    vi.advanceTimersByTime(200);
+    collapse(wrapper);
+    await flush();
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
@@ -451,7 +464,8 @@ describe("sharedPreview", () => {
     preview.hide();
     expect(wrapper?.dataset.kind).toBe("album");
     vi.advanceTimersByTime(100); // linger expires → collapse starts
-    vi.advanceTimersByTime(200); // collapse done → teardown
+    collapse(wrapper);
+    await flush();
     expect(wrapper?.dataset.kind).toBeUndefined();
 
     // a kindless reveal never leaks the previous kind (applied while hidden)

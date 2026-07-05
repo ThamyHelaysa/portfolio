@@ -22,7 +22,7 @@ Make the container a **neutral envelope** and give every kind a self-contained *
 - **The Presentation owns its animation.** `album`'s Presentation grows `play()`/`stop()` that run the disc through `animationManager` (WAAPI) and toggle an `is-spinning` class; the container owns show/hide; the Channel owns sound. The singleton orchestrates the *sequence* and delegates the motion.
 - **The commit is a two-step record-out-then-place sequence.** The disc flips to the front (z above the Cover) at once, then step 1 pulls it fully **out** of the Cover to the right (peek → fully visible); only once that finishes does step 2 bring it **back, centered in front of the Cover**, where it spins. It reads as sliding a record out of its sleeve and dropping it on the deck — not one blurred slide. Step 2 is guarded by a play generation so a stop mid-pull cancels it.
 - **Spin stays CSS.** The one perpetual loop is a `@keyframes` on `.album-vinyl::after`, toggled by class — infinite loops are CSS's strength and don't fit `animationManager` (which finishes + commits a final frame). WAAPI drives only the discrete, sequenced motion.
-- **Sequencing via promises, not timers.** Show/hide return promises, so retract → teardown → reveal is `await`-ed rather than timed with `SWAP_MS`/`HIDE_MS`.
+- **Sequencing via promises, not timers.** `PreviewContainer.hide()` returns a promise resolved by `transitionend` (opacity), with a computed-style-derived fallback timer for a missed event — so retract → teardown → reveal is `await`-ed rather than timed with `SWAP_MS`/`HIDE_MS`.
 
 ## Considered options
 

@@ -4,6 +4,7 @@ import {
   type PreviewSize,
 } from './previewGeometry.ts';
 import { ScrollAnchor } from './scrollAnchor.ts';
+import { PreviewContainer } from './previewContainer.ts';
 import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
 import { type MediaPresentation, createMediaPresentations } from './previewPresentations.ts';
 
@@ -30,14 +31,6 @@ const LINGER_MS = 100;
  * past this many pixels, it stops. A small threshold ignores trackpad jitter.
  */
 const DESKTOP_SCROLL_STOP_PX = 8;
-
-/**
- * Container hide duration (ADR 0006). Show/hide animate only scale + opacity via
- * a CSS transition (interruptible on fast hover); this is how long to wait after
- * a collapse before tearing the hidden bubble's visuals down. Kept in sync with
- * the CSS transition (~150ms) plus slack.
- */
-const HIDE_MS = 170;
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
@@ -124,8 +117,9 @@ export interface RevealOptions {
  * over a {@link PreviewTrigger}: `reveal()` (a paused glimpse), `commit()`
  * (anchor + start media + play animation), and `move()` / `stop()` / `hide()`.
  *
- * The Container owns show/hide (scale+opacity via `animationManager`); Channels
- * own playback; Presentations own their Face's visual + its own animation.
+ * The Container owns show/hide (a CSS transition on scale+opacity, sequenced via
+ * `PreviewContainer`'s promise, not a timer); Channels own playback;
+ * Presentations own their Face's visual + its own animation.
  */
 export class SharedMediaPreview {
   /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
@@ -136,6 +130,8 @@ export class SharedMediaPreview {
 
   /** The neutral envelope: position, size box, show/hide. No kind look. */
   private _wrapper: HTMLDivElement;
+  /** Owns the wrapper's `is-visible` class + the promise-based collapse (ADR 0006). */
+  private _container: PreviewContainer;
   /** Default round Face — accent ring + circular clip framing the visual Channel. */
   private _roundFace: HTMLDivElement;
   /** One playback element per media type; exactly one is active at a time. */
@@ -199,6 +195,7 @@ export class SharedMediaPreview {
     this._wrapper.id = 'mediaPreview';
     // Purely decorative glimpse — the slotted trigger carries all semantics.
     this._wrapper.setAttribute('aria-hidden', 'true');
+    this._container = new PreviewContainer(this._wrapper);
 
     // Default round Face: the visual channels (image/video) render inside it.
     this._roundFace = document.createElement('div');
@@ -290,7 +287,7 @@ export class SharedMediaPreview {
     // bubble fully first, then reveal the new one (ADR 0005/0006) so a square
     // album never morphs into a round bubble. Only scale + opacity animate, so
     // the shape change happens entirely while hidden.
-    const visible = this._wrapper.classList.contains('is-visible');
+    const visible = this._container.isVisible;
     const shapeSwap = (this._wrapper.dataset.kind === 'album') !== (trigger.kind === 'album');
     if (visible && shapeSwap && !this._reducedMotion()) {
       this._deferReveal(trigger, { cursor, immediate, anchor });
@@ -352,13 +349,12 @@ export class SharedMediaPreview {
     this._cancelLinger();
     this._pauseAllMedia();
     this._stopTracking();
-    this._wrapper.classList.remove('is-visible');
 
-    setTimeout(() => {
+    void this._container.hide().then(() => {
       if (gen !== this._gen) return; // superseded by a newer reveal/hide
       this._teardown();
       this.reveal(trigger, { ...opts, immediate: true });
-    }, HIDE_MS);
+    });
   }
 
   /**
@@ -488,7 +484,7 @@ export class SharedMediaPreview {
    * committed playback once scrolled past the threshold.
    */
   private _onScrollFrame(): void {
-    if (!this._wrapper.classList.contains('is-visible')) {
+    if (!this._container.isVisible) {
       this._stopTracking();
       return;
     }
@@ -622,7 +618,7 @@ export class SharedMediaPreview {
    * adding it while already visible is an idempotent no-op (warm swap).
    */
   private _show(): void {
-    this._wrapper.classList.add('is-visible');
+    this._container.show();
   }
 
   /**
@@ -650,7 +646,7 @@ export class SharedMediaPreview {
       return;
     }
 
-    if (!this._wrapper.classList.contains('is-visible')) {
+    if (!this._container.isVisible) {
       this._doHide();
       return;
     }
@@ -706,11 +702,10 @@ export class SharedMediaPreview {
     this._cancelLinger();
     this._pauseAllMedia();
     this._stopTracking();
-    this._wrapper.classList.remove('is-visible');
 
-    setTimeout(() => {
+    void this._container.hide().then(() => {
       if (gen === this._gen) this._teardown();
-    }, HIDE_MS);
+    });
   }
 
   /**

@@ -4,6 +4,7 @@ import {
   type PreviewPlacement,
   type PreviewSize,
 } from './previewGeometry.ts';
+import { ScrollAnchor } from './scrollAnchor.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 
@@ -135,19 +136,14 @@ export class SharedMediaPreview {
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
   private _trackGetRect: RectProvider | null = null;
-  private _trackListenersOn = false;
-  private _scrollRaf: number | null = null;
   private _trackIdleTimer: ReturnType<typeof setTimeout> | null = null;
   /** Scroll position captured at desktop play time, for the dismiss threshold. */
   private _playStartScrollY = 0;
-  private _onScroll = (): void => {
-    if (this._scrollRaf !== null) return;
-    this._scrollRaf = requestAnimationFrame(() => {
-      this._scrollRaf = null;
-      this._onScrollFrame();
-    });
-  };
-  private _onResize = (): void => this._reposition();
+  /** Owns the scroll/resize listener + rAF lifecycle; policy stays here. */
+  private _scrollAnchor = new ScrollAnchor({
+    onScrollFrame: () => this._onScrollFrame(),
+    onResize: () => this._reposition(),
+  });
 
   /**
    * Retrieves the singleton instance of SharedMediaPreview.
@@ -410,24 +406,13 @@ export class SharedMediaPreview {
    */
   private _startTracking(getRect: RectProvider | null): void {
     this._trackGetRect = getRect;
-    if (this._trackListenersOn || typeof window === 'undefined') return;
-    window.addEventListener('scroll', this._onScroll, { passive: true });
-    window.addEventListener('resize', this._onResize, { passive: true });
-    this._trackListenersOn = true;
+    this._scrollAnchor.start();
   }
 
   /** Detaches scroll tracking and clears its transient state. */
   private _stopTracking(): void {
-    if (this._trackListenersOn && typeof window !== 'undefined') {
-      window.removeEventListener('scroll', this._onScroll);
-      window.removeEventListener('resize', this._onResize);
-    }
-    this._trackListenersOn = false;
+    this._scrollAnchor.stop();
     this._trackGetRect = null;
-    if (this._scrollRaf !== null) {
-      cancelAnimationFrame(this._scrollRaf);
-      this._scrollRaf = null;
-    }
     if (this._trackIdleTimer !== null) {
       clearTimeout(this._trackIdleTimer);
       this._trackIdleTimer = null;

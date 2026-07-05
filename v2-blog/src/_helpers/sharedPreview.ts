@@ -5,6 +5,7 @@ import {
   type PreviewSize,
 } from './previewGeometry.ts';
 import { ScrollAnchor } from './scrollAnchor.ts';
+import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 
@@ -116,9 +117,10 @@ export class SharedMediaPreview {
   private static instance: SharedMediaPreview;
 
   private _wrapper: HTMLDivElement;
-  private img: HTMLImageElement;
-  private video: HTMLVideoElement;
-  private audio: HTMLAudioElement;
+  /** One playback element per media type; exactly one is active at a time. */
+  private _channels = createMediaChannels();
+  /** The channel currently revealed in the bubble, if any. */
+  private _active: MediaChannel | null = null;
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
   private _currentSize: PreviewSize;
@@ -157,9 +159,9 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Initializes the shared DOM elements: a wrapper div holding an `img`, a
-   * `video`, and an `audio` element. Media is created paused — nothing plays
-   * until a trigger commits via `togglePlay()`.
+   * Initializes the bubble: a wrapper div holding one element per media channel
+   * (image / video / audio). Each channel creates and configures its own
+   * element (see `previewChannels.ts`); media is paused until a trigger commits.
    */
   private constructor() {
     /** The main container for the preview. */
@@ -168,33 +170,9 @@ export class SharedMediaPreview {
     // Purely decorative glimpse — the slotted trigger carries all semantics.
     this._wrapper.setAttribute('aria-hidden', 'true');
 
-    /** Element used to display static images. */
-    this.img = document.createElement('img');
-
-    /** Element used to display (muted, silent) video clips on commit. */
-    this.video = document.createElement('video');
-    // No autoplay: reveal shows a paused first frame; playback is committed.
-    this.video.muted = true;
-    this.video.loop = true;
-    this.video.playsInline = true;
-    this.video.preload = 'auto';
-
-    /** Element used to play audio previews (albums) on commit. */
-    this.audio = document.createElement('audio');
-    this.audio.loop = true;
-    this.audio.preload = 'auto';
-
-    // Blur-in: fresh media carries no `is-loaded` class and CSS keeps it
-    // blurred; the class lands when the data is actually there. `error` also
-    // marks it so a failed load never leaves a permanently frosted bubble.
-    this.img.addEventListener('load', () => this.img.classList.add('is-loaded'));
-    this.img.addEventListener('error', () => this.img.classList.add('is-loaded'));
-    this.video.addEventListener('canplay', () => this.video.classList.add('is-loaded'));
-    this.video.addEventListener('error', () => this.video.classList.add('is-loaded'));
-
-    this._wrapper.appendChild(this.img);
-    this._wrapper.appendChild(this.video);
-    this._wrapper.appendChild(this.audio);
+    for (const type of ['image', 'video', 'audio'] as const) {
+      this._wrapper.appendChild(this._channels[type].el);
+    }
     this._ensureAttached();
 
     /** Tracks the currently loaded source to avoid redundant reloading. */
@@ -528,14 +506,13 @@ export class SharedMediaPreview {
     const isSameMedia = this._currentSrc === src && this._currentType === type;
 
     if (!isSameMedia) {
-      if (type === 'video') {
-        this._loadVideo(src);
-      } else if (type === 'audio') {
-        this._loadAudio(src);
-      } else {
-        this._showImage(src);
-      }
+      const channel = this._channels[type];
+      // Exactly one channel is visible at a time: retire the outgoing one.
+      if (this._active && this._active !== channel) this._active.deactivate();
+      channel.load(src);
+      channel.activate();
 
+      this._active = channel;
       this._currentSrc = src;
       this._currentType = type;
     }
@@ -596,8 +573,7 @@ export class SharedMediaPreview {
     const wasPlaying = this._isPlaying;
     const stoppedSrc = this._currentSrc;
 
-    if (!this.video.paused) this.video.pause();
-    if (!this.audio.paused) this.audio.pause();
+    this._pauseAllMedia();
 
     this._isPlaying = false;
     this._anchorRect = null;
@@ -619,11 +595,9 @@ export class SharedMediaPreview {
     this._stopTracking();
     this._wrapper.classList.remove('is-visible');
 
-    this.img.classList.remove('visible');
-    this.video.classList.remove('visible');
-
-    if (!this.video.paused) this.video.pause();
-    if (!this.audio.paused) this.audio.pause();
+    this._active?.deactivate();
+    this._pauseAllMedia();
+    this._active = null;
 
     delete this._wrapper.dataset.kind;
 
@@ -631,16 +605,21 @@ export class SharedMediaPreview {
     this._currentType = null;
   }
 
-  /** Starts whichever media element matches the current type. */
-  private _startCurrentMedia(): void {
-    const el = this._currentType === 'video' ? this.video
-      : this._currentType === 'audio' ? this.audio
-        : null;
-    if (!el) return;
+  /** Pauses every channel's media (no-op for the image channel). */
+  private _pauseAllMedia(): void {
+    for (const type of ['image', 'video', 'audio'] as const) {
+      this._channels[type].pause();
+    }
+  }
 
-    el.play().catch((error) => {
-      console.warn('[SharedMediaPreview] Preview playback failed', error);
-    });
+  /** Starts playback on the active channel (a no-op for the image channel). */
+  private _startCurrentMedia(): void {
+    const result = this._active?.play();
+    if (result) {
+      result.catch((error) => {
+        console.warn('[SharedMediaPreview] Preview playback failed', error);
+      });
+    }
   }
 
   /**
@@ -677,55 +656,5 @@ export class SharedMediaPreview {
 
     this._wrapper.style.setProperty('--preview-x', `${eixoX}px`);
     this._wrapper.style.setProperty('--preview-y', `${eixoY}px`);
-  }
-
-  /**
-   * Internal helper to activate the image element and deactivate video.
-   */
-  private _showImage(src: string): void {
-    this.video.classList.remove('visible');
-    this.img.classList.add('visible');
-
-    // Only update DOM attribute if src actually changed to prevent flickering
-    if (this.img.src !== src) {
-      this.img.classList.remove('is-loaded');
-      this.img.src = src;
-
-      // Cached image: no load event will fire, mark it ready at once.
-      if (this.img.complete && this.img.naturalWidth > 0) {
-        this.img.classList.add('is-loaded');
-      }
-    }
-  }
-
-  /**
-   * Loads a video and shows its (paused) first frame. Playback is deferred to
-   * the commit step (`togglePlay`).
-   */
-  private _loadVideo(src: string): void {
-    this.img.classList.remove('visible');
-    this.video.classList.add('visible');
-
-    if (this.video.src !== src) {
-      // Setting src resets readyState, so `canplay` (wired in the
-      // constructor) re-marks it loaded — even for cached clips.
-      this.video.classList.remove('is-loaded');
-      this.video.src = src;
-    }
-  }
-
-  /**
-   * Loads an audio source. Audio has no visual — the wrapper's `data-kind`
-   * (e.g. album → vinyl) provides the imagery; playback is deferred to commit.
-   */
-  private _loadAudio(src: string): void {
-    // Audio carries no picture: the image element stays hidden, the vinyl (or
-    // bare accent circle) is the visual.
-    this.img.classList.remove('visible');
-    this.video.classList.remove('visible');
-
-    if (this.audio.src !== src) {
-      this.audio.src = src;
-    }
   }
 }

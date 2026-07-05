@@ -316,8 +316,11 @@
 
   will-change: transform, opacity;
 
-  /* Hide children that don't have src at all (initial state) */
-  & > :not([src]) {
+  /* Hide media channels that have no src yet (initial state). Scoped to the
+     channel elements so Presentation layers (album Cover/vinyl) are not caught. */
+  & > img:not([src]),
+  & > video:not([src]),
+  & > audio:not([src]) {
     display: none;
   }
 }
@@ -384,11 +387,11 @@
   border-width: 3px;
 }
 
-/* Media kind "album": pure-CSS vinyl disc instead of the cover art —
-   grooves drawn on the wrapper background, blank label + spindle hole in
-   ::before, light sheen in ::after. The disc is rotationally symmetric, so
-   the *sheen* is what spins: it reads as light glinting off a turning
-   record. Colors derive from the accent so both themes adapt. */
+/* Media kind "album" (ADR 0005): opts OUT of the round bubble. It is a square
+   Cover (`.album-cover`, a real image) with a pure-CSS vinyl disc (`.album-vinyl`)
+   as a sibling layer. At rest the disc peeks ~40% from behind the Cover; on
+   commit it slides out beside the Cover, lifts to the front, and its sheen spins.
+   The wrapper becomes a transparent container so the disc can protrude. */
 @keyframes preview-vinyl-spin {
   to {
     transform: rotate(360deg);
@@ -401,22 +404,73 @@
   --vinyl-label: var(--color-pink-50);
   --vinyl-hole: color-mix(in oklab, var(--color-accent-primary) 35%, black);
 
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  /* Disc protrudes past the Cover — the circle's clip must go. */
+  overflow: visible;
+}
+
+/* The presentation container spans the whole album box; its two layers are
+   absolutely positioned within it. Hidden until the singleton activates it. */
+.album-presentation {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.album-presentation.visible {
+  display: block;
+}
+
+/* Cover: a square image pinned to the left of the box, vertically centred. The
+   disc travels one Cover-width to its right, so the box is that much wider. */
+#mediaPreview[data-kind="album"] .album-cover {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--album-cover, 100px);
+  height: var(--album-cover, 100px);
+  transform: translateY(-50%);
+  object-fit: cover;
+  border-radius: 4px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  /* Opacity is cleared by the container's `.visible`; blur-in by `.is-loaded`. */
+  opacity: 0;
+}
+
+/* Id in the selector so it beats the global `#mediaPreview img { opacity: 0 }`
+   (the Cover isn't a channel and never gets the channel's `.visible` class). */
+#mediaPreview[data-kind="album"] .album-presentation.visible .album-cover {
+  opacity: 1;
+}
+
+/* The vinyl disc: grooves on its own background, label + spindle hole in
+   ::before, spinning sheen in ::after. Sits behind the Cover (z-index 1) and
+   peeks ~40% to the right; slides out and lifts to the front on commit. */
+.album-vinyl {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--album-cover, 100px);
+  height: var(--album-cover, 100px);
+  border-radius: 50%;
+  z-index: 1;
+  /* Peek: translateX(40%) exposes the disc's right 40% past the Cover edge. */
+  transform: translate(40%, -50%);
   background-color: var(--vinyl-disc);
   background-image: repeating-radial-gradient(
     circle,
     transparent 0 5px,
     var(--vinyl-groove) 5px 6px
   );
-}
-
-/* Artwork stays in the data (previewUrl still meaningful elsewhere) but the
-   vinyl replaces it visually. */
-#mediaPreview[data-kind="album"] img {
-  display: none;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 30%);
+  transition: transform 350ms ease;
 }
 
 /* Blank label + spindle hole. inset 30% → label is 40% of disc diameter. */
-#mediaPreview[data-kind="album"]::before {
+.album-vinyl::before {
   content: '';
   position: absolute;
   inset: 30%;
@@ -425,7 +479,7 @@
 }
 
 /* Spinning sheen: two soft light bands roughly opposite each other. */
-#mediaPreview[data-kind="album"]::after {
+.album-vinyl::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -439,19 +493,40 @@
     rgb(255 255 255 / 12%) 215deg,
     transparent 255deg
   );
-  /* Spin is bound to playback (ADR 0004): the sheen sits still on a revealed
-     glimpse and only turns once the album commits to playing. */
+  /* Spin is bound to playback (ADR 0004): still on a glimpse, turning on play. */
   animation: preview-vinyl-spin 4s linear infinite;
   animation-play-state: paused;
 }
 
-#mediaPreview.is-playing[data-kind="album"]::after {
+/* Commit: the disc slides fully out beside the Cover and lifts to the front. */
+#mediaPreview.is-playing[data-kind="album"] .album-vinyl {
+  transform: translate(100%, -50%);
+  z-index: 3;
+}
+
+#mediaPreview.is-playing[data-kind="album"] .album-vinyl::after {
   animation-play-state: running;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Sheen freezes into a static highlight — the disc still reads as vinyl. */
-  #mediaPreview[data-kind="album"]::after {
+  /* No visual motion — audio only (ADR 0005). The disc stays in its resting
+     peek pose even while playing, never slides, never spins; state is read from
+     the trigger card's cursor + aria-pressed instead. */
+  .album-vinyl {
+    transition: none;
+  }
+
+  #mediaPreview.is-playing[data-kind="album"] .album-vinyl {
+    transform: translate(40%, -50%);
+    z-index: 1;
+  }
+
+  .album-vinyl::after {
     animation: none;
+  }
+
+  /* Cover sharpens instantly (no blur-in animation). */
+  #mediaPreview[data-kind="album"] .album-cover {
+    transition: none;
   }
 }

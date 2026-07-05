@@ -154,6 +154,13 @@ export class MediaPreview extends LitElement {
   mediaKind: MediaKind | null = null;
 
   /**
+   * Cover image URL for kinds with a Presentation (album). The resting face the
+   * vinyl slides out from behind (ADR 0005); ignored by kinds without one.
+   */
+  @property({ attribute: 'preview-cover' })
+  previewCover: string | null = null;
+
+  /**
    * The positioning strategy. Defaults to 'cursor'.
    */
   @property({ attribute: 'preview-position' })
@@ -221,6 +228,7 @@ export class MediaPreview extends LitElement {
       src: this.previewSrc as string,
       type: this.previewType,
       kind: this.mediaKind ?? undefined,
+      cover: this.previewCover ?? undefined,
       placement: this.previewPosition,
       getRect: () => this.getBoundingClientRect(),
     };

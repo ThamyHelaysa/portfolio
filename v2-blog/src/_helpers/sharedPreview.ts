@@ -6,6 +6,7 @@ import {
 } from './previewGeometry.ts';
 import { ScrollAnchor } from './scrollAnchor.ts';
 import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
+import { type MediaPresentation, createMediaPresentations } from './previewPresentations.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 
@@ -52,6 +53,18 @@ const GROWN_SIZE: PreviewSize = { w: 220, h: 220 };
 /** Touch screens are small — the grown disc shrinks so it stays on-screen. */
 const GROWN_SIZE_TOUCH: PreviewSize = { w: 150, h: 150 };
 
+/**
+ * The `album` kind opts out of the circle (ADR 0005): a square Cover with the
+ * vinyl disc sliding out beside it. One fixed box holds Cover + fully-emerged
+ * disc; the disc's own `translate` is the whole animation, so the box never
+ * grows. `--album-cover` sizes the square Cover; the box is wide enough for the
+ * disc to travel one Cover-width to the right.
+ */
+const ALBUM_BOX: PreviewSize = { w: 212, h: 112 };
+const ALBUM_BOX_TOUCH: PreviewSize = { w: 172, h: 92 };
+const ALBUM_COVER = 100;
+const ALBUM_COVER_TOUCH = 80;
+
 /** Media types that have a play/pause commit step. Images are reveal-only. */
 const PLAYABLE_TYPES: ReadonlySet<MediaType> = new Set(['video', 'audio']);
 
@@ -81,6 +94,8 @@ export interface PreviewTrigger {
   src: string;
   type?: MediaType;
   kind?: MediaKind;
+  /** Cover image for kinds with a Presentation (album). Ignored otherwise. */
+  cover?: string;
   /** The card's positioning strategy. Coerced to 'right' when anchored/grown. */
   placement: PreviewPlacement;
   /** Live rect of the card — read for anchoring and touch scroll-follow. */
@@ -119,8 +134,12 @@ export class SharedMediaPreview {
   private _wrapper: HTMLDivElement;
   /** One playback element per media type; exactly one is active at a time. */
   private _channels = createMediaChannels();
+  /** Per-kind visual treatments (ADR 0005); only `album` has one today. */
+  private _presentations = createMediaPresentations();
   /** The channel currently revealed in the bubble, if any. */
   private _active: MediaChannel | null = null;
+  /** The kind Presentation currently shown (album), if any. */
+  private _activePresentation: MediaPresentation | null = null;
   private _currentSrc: string | null;
   private _currentType: MediaType | null;
   private _currentSize: PreviewSize;
@@ -172,6 +191,11 @@ export class SharedMediaPreview {
 
     for (const type of ['image', 'video', 'audio'] as const) {
       this._wrapper.appendChild(this._channels[type].el);
+    }
+    // Presentation layers (album Cover + vinyl) sit alongside the channels;
+    // CSS keyed on `data-kind` decides which is shown.
+    for (const presentation of Object.values(this._presentations)) {
+      if (presentation) this._wrapper.appendChild(presentation.el);
     }
     this._ensureAttached();
 
@@ -253,7 +277,9 @@ export class SharedMediaPreview {
       this._stopPlayback();
     }
 
-    this._applyMeta(effectiveType, trigger.kind, GLIMPSE_SIZE);
+    const glimpseSize = trigger.kind === 'album' ? this._albumBox() : GLIMPSE_SIZE;
+    this._applyMeta(effectiveType, trigger.kind, glimpseSize);
+    this._applyPresentation(trigger.kind, trigger.cover);
 
     this._anchorPlacement = placement;
     this._cursor = point;
@@ -319,14 +345,18 @@ export class SharedMediaPreview {
     // Grown playback always anchors beside the card, never on the cursor.
     const placement = this._anchorPlacementFor(trigger.placement);
 
-    // Load the media (glimpse first frame) then start it, grown + anchored.
-    this._applyMeta(effectiveType, trigger.kind, this._grownSize());
+    // Album keeps its fixed box and only slides the disc (ADR 0005); every other
+    // kind grows the circle. Load the media (glimpse first frame) then start it.
+    const isAlbum = trigger.kind === 'album';
+    this._applyMeta(effectiveType, trigger.kind, isAlbum ? this._albumBox() : this._grownSize());
+    this._applyPresentation(trigger.kind, trigger.cover);
     this._reveal(src, effectiveType);
 
     this._isPlaying = true;
     this._anchorRect = rect;
     this._anchorPlacement = placement;
-    this._wrapper.classList.add('is-playing', 'is-grown');
+    this._wrapper.classList.add('is-playing');
+    if (!isAlbum) this._wrapper.classList.add('is-grown');
 
     this._positionAnchored();
     this._startCurrentMedia();
@@ -499,6 +529,32 @@ export class SharedMediaPreview {
     } else {
       delete this._wrapper.dataset.kind;
     }
+    if (kind === 'album') {
+      const cover = this._coarsePointer() ? ALBUM_COVER_TOUCH : ALBUM_COVER;
+      this._wrapper.style.setProperty('--album-cover', `${cover}px`);
+    }
+  }
+
+  /** The fixed album box (ADR 0005), smaller on touch. */
+  private _albumBox(): PreviewSize {
+    return this._coarsePointer() ? ALBUM_BOX_TOUCH : ALBUM_BOX;
+  }
+
+  /**
+   * Shows the Presentation for a kind (album Cover + vinyl), retiring any
+   * previously active one. Kinds without a Presentation clear it — the channel's
+   * own media shows in the round bubble instead (ADR 0005).
+   */
+  private _applyPresentation(kind: MediaKind | undefined, cover?: string): void {
+    const next = (kind && this._presentations[kind]) || null;
+    if (this._activePresentation && this._activePresentation !== next) {
+      this._activePresentation.deactivate();
+    }
+    this._activePresentation = next;
+    if (next) {
+      next.loadCover(cover ?? null);
+      next.activate();
+    }
   }
 
   /** Loads the media (if it changed) and makes the bubble visible — paused. */
@@ -578,7 +634,9 @@ export class SharedMediaPreview {
     this._isPlaying = false;
     this._anchorRect = null;
     this._wrapper.classList.remove('is-playing', 'is-grown');
-    this._applyMeta(this._currentType ?? 'image', this._wrapper.dataset.kind as MediaKind | undefined, GLIMPSE_SIZE);
+    const kind = this._wrapper.dataset.kind as MediaKind | undefined;
+    // Album keeps its fixed box; other kinds shrink back to the glimpse circle.
+    this._applyMeta(this._currentType ?? 'image', kind, kind === 'album' ? this._albumBox() : GLIMPSE_SIZE);
 
     // Playback can end without the owning card knowing (scroll-out, dismiss, or
     // another card taking over). Announce it so that card can drop aria-pressed.
@@ -599,7 +657,11 @@ export class SharedMediaPreview {
     this._pauseAllMedia();
     this._active = null;
 
+    this._activePresentation?.deactivate();
+    this._activePresentation = null;
+
     delete this._wrapper.dataset.kind;
+    this._wrapper.style.removeProperty('--album-cover');
 
     this._currentSrc = null;
     this._currentType = null;

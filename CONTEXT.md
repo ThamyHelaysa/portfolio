@@ -25,12 +25,28 @@ The floating bubble that surfaces a small peek of media (artwork, clip) while th
 _Avoid_: tooltip, popover, lightbox, thumbnail
 
 **Preview type**:
-The *technical* rendering mode of a Media preview: `image` or `video`. Says nothing about what the media represents.
+The *technical* rendering mode of a Media preview — the playback mechanism: `image`, `video`, or `audio`. Says nothing about what the media represents. Selects the **Channel** that plays it.
 _Avoid_: img, media format
 
 **Media kind**:
-The *semantic* identity of the previewed thing — `album`, `book`, `game`, `project`, … Drives presentation treatment: an `album` preview renders as a pure-CSS vinyl disc (grooves, blank label, spinning light sheen) in place of its artwork; all other kinds render plain. Distinct from Preview type: a kind describes what the thing **is**, a type describes how its preview is **rendered**.
+The *semantic* identity of the previewed thing — `album`, `book`, `game`, `project`, … Drives the **Presentation** (visual treatment). Distinct from Preview type: a kind describes what the thing **is**, a type describes how its preview is **rendered**. Only `album` currently has a bespoke Presentation (Cover + vinyl); the other kinds render as a plain glimpse of their media.
 _Avoid_: category (that's display copy), type
+
+**Channel**:
+The per-Preview-type playback element behind the shared bubble — one adapter per `image` / `video` / `audio`, owning that type's element, load/blur-in, and play/pause. Concerns *how the media plays*, never *how the kind looks*. See [ADR-0004](docs/adr/0004-media-preview-decorative-singleton-card-is-control.md).
+_Avoid_: player, adapter (in prose)
+
+**Presentation**:
+The per-Media-kind *visual* treatment inside the shared bubble — the counterpart to a Channel. A Presentation owns the kind's DOM layers and their state transitions; a Channel owns playback. Most kinds have no Presentation (the Channel's own media shows through, cropped into the round bubble). `album` has one: a square **Cover** with a pure-CSS vinyl disc that slides out and spins on commit. See [ADR-0005](docs/adr/0005-album-preview-breaks-the-circle.md).
+_Avoid_: skin, theme, layout
+
+**Cover**:
+The resting face image of a Presentation — album artwork, book cover, game box. Distinct from the played media (`preview-src`): the Cover is what shows *before* commit. Album carries both a Cover (`preview-cover`, an image) and a `preview-src` (the audio it plays); the vinyl disc emerges from behind the Cover on commit.
+_Avoid_: thumbnail, poster, artwork (as the canonical term)
+
+**Vinyl disc**:
+The pure-CSS record (grooves, blank label, spinning sheen) that is the `album` Presentation's inner artifact. Colours derive from the active theme's accent, so it flips with the theme. At rest it peeks ~40% from behind the Cover, static; on commit it slides out, lifts to the front, and its sheen spins while the audio plays.
+_Avoid_: record, disk, LP
 
 **Hover intent**:
 The judgement that the user means to look at a trigger, not merely pass across it. Judged from cursor **velocity** — slowing or pausing over a trigger proves intent; a fast sweep never does. A Media preview only appears once intent is proven. Keyboard focus proves intent by itself.

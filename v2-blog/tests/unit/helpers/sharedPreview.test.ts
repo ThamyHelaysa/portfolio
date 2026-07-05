@@ -271,6 +271,46 @@ describe("sharedPreview", () => {
     expect(preview.isPlaying()).toBe(false);
   });
 
+  it("album: shows the Cover presentation and keeps a fixed box (no circle-grow)", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const audio = wrapper?.querySelector("audio");
+    Object.defineProperty(audio!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
+    Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
+
+    const presentation = wrapper?.querySelector<HTMLElement>(".album-presentation");
+    const cover = presentation?.querySelector<HTMLImageElement>("img.album-cover");
+
+    // Reveal: the album box (not the 100 circle), Cover shown + loaded.
+    preview.reveal(
+      trigger("/assets/song.mp3", { type: "audio", kind: "album", cover: "/assets/art.jpeg" }),
+      { cursor: { x: 200, y: 200 }, immediate: true }
+    );
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("212px");
+    expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("100px");
+    expect(presentation?.classList.contains("visible")).toBe(true);
+    expect(cover?.getAttribute("src")).toBe("/assets/art.jpeg");
+
+    // Commit: still the fixed album box — album opts out of the 220 grow.
+    preview.commit(
+      trigger("/assets/song.mp3", {
+        type: "audio",
+        kind: "album",
+        cover: "/assets/art.jpeg",
+        getRect: () => new DOMRect(0, 0, 40, 40),
+      })
+    );
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("212px");
+    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+    expect(wrapper?.classList.contains("is-grown")).toBe(false);
+
+    // Hide clears the presentation and the album sizing var.
+    preview.stop();
+    expect(presentation?.classList.contains("visible")).toBe(false);
+    expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
+  });
+
   it("warns when committed playback is blocked", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");

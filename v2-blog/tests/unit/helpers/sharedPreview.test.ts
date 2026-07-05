@@ -334,12 +334,14 @@ describe("sharedPreview", () => {
     );
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("212px");
     expect(preview.isPlaying()).toBe(true);
+    // Front z is raised at once; the spin starts on the sequence's second step.
     expect(disc?.classList.contains("is-front")).toBe(true);
+    await flush();
     expect(face?.classList.contains("is-spinning")).toBe(true);
 
     // Stop collapses; the Face + album var clear once hidden (after the collapse).
     preview.stop();
-    await flush();
+    vi.advanceTimersByTime(200);
     expect(face?.classList.contains("is-active")).toBe(false);
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
   });
@@ -365,7 +367,7 @@ describe("sharedPreview", () => {
 
     // Once retracted (hidden), the round glimpse appears — geometry was applied
     // while invisible, so it never morphed on screen.
-    await flush();
+    vi.advanceTimersByTime(200);
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
@@ -449,7 +451,7 @@ describe("sharedPreview", () => {
     preview.hide();
     expect(wrapper?.dataset.kind).toBe("album");
     vi.advanceTimersByTime(100); // linger expires → collapse starts
-    await flush(); // collapse resolves → teardown
+    vi.advanceTimersByTime(200); // collapse done → teardown
     expect(wrapper?.dataset.kind).toBeUndefined();
 
     // a kindless reveal never leaks the previous kind (applied while hidden)

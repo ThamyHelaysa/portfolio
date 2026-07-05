@@ -283,9 +283,10 @@
 
 /* Media preview (ADR 0006): a neutral Container that only positions + shows /
    hides. Every visual lives in a Face inside it — the container carries no kind
-   look. Position uses the `translate` property so WAAPI can own `scale`+`opacity`
-   (no transform-shorthand clash); show/hide is animated in JS by animationManager,
-   so there are deliberately no CSS transitions on the container at all. */
+   look. Position uses the `translate` property so `scale`+`opacity` are free to
+   animate on their own (no transform-shorthand clash). Show/hide is a CSS
+   transition on *only* scale + opacity — never geometry — so it interrupts
+   cleanly on a fast hover and never morphs a shape mid-fade. */
 #mediaPreview {
   position: fixed;
   left: 0;
@@ -297,13 +298,27 @@
   height: var(--preview-h, 100px);
   translate: var(--preview-x, 0px) var(--preview-y, 0px);
   opacity: 0;
+  scale: 0.9;
   cursor: none;
   pointer-events: none;
   /* Album disc protrudes past its box; each Face clips its own content. */
   overflow: visible;
   z-index: 99;
 
+  transition: opacity 150ms ease, scale 150ms ease;
   will-change: scale, opacity;
+}
+
+#mediaPreview.is-visible {
+  opacity: 1;
+  scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Snap the fade; playback is never blocked, only its animation. */
+  #mediaPreview {
+    transition: none;
+  }
 }
 
 /* Only the active Face is displayed; the container swaps `is-active`. */

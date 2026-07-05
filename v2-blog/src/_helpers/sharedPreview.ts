@@ -6,7 +6,6 @@ import {
 import { ScrollAnchor } from './scrollAnchor.ts';
 import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
 import { type MediaPresentation, createMediaPresentations } from './previewPresentations.ts';
-import { animator } from './animationManager.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 
@@ -33,15 +32,12 @@ const LINGER_MS = 100;
 const DESKTOP_SCROLL_STOP_PX = 8;
 
 /**
- * Container show/hide durations (ADR 0006). Only scale + opacity animate — the
- * WAAPI tween is owned by `animationManager`, which snaps these to 0ms under
- * reduced motion.
+ * Container hide duration (ADR 0006). Show/hide animate only scale + opacity via
+ * a CSS transition (interruptible on fast hover); this is how long to wait after
+ * a collapse before tearing the hidden bubble's visuals down. Kept in sync with
+ * the CSS transition (~150ms) plus slack.
  */
-const SHOW_MS = 160;
-const HIDE_MS = 160;
-/** Show/hide keyframes: the container scales up from a nub while fading in. */
-const SHOW_IN: Keyframe[] = [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }];
-const SHOW_OUT: Keyframe[] = [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.6 }];
+const HIDE_MS = 170;
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
@@ -356,12 +352,13 @@ export class SharedMediaPreview {
     this._cancelLinger();
     this._pauseAllMedia();
     this._stopTracking();
+    this._wrapper.classList.remove('is-visible');
 
-    void this._collapse().then(() => {
+    setTimeout(() => {
       if (gen !== this._gen) return; // superseded by a newer reveal/hide
       this._teardown();
       this.reveal(trigger, { ...opts, immediate: true });
-    });
+    }, HIDE_MS);
   }
 
   /**
@@ -619,21 +616,13 @@ export class SharedMediaPreview {
     this._show();
   }
 
-  /** Shows the container (scale + opacity in). No-op if already shown (warm swap). */
-  private _show(): void {
-    if (this._wrapper.classList.contains('is-visible')) return;
-    this._wrapper.classList.add('is-visible');
-    void animator.animate(this._wrapper, SHOW_IN, { duration: SHOW_MS, easing: 'ease' });
-  }
-
   /**
-   * Collapses the container (scale + opacity out) and resolves when hidden. The
-   * current shape/artwork is kept *through* the collapse — teardown happens
-   * after — so the shape never changes under an opaque bubble.
+   * Shows the container. `is-visible` drives a CSS transition on scale + opacity
+   * only (never geometry), which interrupts cleanly on a fast hover in/out —
+   * adding it while already visible is an idempotent no-op (warm swap).
    */
-  private _collapse(): Promise<void> {
-    this._wrapper.classList.remove('is-visible');
-    return animator.animate(this._wrapper, SHOW_OUT, { duration: HIDE_MS, easing: 'ease' });
+  private _show(): void {
+    this._wrapper.classList.add('is-visible');
   }
 
   /**
@@ -717,11 +706,11 @@ export class SharedMediaPreview {
     this._cancelLinger();
     this._pauseAllMedia();
     this._stopTracking();
+    this._wrapper.classList.remove('is-visible');
 
-    void this._collapse().then(() => {
-      if (gen !== this._gen) return;
-      this._teardown();
-    });
+    setTimeout(() => {
+      if (gen === this._gen) this._teardown();
+    }, HIDE_MS);
   }
 
   /**

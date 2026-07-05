@@ -78,23 +78,26 @@ describe("previewPresentations", () => {
       expect(p.el.classList.contains("is-active")).toBe(false);
     });
 
-    it("play() lifts the disc to the front, spins it, and animates the slide", () => {
+    it("play() lifts the disc to the front, then runs the two-step out/place slide", async () => {
       const p = new AlbumPresentation();
       const disc = p.el.querySelector(".album-vinyl") as HTMLElement;
 
-      p.play({ reducedMotion: false });
-
+      // Front z is raised at once; the spin only starts for step 2 (the place).
+      const pending = p.play({ reducedMotion: false });
       expect(disc.classList.contains("is-front")).toBe(true);
+
+      await pending;
       expect(p.el.classList.contains("is-spinning")).toBe(true);
-      expect(animatorMock.animate).toHaveBeenCalledTimes(1);
+      // Two steps: pull out, then place centered.
+      expect(animatorMock.animate).toHaveBeenCalledTimes(2);
       expect(animatorMock.animate.mock.calls[0][0]).toBe(disc);
     });
 
-    it("play() under reduced motion is audio-only: no disc motion at all", () => {
+    it("play() under reduced motion is audio-only: no disc motion at all", async () => {
       const p = new AlbumPresentation();
       const disc = p.el.querySelector(".album-vinyl") as HTMLElement;
 
-      p.play({ reducedMotion: true });
+      await p.play({ reducedMotion: true });
 
       expect(disc.classList.contains("is-front")).toBe(false);
       expect(p.el.classList.contains("is-spinning")).toBe(false);
@@ -105,14 +108,28 @@ describe("previewPresentations", () => {
       const p = new AlbumPresentation();
       const disc = p.el.querySelector(".album-vinyl") as HTMLElement;
 
-      p.play({ reducedMotion: false });
+      await p.play({ reducedMotion: false });
       p.stop();
 
       expect(p.el.classList.contains("is-spinning")).toBe(false);
-      // A return slide is animated; is-front drops once it resolves.
-      expect(animatorMock.animate).toHaveBeenCalledTimes(2);
+      // A return slide is animated (3rd call after the two play steps); is-front
+      // drops once it resolves.
+      expect(animatorMock.animate).toHaveBeenCalledTimes(3);
       await Promise.resolve();
       expect(disc.classList.contains("is-front")).toBe(false);
+    });
+
+    it("stop() mid-pull cancels the pending place step", async () => {
+      const p = new AlbumPresentation();
+      const disc = p.el.querySelector(".album-vinyl") as HTMLElement;
+
+      // Start the sequence but stop before step 1 resolves.
+      const pending = p.play({ reducedMotion: false });
+      p.stop();
+      await pending;
+
+      // Step 2 (place / spin) never runs — only the pull + the return slide.
+      expect(p.el.classList.contains("is-spinning")).toBe(false);
     });
 
     it("deactivate() resets the disc transform and cancels any animation", () => {

@@ -1,6 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PreviewTrigger } from "../../../src/_helpers/sharedPreview.ts";
 
+// Show/hide + the album disc animate through animationManager (WAAPI), which
+// jsdom can't run — mock it so `animate` resolves at once and `cancel` is inert.
+const { animatorMock } = vi.hoisted(() => ({
+  animatorMock: { animate: vi.fn(), cancel: vi.fn() },
+}));
+vi.mock("../../../src/_helpers/animationManager.ts", () => ({ animator: animatorMock }));
+
+/** Flush the microtask queue so promise-sequenced teardown/deferred-reveal run. */
+async function flush() {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 /** Builds a trigger descriptor; override placement/getRect/type/kind per test. */
 function trigger(src: string, over: Partial<PreviewTrigger> = {}): PreviewTrigger {
   return {
@@ -16,6 +29,9 @@ describe("sharedPreview", () => {
     document.body.innerHTML = "";
     vi.resetModules();
     vi.useFakeTimers();
+    animatorMock.animate.mockReset();
+    animatorMock.animate.mockResolvedValue(undefined);
+    animatorMock.cancel.mockReset();
   });
 
   afterEach(() => {
@@ -155,6 +171,19 @@ describe("sharedPreview", () => {
     expect(document.querySelectorAll("#mediaPreview")).toHaveLength(1);
   });
 
+  it("mounts the visual channels in the round Face and the audio loose", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+
+    const roundFace = wrapper?.querySelector(".round-face");
+    expect(roundFace?.querySelector("img.channel-media")).not.toBeNull();
+    expect(roundFace?.querySelector("video.channel-media")).not.toBeNull();
+    // Audio is sound only — a loose child of the container, not in a Face.
+    expect(wrapper?.querySelector(":scope > audio")).not.toBeNull();
+    expect(roundFace?.querySelector("audio")).toBeNull();
+  });
+
   it("infers image and video types from file extensions", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
@@ -165,7 +194,7 @@ describe("sharedPreview", () => {
     expect(preview.inferType("/assets/example.txt")).toBeUndefined();
   });
 
-  it("shows an image preview and positions it within the viewport bounds", async () => {
+  it("shows an image preview in the round Face and positions it within bounds", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
 
@@ -173,10 +202,12 @@ describe("sharedPreview", () => {
     vi.advanceTimersByTime(100);
 
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const roundFace = wrapper?.querySelector<HTMLElement>(".round-face");
     const image = wrapper?.querySelector("img");
     const video = wrapper?.querySelector("video");
 
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
+    expect(roundFace?.classList.contains("is-active")).toBe(true);
     expect(wrapper?.style.getPropertyValue("--preview-x")).toBe("12px");
     expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("12px");
     expect(image?.classList.contains("visible")).toBe(true);
@@ -203,18 +234,17 @@ describe("sharedPreview", () => {
     expect(video?.classList.contains("visible")).toBe(true);
     expect(play).not.toHaveBeenCalled();
 
-    // Commit: playback starts, the bubble grows and anchors.
+    // Commit: playback starts and the bubble anchors.
     preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) }));
 
     expect(play).toHaveBeenCalledTimes(1);
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
-    expect(wrapper?.classList.contains("is-grown")).toBe(true);
+    expect(preview.isPlaying()).toBe(true);
 
     // Leaving stops playback and hides.
     preview.hide();
 
     expect(pause).toHaveBeenCalled();
-    expect(wrapper?.classList.contains("is-playing")).toBe(false);
+    expect(preview.isPlaying()).toBe(false);
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
   });
 
@@ -235,12 +265,12 @@ describe("sharedPreview", () => {
     const first = preview.commit(t);
     expect(first).toBe(true);
     expect(play).toHaveBeenCalledTimes(1);
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+    expect(preview.isPlaying()).toBe(true);
 
     const second = preview.commit(t);
     expect(second).toBe(false);
     expect(pause).toHaveBeenCalled();
-    expect(wrapper?.classList.contains("is-playing")).toBe(false);
+    expect(preview.isPlaying()).toBe(false);
   });
 
   it("plays audio on commit and reports the playing state", async () => {
@@ -263,15 +293,13 @@ describe("sharedPreview", () => {
     expect(play).toHaveBeenCalledTimes(1);
     expect(preview.isPlaying("/assets/song.mp3")).toBe(true);
     expect(wrapper?.dataset.kind).toBe("album");
-    // The album disc spins only while playing (CSS reads is-playing).
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
 
     preview.stop();
     expect(pause).toHaveBeenCalled();
     expect(preview.isPlaying()).toBe(false);
   });
 
-  it("album: shows the Cover presentation and keeps a fixed box (no circle-grow)", async () => {
+  it("album: shows the Cover Face, plays the disc, and keeps a fixed box", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -279,20 +307,23 @@ describe("sharedPreview", () => {
     Object.defineProperty(audio!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
     Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
 
-    const presentation = wrapper?.querySelector<HTMLElement>(".album-presentation");
-    const cover = presentation?.querySelector<HTMLImageElement>("img.album-cover");
+    const face = wrapper?.querySelector<HTMLElement>(".album-face");
+    const cover = face?.querySelector<HTMLImageElement>("img.album-cover");
+    const disc = face?.querySelector<HTMLElement>(".album-vinyl");
+    const roundFace = wrapper?.querySelector<HTMLElement>(".round-face");
 
-    // Reveal: the album box (not the 100 circle), Cover shown + loaded.
+    // Reveal: the album Face (fixed 212 box), Cover loaded, round Face inactive.
     preview.reveal(
       trigger("/assets/song.mp3", { type: "audio", kind: "album", cover: "/assets/art.jpeg" }),
       { cursor: { x: 200, y: 200 }, immediate: true }
     );
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("212px");
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("100px");
-    expect(presentation?.classList.contains("visible")).toBe(true);
+    expect(face?.classList.contains("is-active")).toBe(true);
+    expect(roundFace?.classList.contains("is-active")).toBe(false);
     expect(cover?.getAttribute("src")).toBe("/assets/art.jpeg");
 
-    // Commit: still the fixed album box — album opts out of the 220 grow.
+    // Commit: still the fixed album box; the disc lifts to the front + spins.
     preview.commit(
       trigger("/assets/song.mp3", {
         type: "audio",
@@ -302,14 +333,14 @@ describe("sharedPreview", () => {
       })
     );
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("212px");
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
-    expect(wrapper?.classList.contains("is-grown")).toBe(false);
+    expect(preview.isPlaying()).toBe(true);
+    expect(disc?.classList.contains("is-front")).toBe(true);
+    expect(face?.classList.contains("is-spinning")).toBe(true);
 
-    // Stop collapses now; the presentation + album sizing var are cleared once
-    // the bubble has hidden (teardown runs after the scale-down).
+    // Stop collapses; the Face + album var clear once hidden (after the collapse).
     preview.stop();
-    vi.advanceTimersByTime(200);
-    expect(presentation?.classList.contains("visible")).toBe(false);
+    await flush();
+    expect(face?.classList.contains("is-active")).toBe(false);
     expect(wrapper?.style.getPropertyValue("--album-cover")).toBe("");
   });
 
@@ -327,14 +358,14 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
 
     // Hovering a round (image) card must NOT re-shape in place: the album is
-    // still the shown kind and the bubble has begun retracting.
+    // still the shown kind and the bubble has begun retracting (is-visible off).
     preview.reveal(trigger("/assets/pic.webp"), { immediate: true });
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
     expect(wrapper?.dataset.kind).toBe("album");
 
     // Once retracted (hidden), the round glimpse appears — geometry was applied
     // while invisible, so it never morphed on screen.
-    vi.advanceTimersByTime(200);
+    await flush();
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
@@ -417,7 +448,8 @@ describe("sharedPreview", () => {
     // the shape) and is cleared once the bubble is hidden.
     preview.hide();
     expect(wrapper?.dataset.kind).toBe("album");
-    vi.advanceTimersByTime(200);
+    vi.advanceTimersByTime(100); // linger expires → collapse starts
+    await flush(); // collapse resolves → teardown
     expect(wrapper?.dataset.kind).toBeUndefined();
 
     // a kindless reveal never leaks the previous kind (applied while hidden)
@@ -479,17 +511,17 @@ describe("sharedPreview", () => {
 
     // matchMedia undefined here → coarse pointer false → desktop path.
     preview.commit(trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 100, 40, 40) }));
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+    expect(preview.isPlaying()).toBe(true);
 
     // A tiny jitter must not dismiss.
     Object.defineProperty(window, "scrollY", { configurable: true, value: 4 });
     (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
-    expect(wrapper?.classList.contains("is-playing")).toBe(true);
+    expect(preview.isPlaying()).toBe(true);
 
     // Real scroll past the threshold dismisses.
     Object.defineProperty(window, "scrollY", { configurable: true, value: 40 });
     (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
-    expect(wrapper?.classList.contains("is-playing")).toBe(false);
+    expect(preview.isPlaying()).toBe(false);
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
     expect(pause).toHaveBeenCalled();
 
@@ -552,7 +584,6 @@ describe("sharedPreview", () => {
 
       // right placement, glimpse h=100: eixoY = -100 + (40 - 100) / 2 = -130.
       expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("-130px");
-      expect(wrapper?.classList.contains("is-tracking")).toBe(true);
 
       preview.hide();
     } finally {

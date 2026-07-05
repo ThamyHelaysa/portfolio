@@ -33,11 +33,19 @@ The *semantic* identity of the previewed thing — `album`, `book`, `game`, `pro
 _Avoid_: category (that's display copy), type
 
 **Channel**:
-The per-Preview-type playback element behind the shared bubble — one adapter per `image` / `video` / `audio`, owning that type's element, load/blur-in, and play/pause. Concerns *how the media plays*, never *how the kind looks*. See [ADR-0004](docs/adr/0004-media-preview-decorative-singleton-card-is-control.md).
+The per-Preview-type playback element behind the shared bubble — one adapter per `image` / `video` / `audio`, owning that type's element, load/blur-in, and play/pause. Concerns *how the media plays*, never *how the kind looks*. The visual channels (`image`/`video`) mount inside the default **Face**; `audio` is loose (sound only). See [ADR-0004](docs/adr/0004-media-preview-decorative-singleton-card-is-control.md).
 _Avoid_: player, adapter (in prose)
 
+**Container**:
+The single envelope node of the Media preview — owns nothing but position, the size box, and the show/hide animation. It carries **no** kind look of its own (no round bubble, no colour); every visual lives in a Face mounted inside it. Show/hide is the only animation on the container; positioning uses the CSS `translate` property so WAAPI can own `scale`+`opacity`. See [ADR-0006](docs/adr/0006-preview-faces-and-waapi-animation.md).
+_Avoid_: bubble (that's the whole preview), wrapper
+
+**Face**:
+The per-Media-kind visual mounted inside the Container — the DOM realization of a **Presentation**. Exactly one Face is active at a time. Kinds with no bespoke Presentation share the **default round Face** (accent ring + circular clip that frames the visual Channel); `album` swaps in its own square Cover+vinyl Face. Each Face is self-contained: its own CSS block and its own play/stop animation, never shared across kinds.
+_Avoid_: layer, skin, card
+
 **Presentation**:
-The per-Media-kind *visual* treatment inside the shared bubble — the counterpart to a Channel. A Presentation owns the kind's DOM layers and their state transitions; a Channel owns playback. Most kinds have no Presentation (the Channel's own media shows through, cropped into the round bubble). `album` has one: a square **Cover** with a pure-CSS vinyl disc that slides out and spins on commit. See [ADR-0005](docs/adr/0005-album-preview-breaks-the-circle.md).
+The per-Media-kind *visual* treatment realized as a **Face** — the counterpart to a Channel. A Presentation owns its Face's DOM, its state transitions, and its own animation (via WAAPI, `animationManager`); a Channel owns playback. Plain kinds use the default round Face; `album` has a bespoke Presentation — a square **Cover** with a pure-CSS vinyl disc that, on commit, slides out to overlap the Cover's right half **in front** of it and spins. See [ADR-0005](docs/adr/0005-album-preview-breaks-the-circle.md), [ADR-0006](docs/adr/0006-preview-faces-and-waapi-animation.md).
 _Avoid_: skin, theme, layout
 
 **Cover**:
@@ -45,7 +53,7 @@ The resting face image of a Presentation — album artwork, book cover, game box
 _Avoid_: thumbnail, poster, artwork (as the canonical term)
 
 **Vinyl disc**:
-The pure-CSS record (grooves, blank label, spinning sheen) that is the `album` Presentation's inner artifact. Colours derive from the active theme's accent, so it flips with the theme. At rest it peeks ~40% from behind the Cover, static; on commit it slides out, lifts to the front, and its sheen spins while the audio plays.
+The pure-CSS record (grooves, blank label, spinning sheen) that is the `album` Face's inner artifact. Colours derive from the active theme's accent, so it flips with the theme. At rest it peeks ~40% from behind the Cover, **behind** it and static; on commit it lifts to the **front** and slides right to overlap the Cover's right half, its sheen spinning while the audio plays.
 _Avoid_: record, disk, LP
 
 **Hover intent**:

@@ -1,5 +1,4 @@
 import {
-  PREVIEW_OFFSET,
   computePreviewPosition,
   type PreviewPlacement,
   type PreviewSize,
@@ -7,6 +6,7 @@ import {
 import { ScrollAnchor } from './scrollAnchor.ts';
 import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
 import { type MediaPresentation, createMediaPresentations } from './previewPresentations.ts';
+import { animator } from './animationManager.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 
@@ -33,32 +33,24 @@ const LINGER_MS = 100;
 const DESKTOP_SCROLL_STOP_PX = 8;
 
 /**
- * Touch scroll-follow: the bubble locks to its source card 1:1 while scrolling.
- * `is-tracking` drops the transform easing so it doesn't rubber-band; it is
- * removed this long after the last scroll so reveal/grow/hide still animate.
+ * Container show/hide durations (ADR 0006). Only scale + opacity animate — the
+ * WAAPI tween is owned by `animationManager`, which snaps these to 0ms under
+ * reduced motion.
  */
-const TRACK_IDLE_MS = 120;
-
-/**
- * Shape-swap sequencing (album ↔ other). The album box is a square that opts
- * out of the round bubble (ADR 0005); a warm swap across that boundary would
- * otherwise morph the single shared node (square → circle) because width /
- * radius are transitioned. Instead the bubble fully retracts in its current
- * shape, then the new one is revealed with geometry snapped while hidden. This
- * is one transition duration — kept in sync with the CSS (~150ms) plus slack.
- * The same window governs the post-collapse teardown on a plain hide.
- */
-const SWAP_MS = 180;
-const HIDE_MS = SWAP_MS;
+const SHOW_MS = 160;
+const HIDE_MS = 160;
+/** Show/hide keyframes: the container scales up from a nub while fading in. */
+const SHOW_IN: Keyframe[] = [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1 }];
+const SHOW_OUT: Keyframe[] = [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.6 }];
 
 export type MediaType = 'image' | 'video' | 'audio';
 export type MediaKind = 'album' | 'book' | 'game' | 'project';
 
 /**
- * Two sizes, both circles (ADR 0004: circle always, grow on play). The glimpse
- * is the small reveal-on-approach bubble; committing to playback grows it to a
- * watchable disc anchored beside the trigger. Video is center-cropped into the
- * circle via `object-fit: cover`. CSS reads these through `--preview-w/h`.
+ * Two sizes for the default round Face (ADR 0004/0006). The glimpse is the
+ * small reveal-on-approach bubble; committing to playback grows it to a
+ * watchable disc anchored beside the trigger. CSS reads these through
+ * `--preview-w/h`.
  */
 const GLIMPSE_SIZE: PreviewSize = { w: 100, h: 100 };
 const GROWN_SIZE: PreviewSize = { w: 220, h: 220 };
@@ -67,10 +59,9 @@ const GROWN_SIZE_TOUCH: PreviewSize = { w: 150, h: 150 };
 
 /**
  * The `album` kind opts out of the circle (ADR 0005): a square Cover with the
- * vinyl disc sliding out beside it. One fixed box holds Cover + fully-emerged
- * disc; the disc's own `translate` is the whole animation, so the box never
- * grows. `--album-cover` sizes the square Cover; the box is wide enough for the
- * disc to travel one Cover-width to the right.
+ * vinyl disc sliding out beside it. One fixed box holds Cover + emerged disc;
+ * the disc's own animation is the whole motion, so the box never grows.
+ * `--album-cover` sizes the square Cover.
  */
 const ALBUM_BOX: PreviewSize = { w: 212, h: 112 };
 const ALBUM_BOX_TOUCH: PreviewSize = { w: 172, h: 92 };
@@ -130,11 +121,15 @@ export interface RevealOptions {
 /**
  * A Singleton class that manages a global media preview overlay.
  *
- * ONE shared DOM node, reused for every trigger (ADR 0004). It is purely
- * decorative (`aria-hidden`, `pointer-events: none`) — all interaction lives on
- * the trigger card, which drives this by handing over a {@link PreviewTrigger}:
- * `reveal()` (reveal a paused glimpse), `commit()` (anchor + grow + start
- * media), and `move()` / `stop()` / `hide()`.
+ * ONE shared Container node, reused for every trigger (ADR 0004/0006). It is a
+ * neutral, decorative envelope (`aria-hidden`, `pointer-events: none`) that
+ * carries no kind look of its own — every visual lives in a Face mounted inside
+ * it. All interaction lives on the trigger card, which drives this by handing
+ * over a {@link PreviewTrigger}: `reveal()` (a paused glimpse), `commit()`
+ * (anchor + start media + play animation), and `move()` / `stop()` / `hide()`.
+ *
+ * The Container owns show/hide (scale+opacity via `animationManager`); Channels
+ * own playback; Presentations own their Face's visual + its own animation.
  */
 export class SharedMediaPreview {
   /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
@@ -143,37 +138,41 @@ export class SharedMediaPreview {
   /** The single instance of the class. */
   private static instance: SharedMediaPreview;
 
+  /** The neutral envelope: position, size box, show/hide. No kind look. */
   private _wrapper: HTMLDivElement;
+  /** Default round Face — accent ring + circular clip framing the visual Channel. */
+  private _roundFace: HTMLDivElement;
   /** One playback element per media type; exactly one is active at a time. */
   private _channels = createMediaChannels();
-  /** Per-kind visual treatments (ADR 0005); only `album` has one today. */
+  /** Per-kind Presentations/Faces (ADR 0005/0006); only `album` has one today. */
   private _presentations = createMediaPresentations();
   /** The channel currently revealed in the bubble, if any. */
   private _active: MediaChannel | null = null;
   /** The kind Presentation currently shown (album), if any. */
   private _activePresentation: MediaPresentation | null = null;
-  private _currentSrc: string | null;
-  private _currentType: MediaType | null;
-  private _currentSize: PreviewSize;
-  /** True once a trigger commits to playback: bubble is grown + anchored. */
+  private _currentSrc: string | null = null;
+  private _currentType: MediaType | null = null;
+  private _currentSize: PreviewSize = GLIMPSE_SIZE;
+  /** True once a trigger commits to playback. */
   private _isPlaying = false;
   /** The trigger rect captured at play time; the grown bubble anchors to it. */
   private _anchorRect: DOMRect | null = null;
   private _anchorPlacement: PreviewPlacement = 'right';
-  /** Latest cursor position, fed by show()/move(); the intent sampler reads it. */
+  /** Latest cursor position, fed by reveal()/move(); the intent sampler reads it. */
   private _cursor: { x: number; y: number } = { x: 0, y: 0 };
   private _lastSample: { x: number; y: number } | null = null;
   private _intentTimer: ReturnType<typeof setInterval> | null = null;
   private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Pending shape-swap (album ↔ other): retract-then-reveal in flight. */
-  private _swapTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Pending post-collapse teardown: resets the hidden bubble's visuals. */
-  private _teardownTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Monotonic generation. Bumped on every new reveal/commit/hide so a
+   * still-pending collapse's teardown (resolved after its hide animation) knows
+   * it has been superseded — replaces the old retract/teardown setTimeouts.
+   */
+  private _gen = 0;
 
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
   private _trackGetRect: RectProvider | null = null;
-  private _trackIdleTimer: ReturnType<typeof setTimeout> | null = null;
   /** Scroll position captured at desktop play time, for the dismiss threshold. */
   private _playStartScrollY = 0;
   /** Owns the scroll/resize listener + rAF lifecycle; policy stays here. */
@@ -194,33 +193,34 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Initializes the bubble: a wrapper div holding one element per media channel
-   * (image / video / audio). Each channel creates and configures its own
-   * element (see `previewChannels.ts`); media is paused until a trigger commits.
+   * Builds the bubble: a neutral Container holding the default round Face (with
+   * the visual channels), each kind Face (album), and the loose `<audio>`
+   * (sound only). Each Face/Channel configures its own element; media is paused
+   * until a trigger commits.
    */
   private constructor() {
-    /** The main container for the preview. */
     this._wrapper = document.createElement('div');
     this._wrapper.id = 'mediaPreview';
     // Purely decorative glimpse — the slotted trigger carries all semantics.
     this._wrapper.setAttribute('aria-hidden', 'true');
 
-    for (const type of ['image', 'video', 'audio'] as const) {
-      this._wrapper.appendChild(this._channels[type].el);
+    // Default round Face: the visual channels (image/video) render inside it.
+    this._roundFace = document.createElement('div');
+    this._roundFace.className = 'round-face';
+    for (const type of ['image', 'video'] as const) {
+      this._roundFace.appendChild(this._channels[type].el);
     }
-    // Presentation layers (album Cover + vinyl) sit alongside the channels;
-    // CSS keyed on `data-kind` decides which is shown.
+    this._wrapper.appendChild(this._roundFace);
+
+    // Kind Faces (album Cover + vinyl) sit alongside; `is-active` picks one.
     for (const presentation of Object.values(this._presentations)) {
       if (presentation) this._wrapper.appendChild(presentation.el);
     }
-    this._ensureAttached();
 
-    /** Tracks the currently loaded source to avoid redundant reloading. */
-    this._currentSrc = null;
-    /** Tracks the current media type ('image' | 'video' | 'audio'). */
-    this._currentType = null;
-    /** Tracks the current bubble size so `move()` positions with the right box. */
-    this._currentSize = GLIMPSE_SIZE;
+    // Audio is loose — sound only, no visual (ADR 0006).
+    this._wrapper.appendChild(this._channels.audio.el);
+
+    this._ensureAttached();
   }
 
   private _ensureAttached(): void {
@@ -258,7 +258,7 @@ export class SharedMediaPreview {
     return !!type && PLAYABLE_TYPES.has(type);
   }
 
-  /** True while a trigger's playback is committed (bubble grown + anchored). */
+  /** True while a trigger's playback is committed. */
   isPlaying(src?: string): boolean {
     if (!this._isPlaying) return false;
     return src ? this._currentSrc === src : true;
@@ -279,22 +279,21 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     this._ensureAttached();
 
-    // A new target supersedes any pending shape-swap retract or hide teardown.
-    this._cancelSwap();
-    this._cancelTeardown();
+    // A new target supersedes any pending collapse teardown / deferred reveal.
+    this._gen++;
 
     const rect = trigger.getRect();
     const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
     const point = cursor ?? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 
-    // The card that committed to playback owns the grown bubble — approaching it
-    // again must not shrink it back to a glimpse.
+    // The card that committed to playback owns the bubble — approaching it again
+    // must not reset it.
     if (this._isPlaying && this._currentSrc === src) return;
 
     // Crossing the album shape boundary while visible: retract the current
-    // bubble fully first, then reveal the new one (ADR 0005) so a square album
-    // never morphs into a round bubble. Skipped under reduced motion, where the
-    // geometry never animates anyway (no morph to hide).
+    // bubble fully first, then reveal the new one (ADR 0005/0006) so a square
+    // album never morphs into a round bubble. Only scale + opacity animate, so
+    // the shape change happens entirely while hidden.
     const visible = this._wrapper.classList.contains('is-visible');
     const shapeSwap = (this._wrapper.dataset.kind === 'album') !== (trigger.kind === 'album');
     if (visible && shapeSwap && !this._reducedMotion()) {
@@ -310,7 +309,7 @@ export class SharedMediaPreview {
 
     const glimpseSize = trigger.kind === 'album' ? this._albumBox() : GLIMPSE_SIZE;
     this._applyMeta(effectiveType, trigger.kind, glimpseSize);
-    this._applyPresentation(trigger.kind, trigger.cover);
+    this._applyFace(trigger.kind, trigger.cover);
 
     this._anchorPlacement = placement;
     this._cursor = point;
@@ -324,9 +323,7 @@ export class SharedMediaPreview {
 
     // Warm: bubble already up (or lingering) — intent stays proven, siblings
     // swap instantly instead of re-sampling.
-    const warm = this._wrapper.classList.contains('is-visible');
-
-    if (immediate || warm) {
+    if (immediate || visible) {
       this._cancelIntent();
       this._cancelLinger();
       this._reveal(src, effectiveType);
@@ -345,42 +342,32 @@ export class SharedMediaPreview {
     return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   }
 
-  private _cancelSwap(): void {
-    if (this._swapTimer !== null) {
-      clearTimeout(this._swapTimer);
-      this._swapTimer = null;
-    }
-  }
-
   /**
    * Sequential shape-swap (album ↔ other). Collapse the current bubble in its
-   * own shape (only scale + opacity animate), then — once hidden — tear down the
-   * old visuals and reveal the new target. Its geometry is set while invisible,
-   * so the square↔circle change is never seen; only the entrance animates.
+   * own shape (scale + opacity only), then — once hidden — tear down the old
+   * visuals and reveal the new target, whose geometry is applied while still
+   * invisible. So the square↔circle change is never seen; only the entrance
+   * animates. Uses the generation guard so a newer interaction supersedes it.
    */
   private _deferReveal(trigger: PreviewTrigger, opts: RevealOptions): void {
+    const gen = this._gen;
     if (this._isPlaying) this._stopPlayback();
     this._cancelIntent();
     this._cancelLinger();
     this._pauseAllMedia();
     this._stopTracking();
 
-    // Phase 1: collapse in the current shape (nothing else changes yet).
-    this._wrapper.classList.remove('is-visible');
-
-    this._swapTimer = setTimeout(() => {
-      this._swapTimer = null;
-      // Phase 2 (hidden): retire the old visuals, then reveal the new target —
-      // it applies the new geometry while still invisible and fades in.
+    void this._collapse().then(() => {
+      if (gen !== this._gen) return; // superseded by a newer reveal/hide
       this._teardown();
       this.reveal(trigger, { ...opts, immediate: true });
-    }, SWAP_MS);
+    });
   }
 
   /**
    * Commits to (or ends) playback for a trigger. Toggle semantics: calling it
    * for the media already playing stops it; otherwise it anchors the bubble
-   * beside the trigger, grows it, and starts the media. Images have no
+   * beside the trigger and starts the media + its play animation. Images have no
    * playback — the call reveals the glimpse instead.
    *
    * @returns the resulting playing state (true = now playing).
@@ -391,6 +378,8 @@ export class SharedMediaPreview {
 
     const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return false;
+
+    this._gen++;
 
     // Reveal-only types never enter the playing state.
     if (!this.isPlayable(effectiveType)) {
@@ -412,20 +401,21 @@ export class SharedMediaPreview {
     // Grown playback always anchors beside the card, never on the cursor.
     const placement = this._anchorPlacementFor(trigger.placement);
 
-    // Album keeps its fixed box and only slides the disc (ADR 0005); every other
-    // kind grows the circle. Load the media (glimpse first frame) then start it.
+    // Album keeps its fixed box and slides the disc (ADR 0005); every other kind
+    // grows the round Face. Load the media (glimpse first frame) then start it.
     const isAlbum = trigger.kind === 'album';
     this._applyMeta(effectiveType, trigger.kind, isAlbum ? this._albumBox() : this._grownSize());
-    this._applyPresentation(trigger.kind, trigger.cover);
+    this._applyFace(trigger.kind, trigger.cover);
     this._reveal(src, effectiveType);
 
     this._isPlaying = true;
     this._anchorRect = rect;
     this._anchorPlacement = placement;
-    this._wrapper.classList.add('is-playing');
-    if (!isAlbum) this._wrapper.classList.add('is-grown');
 
     this._positionAnchored();
+
+    // Visual play (album disc) is owned by the Presentation; sound by the Channel.
+    this._activePresentation?.play({ reducedMotion: this._reducedMotion() });
     this._startCurrentMedia();
 
     // Touch: follow the source card on scroll, stopping once it is fully gone.
@@ -469,9 +459,14 @@ export class SharedMediaPreview {
     return typeof window !== 'undefined' ? window.scrollY : 0;
   }
 
-  /** Grown-bubble size: smaller on coarse-pointer (touch) devices. */
+  /** Grown round-Face size: smaller on coarse-pointer (touch) devices. */
   private _grownSize(): PreviewSize {
     return this._coarsePointer() ? GROWN_SIZE_TOUCH : GROWN_SIZE;
+  }
+
+  /** The fixed album box (ADR 0005), smaller on touch. */
+  private _albumBox(): PreviewSize {
+    return this._coarsePointer() ? ALBUM_BOX_TOUCH : ALBUM_BOX;
   }
 
   /**
@@ -488,11 +483,6 @@ export class SharedMediaPreview {
   private _stopTracking(): void {
     this._scrollAnchor.stop();
     this._trackGetRect = null;
-    if (this._trackIdleTimer !== null) {
-      clearTimeout(this._trackIdleTimer);
-      this._trackIdleTimer = null;
-    }
-    this._wrapper.classList.remove('is-tracking');
   }
 
   /**
@@ -508,7 +498,6 @@ export class SharedMediaPreview {
 
     if (this._coarsePointer()) {
       if (this._trackGetRect) {
-        this._markTracking();
         this._reposition();
 
         // Committed playback ends when its source has fully left the viewport.
@@ -526,16 +515,6 @@ export class SharedMediaPreview {
     if (this._isPlaying && Math.abs(this._scrollY() - this._playStartScrollY) > DESKTOP_SCROLL_STOP_PX) {
       this.stop();
     }
-  }
-
-  /** Adds the instant-tracking class and schedules its removal after scroll idles. */
-  private _markTracking(): void {
-    this._wrapper.classList.add('is-tracking');
-    if (this._trackIdleTimer !== null) clearTimeout(this._trackIdleTimer);
-    this._trackIdleTimer = setTimeout(() => {
-      this._trackIdleTimer = null;
-      this._wrapper.classList.remove('is-tracking');
-    }, TRACK_IDLE_MS);
   }
 
   /** Repositions the bubble from the live source rect, trailing it off-screen. */
@@ -582,9 +561,9 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Applies size + type/kind metadata to the wrapper. Exposed to CSS via
-   * `--preview-w/h` and `data-type` / `data-kind`. Applying it while hidden is
-   * a visual no-op.
+   * Applies size + type/kind metadata to the container. Size is exposed to CSS
+   * via `--preview-w/h`; `data-type`/`data-kind` are logical state (not shape —
+   * shape lives in the active Face). Applying it while hidden is a visual no-op.
    */
   private _applyMeta(type: MediaType, kind: MediaKind | undefined, size: PreviewSize): void {
     this._currentSize = size;
@@ -602,17 +581,11 @@ export class SharedMediaPreview {
     }
   }
 
-  /** The fixed album box (ADR 0005), smaller on touch. */
-  private _albumBox(): PreviewSize {
-    return this._coarsePointer() ? ALBUM_BOX_TOUCH : ALBUM_BOX;
-  }
-
   /**
-   * Shows the Presentation for a kind (album Cover + vinyl), retiring any
-   * previously active one. Kinds without a Presentation clear it — the channel's
-   * own media shows in the round bubble instead (ADR 0005).
+   * Activates the Face for a kind: the album Presentation's Face, or the default
+   * round Face for plain kinds. Retires any previously active Presentation.
    */
-  private _applyPresentation(kind: MediaKind | undefined, cover?: string): void {
+  private _applyFace(kind: MediaKind | undefined, cover?: string): void {
     const next = (kind && this._presentations[kind]) || null;
     if (this._activePresentation && this._activePresentation !== next) {
       this._activePresentation.deactivate();
@@ -621,10 +594,13 @@ export class SharedMediaPreview {
     if (next) {
       next.loadCover(cover ?? null);
       next.activate();
+      this._roundFace.classList.remove('is-active');
+    } else {
+      this._roundFace.classList.add('is-active');
     }
   }
 
-  /** Loads the media (if it changed) and makes the bubble visible — paused. */
+  /** Loads the media (if it changed), activates its Channel, and shows the bubble. */
   private _reveal(src: string, type: MediaType): void {
     const isSameMedia = this._currentSrc === src && this._currentType === type;
 
@@ -640,12 +616,29 @@ export class SharedMediaPreview {
       this._currentType = type;
     }
 
+    this._show();
+  }
+
+  /** Shows the container (scale + opacity in). No-op if already shown (warm swap). */
+  private _show(): void {
+    if (this._wrapper.classList.contains('is-visible')) return;
     this._wrapper.classList.add('is-visible');
+    void animator.animate(this._wrapper, SHOW_IN, { duration: SHOW_MS, easing: 'ease' });
+  }
+
+  /**
+   * Collapses the container (scale + opacity out) and resolves when hidden. The
+   * current shape/artwork is kept *through* the collapse — teardown happens
+   * after — so the shape never changes under an opaque bubble.
+   */
+  private _collapse(): Promise<void> {
+    this._wrapper.classList.remove('is-visible');
+    return animator.animate(this._wrapper, SHOW_OUT, { duration: HIDE_MS, easing: 'ease' });
   }
 
   /**
    * Repositions the glimpse to a new cursor point during mousemove. No-op while
-   * playback is committed — the grown bubble stays anchored to its trigger.
+   * playback is committed — the anchored bubble stays put.
    */
   move(trigger: PreviewTrigger, cursor: { x: number; y: number }): void {
     if (this._isPlaying) return;
@@ -689,18 +682,19 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Pauses any playing media and clears the anchored/grown playback state,
-   * WITHOUT hiding the bubble — callers decide whether to hide or retarget.
+   * Pauses any playing media, stops the Presentation's play animation, and
+   * clears the playing state — WITHOUT hiding the bubble; callers decide whether
+   * to hide or retarget.
    */
   private _stopPlayback(): void {
     const wasPlaying = this._isPlaying;
     const stoppedSrc = this._currentSrc;
 
     this._pauseAllMedia();
+    this._activePresentation?.stop();
 
     this._isPlaying = false;
     this._anchorRect = null;
-    this._wrapper.classList.remove('is-playing', 'is-grown');
     const kind = this._wrapper.dataset.kind as MediaKind | undefined;
     // Album keeps its fixed box; other kinds shrink back to the glimpse circle.
     this._applyMeta(this._currentType ?? 'image', kind, kind === 'album' ? this._albumBox() : GLIMPSE_SIZE);
@@ -713,49 +707,38 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Collapses the bubble, then tears down its visuals once it is hidden.
-   *
-   * Only scale + opacity animate (never forms/sizes), so the bubble must keep
-   * its current shape/artwork *through* the collapse — otherwise the shape or
-   * cover would visibly change under a still-opaque bubble (the "morph"). Media
-   * and scroll-tracking stop at once; the shape/kind/src reset waits until the
-   * scale-down has hidden it (`_teardown`).
+   * Collapses the bubble, then tears down its visuals once it is hidden. Only
+   * scale + opacity animate, so the bubble keeps its current shape/artwork
+   * *through* the collapse; the shape/kind/src reset waits for the generation
+   * guard to confirm nothing newer superseded this hide.
    */
   private _doHide(): void {
+    const gen = ++this._gen;
     this._cancelLinger();
-    this._cancelSwap();
     this._pauseAllMedia();
     this._stopTracking();
-    this._wrapper.classList.remove('is-visible');
 
-    this._cancelTeardown();
-    this._teardownTimer = setTimeout(() => {
-      this._teardownTimer = null;
+    void this._collapse().then(() => {
+      if (gen !== this._gen) return;
       this._teardown();
-    }, HIDE_MS);
+    });
   }
 
   /**
-   * Resets the hidden bubble's visuals: retire the active channel + presentation
-   * and clear the kind/size/src. Runs only while the bubble is invisible (after
-   * a collapse), so the geometry snap it causes is never seen.
+   * Resets the hidden bubble's visuals: retire the active Channel + Face and
+   * clear the kind/size/src. Runs only while the bubble is invisible (after a
+   * collapse), so the geometry it changes is never seen.
    */
   private _teardown(): void {
     this._active?.deactivate();
     this._active = null;
     this._activePresentation?.deactivate();
     this._activePresentation = null;
+    this._roundFace.classList.remove('is-active');
     delete this._wrapper.dataset.kind;
     this._wrapper.style.removeProperty('--album-cover');
     this._currentSrc = null;
     this._currentType = null;
-  }
-
-  private _cancelTeardown(): void {
-    if (this._teardownTimer !== null) {
-      clearTimeout(this._teardownTimer);
-      this._teardownTimer = null;
-    }
   }
 
   /** Pauses every channel's media (no-op for the image channel). */
@@ -776,7 +759,7 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Positions the grown, anchored bubble beside its trigger rect. Falls back to
+   * Positions the anchored bubble beside its trigger rect. Falls back to
    * viewport-centered if no rect was captured at play time.
    */
   private _positionAnchored(): void {
@@ -795,7 +778,8 @@ export class SharedMediaPreview {
 
   /**
    * Resolves the bubble position (pure geometry, see `previewGeometry.ts`) and
-   * writes it to the `--preview-x/y` CSS variables.
+   * writes it to the `--preview-x/y` CSS variables. The Container reads them via
+   * the `translate` property, leaving `scale`/`opacity` free for WAAPI.
    */
   private _setPosition({ x, y, placement = 'cursor', triggerRect, unclampY = false }: PositionOptions): void {
     const { x: eixoX, y: eixoY } = computePreviewPosition({

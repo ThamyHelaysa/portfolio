@@ -149,6 +149,8 @@ export class SharedMediaPreview {
   private _pendingTrigger: PreviewTrigger | null = null;
   /** The trigger rect captured at play time; the grown bubble anchors to it. */
   private _anchorRect: DOMRect | null = null;
+  /** Click point captured at play time; set only for a cursor-placement commit. */
+  private _anchorCursor: { x: number; y: number } | null = null;
   private _anchorPlacement: PreviewPlacement = 'right';
   /** Latest cursor position, fed by reveal()/move(); the intent sampler reads it. */
   private _cursor: { x: number; y: number } = { x: 0, y: 0 };
@@ -284,8 +286,11 @@ export class SharedMediaPreview {
 
     // Shape-swap defer (ADR 0005/0006): geometry for the new target is applied
     // only once the old one has fully collapsed (see `_applyShow`'s caller in
-    // `_execute`'s 'revealDeferred' handling) — never seen mid-collapse.
+    // `_execute`'s 'revealDeferred' handling) — never seen mid-collapse. Track
+    // the cursor now so the deferred reveal lands under the pointer, not at the
+    // new card's centre (which read as a position flash).
     if (this._choreography.state === 'deferring') {
+      this._cursor = point;
       this._execute(commands);
       return;
     }
@@ -324,7 +329,7 @@ export class SharedMediaPreview {
    *
    * @returns the resulting playing state (true = now playing).
    */
-  commit(trigger: PreviewTrigger): boolean {
+  commit(trigger: PreviewTrigger, { cursor }: { cursor?: { x: number; y: number } } = {}): boolean {
     const { src } = trigger;
     if (!src) return false;
 
@@ -350,8 +355,12 @@ export class SharedMediaPreview {
     }
 
     const rect = trigger.getRect();
-    // Grown playback always anchors beside the card, never on the cursor.
-    const placement = this._anchorPlacementFor(trigger.placement);
+    // Play *where the user clicked*: a cursor-placement card grows the bubble in
+    // place under the pointer instead of jumping it to the card's edge. Cards
+    // that ask for a fixed side (or a pointerless keyboard commit) still anchor
+    // beside the rect.
+    const onCursor = !!cursor && trigger.placement === 'cursor';
+    const placement = onCursor ? 'cursor' : this._anchorPlacementFor(trigger.placement);
 
     // Album keeps its fixed box and slides the disc (ADR 0005); every other kind
     // grows the round Face.
@@ -359,6 +368,7 @@ export class SharedMediaPreview {
     this._applyMeta(effectiveType, trigger.kind, isAlbum ? this._albumBox() : this._grownSize());
     this._applyFace(trigger.kind, trigger.cover);
     this._anchorRect = rect;
+    this._anchorCursor = onCursor ? cursor : null;
     this._anchorPlacement = placement;
 
     this._pendingTrigger = trigger;
@@ -553,7 +563,7 @@ export class SharedMediaPreview {
   private _revealDeferred(opts: { immediate: boolean; reducedMotion: boolean }): void {
     const trigger = this._pendingTrigger;
     if (!trigger) return;
-    this.reveal(trigger, { immediate: opts.immediate });
+    this.reveal(trigger, { immediate: opts.immediate, cursor: this._cursor });
   }
 
   /**
@@ -626,8 +636,13 @@ export class SharedMediaPreview {
    */
   move(trigger: PreviewTrigger, cursor: { x: number; y: number }): void {
     if (this._choreography.isCommitted) return;
-    this._ensureAttached();
+    // Always keep the cursor fresh — a pending shape-swap defer reveals at it.
     this._cursor = cursor;
+    // But never drag a bubble that is collapsing (or waiting to, mid shape-swap):
+    // repositioning the outgoing shape toward the new card reads as a lunge.
+    const state = this._choreography.state;
+    if (state === 'collapsing' || state === 'deferring') return;
+    this._ensureAttached();
     this._setPosition({ x: cursor.x, y: cursor.y, placement: trigger.placement, triggerRect: trigger.getRect() });
   }
 
@@ -653,6 +668,7 @@ export class SharedMediaPreview {
     this._activePresentation?.stop();
 
     this._anchorRect = null;
+    this._anchorCursor = null;
     const kind = this._wrapper.dataset.kind as MediaKind | undefined;
     // Album keeps its fixed box; other kinds shrink back to the glimpse circle.
     this._applyMeta(this._currentType ?? 'image', kind, kind === 'album' ? this._albumBox() : GLIMPSE_SIZE);
@@ -718,6 +734,13 @@ export class SharedMediaPreview {
    * viewport-centered if no rect was captured at play time.
    */
   private _positionAnchored(): void {
+    // Played at the click point: center the grown bubble on the cursor, where
+    // the glimpse already was — no jump to the card edge.
+    if (this._anchorPlacement === 'cursor' && this._anchorCursor) {
+      this._setPosition({ x: this._anchorCursor.x, y: this._anchorCursor.y, placement: 'cursor' });
+      return;
+    }
+
     // Prefer the live rect (touch follow) over the play-time snapshot. A null
     // rect with the anchored placement resolves to viewport-center inside
     // `computePreviewPosition` (the play-commit fallback).

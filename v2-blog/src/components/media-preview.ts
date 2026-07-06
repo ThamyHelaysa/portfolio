@@ -269,14 +269,18 @@ export class MediaPreview extends LitElement {
 
   // --- Commit: play / pause ---
 
-  /** Toggles playback for playable types; a no-op reveal for images. */
-  private _commit() {
+  /**
+   * Toggles playback for playable types; a no-op reveal for images. A pointer
+   * commit (click) carries the cursor so the grown bubble plays *where the user
+   * clicked*, not jumped to the card's edge; keyboard commits have no pointer.
+   */
+  private _commit(cursor?: { x: number; y: number }) {
     if (!this.previewSrc || !this._isPlayable) return;
-    this._playing = SharedMediaPreview.getInstance().commit(this._trigger);
+    this._playing = SharedMediaPreview.getInstance().commit(this._trigger, { cursor });
   }
 
-  private _handleClick() {
-    this._commit();
+  private _handleClick(e: MouseEvent) {
+    this._commit({ x: e.clientX, y: e.clientY });
   }
 
   private _handleKeydown(e: KeyboardEvent) {

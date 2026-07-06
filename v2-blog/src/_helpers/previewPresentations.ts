@@ -47,6 +47,12 @@ const PULL_MS = 340;
 const PULL_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const PLACE_MS = 440;
 const PLACE_EASE = 'cubic-bezier(0.34, 1.2, 0.64, 1)';
+/**
+ * Stop is a *system response*, not the deliberate commit — it snaps back faster
+ * (asymmetric timing) with a strong ease-out, rather than mirroring the pull.
+ */
+const STOP_MS = 220;
+const STOP_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
 
 /**
  * The `album` Presentation. Its Face is a square Cover (`<img>`) with a pure-CSS
@@ -136,9 +142,15 @@ export class AlbumPresentation implements MediaPresentation {
     this._playGen++; // invalidate any in-flight play sequence
     this.el.classList.remove(SPINNING);
     if (!this._disc.classList.contains(FRONT)) return;
+    // Capture where the disc actually is *now* (mid-pull included) BEFORE the
+    // animator cancels the in-flight tween — a single-keyframe animation would
+    // read its implicit `from` only after that cancel reverted the disc to its
+    // CSS rest, teleporting it. An explicit `from` retargets from the current
+    // on-screen position instead.
+    const from = getComputedStyle(this._disc).transform;
     // Slide back behind the Cover from wherever it is, then drop the front z.
     void animator
-      .animate(this._disc, [{ transform: DISC_REST }], { duration: PULL_MS, easing: 'ease' })
+      .animate(this._disc, [{ transform: from }, { transform: DISC_REST }], { duration: STOP_MS, easing: STOP_EASE })
       .then(() => this._disc.classList.remove(FRONT));
   }
 }

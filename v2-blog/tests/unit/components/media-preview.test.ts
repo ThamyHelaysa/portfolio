@@ -166,10 +166,13 @@ describe("media-preview", () => {
     expect(wrapper?.getAttribute("role")).toBe("button");
     expect(wrapper?.getAttribute("aria-pressed")).toBe("false");
 
-    wrapper?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    wrapper?.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 12, clientY: 34 }));
 
+    // The click cursor rides along so playback grows the bubble where the user
+    // clicked, not at the card's edge.
     expect(previewApi.commit).toHaveBeenCalledWith(
-      expect.objectContaining({ src: "/assets/song.mp3", type: "audio", kind: "album" })
+      expect.objectContaining({ src: "/assets/song.mp3", type: "audio", kind: "album" }),
+      { cursor: { x: 12, y: 34 } }
     );
 
     await element.updateComplete;

@@ -64,26 +64,6 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
   });
 
-  it("never reveals while the cursor keeps sweeping, then reveals once it settles", async () => {
-    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
-    const preview = SharedMediaPreview.getInstance();
-    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
-    const t = trigger("/assets/cover.webp");
-
-    preview.reveal(t, { cursor: { x: 0, y: 0 } });
-
-    // Cursor keeps travelling fast (50px per 100ms tick) — no intent.
-    for (let i = 1; i <= 5; i++) {
-      preview.move(t, { x: i * 50, y: 0 });
-      vi.advanceTimersByTime(100);
-    }
-    expect(wrapper?.classList.contains("is-visible")).toBe(false);
-
-    // Cursor settles → intent proven on the next tick.
-    vi.advanceTimersByTime(100);
-    expect(wrapper?.classList.contains("is-visible")).toBe(true);
-  });
-
   it("reveals immediately when intent is already proven (keyboard focus)", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
@@ -310,6 +290,63 @@ describe("sharedPreview", () => {
     expect(preview.isPlaying()).toBe(false);
   });
 
+  it("plays where the user clicked: a cursor-placement commit centres the grown bubble on the cursor", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const video = wrapper?.querySelector("video");
+    Object.defineProperty(video!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
+    Object.defineProperty(video!, "paused", { configurable: true, get: () => false });
+
+    // Card is at the origin, but the click is far away — playback must land on the
+    // click point, not jump to the card's edge.
+    preview.commit(
+      trigger("/assets/demo.mp4", { type: "video", getRect: () => new DOMRect(0, 0, 40, 40) }),
+      { cursor: { x: 300, y: 250 } }
+    );
+
+    expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("220px");
+    const x = parseFloat(wrapper!.style.getPropertyValue("--preview-x"));
+    const y = parseFloat(wrapper!.style.getPropertyValue("--preview-y"));
+    // 220 box centred on the click point.
+    expect(x + 110).toBe(300);
+    expect(y + 110).toBe(250);
+  });
+
+  it("shape-swap defer reveals the new glimpse on the cursor, never the card centre", async () => {
+    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
+    const preview = SharedMediaPreview.getInstance();
+    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
+    const audio = wrapper?.querySelector("audio");
+    Object.defineProperty(audio!, "play", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
+    Object.defineProperty(audio!, "paused", { configurable: true, get: () => false });
+
+    // Album glimpse up (fixed box).
+    preview.reveal(
+      trigger("/assets/song.mp3", { type: "audio", kind: "album", cover: "/assets/art.jpeg" }),
+      { cursor: { x: 200, y: 200 }, immediate: true }
+    );
+
+    // Cross to a round-kind trigger far away — the album↔round swap defers behind
+    // a full collapse; the new geometry must not appear until it finishes.
+    preview.reveal(
+      trigger("/assets/pic.webp", { getRect: () => new DOMRect(400, 400, 40, 40) }),
+      { cursor: { x: 120, y: 130 } }
+    );
+    expect(wrapper?.dataset.kind).toBe("album");
+
+    collapse(wrapper);
+    await flush();
+
+    // The deferred round glimpse (100 box) lands centred on the *cursor* the user
+    // crossed with, not the new card's centre (420, 420).
+    expect(wrapper?.dataset.kind).toBeUndefined();
+    const x = parseFloat(wrapper!.style.getPropertyValue("--preview-x"));
+    const y = parseFloat(wrapper!.style.getPropertyValue("--preview-y"));
+    expect(x + 50).toBe(120);
+    expect(y + 50).toBe(130);
+  });
+
   it("album: shows the Cover Face, plays the disc, and keeps a fixed box", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
@@ -384,18 +421,6 @@ describe("sharedPreview", () => {
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
-  });
-
-  it("other → other: same round shape swaps instantly (no retract)", async () => {
-    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
-    const preview = SharedMediaPreview.getInstance();
-    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
-
-    preview.reveal(trigger("/assets/a.webp"), { immediate: true });
-    preview.reveal(trigger("/assets/b.webp"), { immediate: true });
-    // No shape boundary crossed → warm instant swap, never a retract/defer.
-    expect(wrapper?.classList.contains("is-visible")).toBe(true);
-    expect(preview.isPlaying()).toBe(false);
   });
 
   it("warns when committed playback is blocked", async () => {

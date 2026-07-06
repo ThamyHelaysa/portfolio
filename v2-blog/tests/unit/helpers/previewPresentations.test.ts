@@ -115,6 +115,15 @@ describe("previewPresentations", () => {
       // A return slide is animated (3rd call after the two play steps); is-front
       // drops once it resolves.
       expect(animatorMock.animate).toHaveBeenCalledTimes(3);
+
+      // The return retargets from the disc's *current* transform (explicit first
+      // keyframe), so an interrupted pull never teleports; and it snaps back
+      // faster than the deliberate pull (asymmetric response timing).
+      const [, keyframes, options] = animatorMock.animate.mock.calls[2];
+      expect(keyframes).toHaveLength(2);
+      expect(keyframes[1]).toEqual({ transform: "translate(40%, -50%)" });
+      expect(options.duration).toBe(220);
+
       await Promise.resolve();
       expect(disc.classList.contains("is-front")).toBe(false);
     });

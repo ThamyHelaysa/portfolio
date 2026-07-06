@@ -305,7 +305,9 @@
   overflow: visible;
   z-index: 99;
 
-  transition: opacity 150ms ease, scale 150ms ease;
+  /* Reveal/collapse is an entering/exiting element → strong ease-out so the
+     watched frame (the reveal) lands crisp, not soft like built-in `ease`. */
+  transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1), scale 150ms cubic-bezier(0.23, 1, 0.32, 1);
   will-change: scale, opacity;
 }
 

@@ -281,67 +281,71 @@
   
 }
 
-/* Media Preview */
+/* Media preview (ADR 0006): a neutral Container that only positions + shows /
+   hides. Every visual lives in a Face inside it — the container carries no kind
+   look. Position uses the `translate` property so `scale`+`opacity` are free to
+   animate on their own (no transform-shorthand clash). Show/hide is a CSS
+   transition on *only* scale + opacity — never geometry — so it interrupts
+   cleanly on a fast hover and never morphs a shape mid-fade. */
 #mediaPreview {
   position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  left: 0;
+  top: 0;
 
-  /* Size is owned by SharedMediaPreview (one table per preview type);
-     the fallbacks only cover the pre-first-show state. */
+  /* Size is owned by SharedMediaPreview (per Face); the fallbacks only cover
+     the pre-first-show state. */
   width: var(--preview-w, 100px);
   height: var(--preview-h, 100px);
-  background-color: var(--color-accent-primary);
-  border: solid white;
-  border-width: 0;
-  border-radius: 200px;
+  translate: var(--preview-x, 0px) var(--preview-y, 0px);
   opacity: 0;
-  visibility: hidden;
+  scale: 0.9;
   cursor: none;
   pointer-events: none;
-  overflow: hidden;
+  /* Album disc protrudes past its box; each Face clips its own content. */
+  overflow: visible;
   z-index: 99;
 
-  /* One unified transform: translate + scale var */
-  transform: translate3d(var(--preview-x, 0px), var(--preview-y, 0px), 0)
-             scale(var(--preview-scale, 0));
+  transition: opacity 150ms ease, scale 150ms ease;
+  will-change: scale, opacity;
+}
 
-  /* Keep transitions defined in a single place */
-  transition-property: transform, opacity, visibility, border-width, width, height, border-radius;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
-  transition-delay: 0ms;
+#mediaPreview.is-visible {
+  opacity: 1;
+  scale: 1;
+}
 
-  will-change: transform, opacity;
-
-  /* Hide children that don't have src at all (initial state) */
-  & > :not([src]) {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  /* Snap the fade; playback is never blocked, only its animation. */
+  #mediaPreview {
+    transition: none;
   }
 }
 
-/* Touch scroll-follow: while the bubble is tracking its source card the
-   translate must be instant (1:1 with the finger), so drop transform from the
-   transition. Everything else — opacity, size, border — still eases. */
-#mediaPreview.is-tracking {
-  transition-property: opacity, visibility, border-width, width, height, border-radius;
+/* Only the active Face is displayed; the container swaps `is-active`. */
+.round-face,
+.album-face {
+  position: absolute;
+  inset: 0;
+  display: none;
 }
 
-/* Visible state — easier & faster if you toggle a class from JS */
-#mediaPreview.is-visible {
-  border-width: 2px;
-  opacity: 1;
-  visibility: visible;
-  --preview-scale: 1;
+.round-face.is-active,
+.album-face.is-active {
+  display: block;
 }
 
-/* Media fades in, and stays blurred until its data actually arrives —
-   SharedMediaPreview adds `.is-loaded` on load/canplay. Before that the
-   bubble reads as a frosted accent circle instead of flashing empty. */
-#mediaPreview img,
-#mediaPreview video {
+/* Default round Face: accent ring + circular clip framing the visual Channel. */
+.round-face {
+  background-color: var(--color-accent-primary);
+  border: 2px solid white;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* The visual channel media fills the round Face; blurred until it loads
+   (SharedMediaPreview adds `is-loaded` on load/canplay, `visible` when active),
+   so the Face reads as a frosted accent circle instead of flashing empty. */
+.channel-media {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -350,73 +354,88 @@
   transition: opacity 150ms ease, filter 200ms ease;
 }
 
-#mediaPreview img.visible,
-#mediaPreview video.visible {
+.channel-media.visible {
   opacity: 1;
 }
 
-#mediaPreview img.is-loaded,
-#mediaPreview video.is-loaded {
+.channel-media.is-loaded {
   filter: blur(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
   /* Sharpen instantly — no filter animation. */
-  #mediaPreview img,
-  #mediaPreview video {
+  .channel-media {
     transition-property: opacity;
   }
-
-  /* Snap the reveal + grow: no travelling/scaling motion, only opacity.
-     Playback itself is never blocked — only the animation of getting there. */
-  #mediaPreview {
-    transition-property: opacity, visibility;
-  }
 }
 
-/* Circle always (ADR 0004): every type — video included — renders in the round
-   bubble, center-cropped via object-fit: cover. Committing to playback grows
-   the bubble (JS swaps --preview-w/h to the larger box) and anchors it beside
-   the trigger; `.is-grown` is the hook for anything that must react to the
-   larger state. Size itself is driven by the custom properties, so the growth
-   just rides the width/height transition already defined above. */
-#mediaPreview.is-grown {
-  border-width: 3px;
-}
-
-/* Media kind "album": pure-CSS vinyl disc instead of the cover art —
-   grooves drawn on the wrapper background, blank label + spindle hole in
-   ::before, light sheen in ::after. The disc is rotationally symmetric, so
-   the *sheen* is what spins: it reads as light glinting off a turning
-   record. Colors derive from the accent so both themes adapt. */
+/* Album Face (ADR 0005/0006): a square Cover with a pure-CSS vinyl disc. The
+   disc's slide + lift on commit is animated in JS (animationManager); CSS holds
+   only the resting pose, the front z-index (`is-front`), and the spinning sheen
+   (`is-spinning`). Colours derive from the accent so both themes adapt. */
 @keyframes preview-vinyl-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-#mediaPreview[data-kind="album"] {
+.album-face {
   --vinyl-disc: color-mix(in oklab, var(--color-accent-primary) 62%, var(--color-bg-default));
   --vinyl-groove: color-mix(in oklab, var(--color-accent-primary) 80%, var(--color-bg-default));
   --vinyl-label: var(--color-pink-50);
   --vinyl-hole: color-mix(in oklab, var(--color-accent-primary) 35%, black);
+}
 
+/* Cover: a square image pinned to the left of the box, vertically centred; on
+   commit the disc lifts to overlap its right half. */
+.album-cover {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--album-cover, 100px);
+  height: var(--album-cover, 100px);
+  transform: translateY(-50%);
+  object-fit: cover;
+  border-radius: 4px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  filter: blur(12px);
+  transition: filter 200ms ease;
+}
+
+.album-cover.is-loaded {
+  filter: blur(0);
+}
+
+/* The vinyl disc: grooves on its own background, label + spindle hole in
+   ::before, spinning sheen in ::after. Rests peeking ~40% from behind the Cover
+   (z-index 1); JS animates the transform to overlap the Cover on commit, and
+   `is-front` raises it above the Cover (z-index 3). */
+.album-vinyl {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--album-cover, 100px);
+  height: var(--album-cover, 100px);
+  border-radius: 50%;
+  z-index: 1;
+  /* Resting peek: JS overrides this transform for the commit slide/lift. */
+  transform: translate(40%, -50%);
   background-color: var(--vinyl-disc);
   background-image: repeating-radial-gradient(
     circle,
     transparent 0 5px,
     var(--vinyl-groove) 5px 6px
   );
+  box-shadow: 0 2px 10px rgb(0 0 0 / 30%);
 }
 
-/* Artwork stays in the data (previewUrl still meaningful elsewhere) but the
-   vinyl replaces it visually. */
-#mediaPreview[data-kind="album"] img {
-  display: none;
+.album-vinyl.is-front {
+  z-index: 3;
 }
 
 /* Blank label + spindle hole. inset 30% → label is 40% of disc diameter. */
-#mediaPreview[data-kind="album"]::before {
+.album-vinyl::before {
   content: '';
   position: absolute;
   inset: 30%;
@@ -425,7 +444,7 @@
 }
 
 /* Spinning sheen: two soft light bands roughly opposite each other. */
-#mediaPreview[data-kind="album"]::after {
+.album-vinyl::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -439,19 +458,23 @@
     rgb(255 255 255 / 12%) 215deg,
     transparent 255deg
   );
-  /* Spin is bound to playback (ADR 0004): the sheen sits still on a revealed
-     glimpse and only turns once the album commits to playing. */
+  /* Spin runs only while playing — the Presentation toggles `is-spinning`. */
   animation: preview-vinyl-spin 4s linear infinite;
   animation-play-state: paused;
 }
 
-#mediaPreview.is-playing[data-kind="album"]::after {
+.album-face.is-spinning .album-vinyl::after {
   animation-play-state: running;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Sheen freezes into a static highlight — the disc still reads as vinyl. */
-  #mediaPreview[data-kind="album"]::after {
+  /* No visual motion — audio only (ADR 0005/0006). The Presentation skips the
+     disc animation, so it stays at rest; kill the sheen + Cover blur-in too. */
+  .album-cover {
+    transition: none;
+  }
+
+  .album-vinyl::after {
     animation: none;
   }
 }

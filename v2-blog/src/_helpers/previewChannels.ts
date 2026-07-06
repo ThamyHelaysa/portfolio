@@ -8,13 +8,15 @@ import type { MediaType } from './sharedPreview.ts';
  *
  * The singleton holds one channel per type and keeps exactly one *active* at a
  * time; switching means `deactivate()` the old, `activate()` the new. Reveal-
- * only images have no-op play/pause; audio has no-op activate/deactivate (its
- * imagery is the wrapper's `data-kind` vinyl, not the element).
+ * only images have no-op play/pause; audio has no-op activate/deactivate (it is
+ * sound only — the album Face carries its imagery, not this element).
  */
 export interface MediaChannel {
   readonly type: MediaType;
-  /** The element to append into the bubble wrapper. */
+  /** The element to append into the bubble. */
   readonly el: HTMLElement;
+  /** True if the element is the *visual* (mounts in the round Face); false for audio. */
+  readonly visual: boolean;
   /** Point the channel at a source, resetting the blur-in until it loads. */
   load(src: string): void;
   /** Reveal this channel's element (`visible`). */
@@ -33,10 +35,13 @@ const LOADED = 'is-loaded';
 /** Static image. No playback; the blur-in clears on decode (or error). */
 export class ImageChannel implements MediaChannel {
   readonly type = 'image';
+  readonly visual = true;
   readonly el: HTMLImageElement;
 
   constructor() {
     this.el = document.createElement('img');
+    // Visual channel: mounts inside the default round Face (ADR 0006).
+    this.el.className = 'channel-media';
     // Blur-in: CSS keeps fresh media blurred until `is-loaded` lands; `error`
     // also marks it so a failed load never leaves a permanently frosted bubble.
     const markLoaded = () => this.el.classList.add(LOADED);
@@ -67,10 +72,13 @@ export class ImageChannel implements MediaChannel {
 /** Muted, looping, silent clip. Reveals a paused first frame; plays on commit. */
 export class VideoChannel implements MediaChannel {
   readonly type = 'video';
+  readonly visual = true;
   readonly el: HTMLVideoElement;
 
   constructor() {
     this.el = document.createElement('video');
+    // Visual channel: mounts inside the default round Face (ADR 0006).
+    this.el.className = 'channel-media';
     this.el.muted = true;
     this.el.loop = true;
     this.el.playsInline = true;
@@ -104,9 +112,10 @@ export class VideoChannel implements MediaChannel {
   }
 }
 
-/** Looping album audio. No visual — the wrapper's `data-kind` vinyl is the imagery. */
+/** Looping album audio. No visual — the album Face is the imagery. */
 export class AudioChannel implements MediaChannel {
   readonly type = 'audio';
+  readonly visual = false;
   readonly el: HTMLAudioElement;
 
   constructor() {

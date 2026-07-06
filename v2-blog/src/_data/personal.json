@@ -118,7 +118,8 @@
       "title": "Cochise",
       "details": "Audioslave",
       "previewUrl": "/assets/audio/previews/audioslave-cochise.preview.mp3",
-      "previewType": "audio"
+      "previewType": "audio",
+      "coverUrl": "/assets/images/previews/cochise-audioslave-cover.jpeg"
     },
     {
       "id": "game",

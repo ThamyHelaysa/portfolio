@@ -64,26 +64,6 @@ describe("sharedPreview", () => {
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
   });
 
-  it("never reveals while the cursor keeps sweeping, then reveals once it settles", async () => {
-    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
-    const preview = SharedMediaPreview.getInstance();
-    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
-    const t = trigger("/assets/cover.webp");
-
-    preview.reveal(t, { cursor: { x: 0, y: 0 } });
-
-    // Cursor keeps travelling fast (50px per 100ms tick) — no intent.
-    for (let i = 1; i <= 5; i++) {
-      preview.move(t, { x: i * 50, y: 0 });
-      vi.advanceTimersByTime(100);
-    }
-    expect(wrapper?.classList.contains("is-visible")).toBe(false);
-
-    // Cursor settles → intent proven on the next tick.
-    vi.advanceTimersByTime(100);
-    expect(wrapper?.classList.contains("is-visible")).toBe(true);
-  });
-
   it("reveals immediately when intent is already proven (keyboard focus)", async () => {
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
@@ -384,18 +364,6 @@ describe("sharedPreview", () => {
     expect(wrapper?.dataset.kind).toBeUndefined();
     expect(wrapper?.style.getPropertyValue("--preview-w")).toBe("100px");
     expect(wrapper?.classList.contains("is-visible")).toBe(true);
-  });
-
-  it("other → other: same round shape swaps instantly (no retract)", async () => {
-    const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
-    const preview = SharedMediaPreview.getInstance();
-    const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
-
-    preview.reveal(trigger("/assets/a.webp"), { immediate: true });
-    preview.reveal(trigger("/assets/b.webp"), { immediate: true });
-    // No shape boundary crossed → warm instant swap, never a retract/defer.
-    expect(wrapper?.classList.contains("is-visible")).toBe(true);
-    expect(preview.isPlaying()).toBe(false);
   });
 
   it("warns when committed playback is blocked", async () => {

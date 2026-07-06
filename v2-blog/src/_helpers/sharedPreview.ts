@@ -7,33 +7,24 @@ import { ScrollAnchor } from './scrollAnchor.ts';
 import { PreviewContainer } from './previewContainer.ts';
 import { type MediaChannel, createMediaChannels } from './previewChannels.ts';
 import { type MediaPresentation, createMediaPresentations } from './previewPresentations.ts';
+import {
+  PreviewChoreography,
+  type ChoreographyCommand,
+  type PreviewTarget,
+  type MediaType,
+  type MediaKind,
+  INTENT_TICK_MS,
+  LINGER_MS,
+} from './previewChoreography.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
-
-/**
- * Hover intent (see CONTEXT.md): the preview only appears once the cursor
- * *settles* over a trigger — a fast sweep across the page never flashes it.
- * Intent is judged from velocity: every tick the cursor's travel since the
- * previous tick is compared against a threshold.
- */
-const INTENT_TICK_MS = 100;
-const INTENT_MAX_TRAVEL_PX = 7;
-
-/**
- * Warm state (see CONTEXT.md): once intent is proven the bubble survives a
- * short linger after leave, so crossing the gap to a sibling trigger swaps
- * the preview instead of collapsing and re-proving intent.
- */
-const LINGER_MS = 100;
+export type { MediaType, MediaKind } from './previewChoreography.ts';
 
 /**
  * Desktop dismiss-on-scroll (ADR 0004): once committed playback is scrolled
  * past this many pixels, it stops. A small threshold ignores trackpad jitter.
  */
 const DESKTOP_SCROLL_STOP_PX = 8;
-
-export type MediaType = 'image' | 'video' | 'audio';
-export type MediaKind = 'album' | 'book' | 'game' | 'project';
 
 /**
  * Two sizes for the default round Face (ADR 0004/0006). The glimpse is the
@@ -118,8 +109,10 @@ export interface RevealOptions {
  * (anchor + start media + play animation), and `move()` / `stop()` / `hide()`.
  *
  * The Container owns show/hide (a CSS transition on scale+opacity, sequenced via
- * `PreviewContainer`'s promise, not a timer); Channels own playback;
- * Presentations own their Face's visual + its own animation.
+ * `PreviewContainer`'s promise, not a timer); the `PreviewChoreography` machine
+ * decides *when* to sequence it (hover intent, warm linger, shape-swap defer,
+ * generation superseding); Channels own playback; Presentations own their
+ * Face's visual + its own animation.
  */
 export class SharedMediaPreview {
   /** Window event fired (with `{ detail: { src } }`) whenever playback stops. */
@@ -142,25 +135,25 @@ export class SharedMediaPreview {
   private _active: MediaChannel | null = null;
   /** The kind Presentation currently shown (album), if any. */
   private _activePresentation: MediaPresentation | null = null;
+  /** What's currently loaded into a Channel — dedupes reloading the same media. */
   private _currentSrc: string | null = null;
   private _currentType: MediaType | null = null;
   private _currentSize: PreviewSize = GLIMPSE_SIZE;
-  /** True once a trigger commits to playback. */
-  private _isPlaying = false;
+  /**
+   * Decides hover intent / warm linger / shape-swap defer / generation
+   * superseding (ADR 0006). Owns no DOM or timers — this singleton feeds it
+   * events and executes the commands it returns.
+   */
+  private _choreography = new PreviewChoreography();
+  /** The trigger behind the choreography's current (or pending-defer) target. */
+  private _pendingTrigger: PreviewTrigger | null = null;
   /** The trigger rect captured at play time; the grown bubble anchors to it. */
   private _anchorRect: DOMRect | null = null;
   private _anchorPlacement: PreviewPlacement = 'right';
   /** Latest cursor position, fed by reveal()/move(); the intent sampler reads it. */
   private _cursor: { x: number; y: number } = { x: 0, y: 0 };
-  private _lastSample: { x: number; y: number } | null = null;
   private _intentTimer: ReturnType<typeof setInterval> | null = null;
   private _lingerTimer: ReturnType<typeof setTimeout> | null = null;
-  /**
-   * Monotonic generation. Bumped on every new reveal/commit/hide so a
-   * still-pending collapse's teardown (resolved after its hide animation) knows
-   * it has been superseded — replaces the old retract/teardown setTimeouts.
-   */
-  private _gen = 0;
 
   // --- Touch scroll-follow / desktop dismiss-on-scroll ---
   /** Live rect of the current source card (touch only); null when not tracking. */
@@ -253,8 +246,8 @@ export class SharedMediaPreview {
 
   /** True while a trigger's playback is committed. */
   isPlaying(src?: string): boolean {
-    if (!this._isPlaying) return false;
-    return src ? this._currentSrc === src : true;
+    if (!this._choreography.isCommitted) return false;
+    return src ? this._choreography.target?.src === src : true;
   }
 
   /**
@@ -272,32 +265,29 @@ export class SharedMediaPreview {
     if (!effectiveType) return;
     this._ensureAttached();
 
-    // A new target supersedes any pending collapse teardown / deferred reveal.
-    this._gen++;
-
     const rect = trigger.getRect();
     const placement = anchor ? this._anchorPlacementFor(trigger.placement) : trigger.placement;
     const point = cursor ?? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const target: PreviewTarget = { src, type: effectiveType, kind: trigger.kind, cover: trigger.cover };
 
-    // The card that committed to playback owns the bubble — approaching it again
-    // must not reset it.
-    if (this._isPlaying && this._currentSrc === src) return;
+    const commands = this._choreography.reveal({
+      target,
+      cursor: point,
+      immediate,
+      reducedMotion: this._reducedMotion(),
+    });
+    // The card that committed to playback owns the bubble — approaching it
+    // again must not reset it.
+    if (commands.length === 0) return;
 
-    // Crossing the album shape boundary while visible: retract the current
-    // bubble fully first, then reveal the new one (ADR 0005/0006) so a square
-    // album never morphs into a round bubble. Only scale + opacity animate, so
-    // the shape change happens entirely while hidden.
-    const visible = this._container.isVisible;
-    const shapeSwap = (this._wrapper.dataset.kind === 'album') !== (trigger.kind === 'album');
-    if (visible && shapeSwap && !this._reducedMotion()) {
-      this._deferReveal(trigger, { cursor, immediate, anchor });
+    this._pendingTrigger = trigger;
+
+    // Shape-swap defer (ADR 0005/0006): geometry for the new target is applied
+    // only once the old one has fully collapsed (see `_applyShow`'s caller in
+    // `_execute`'s 'revealDeferred' handling) — never seen mid-collapse.
+    if (this._choreography.state === 'deferring') {
+      this._execute(commands);
       return;
-    }
-
-    // Revealing a different card while one plays: stop it, then reveal this
-    // glimpse (retarget the single bubble).
-    if (this._isPlaying) {
-      this._stopPlayback();
     }
 
     const glimpseSize = trigger.kind === 'album' ? this._albumBox() : GLIMPSE_SIZE;
@@ -314,16 +304,7 @@ export class SharedMediaPreview {
       this._startTracking(trigger.getRect);
     }
 
-    // Warm: bubble already up (or lingering) — intent stays proven, siblings
-    // swap instantly instead of re-sampling.
-    if (immediate || visible) {
-      this._cancelIntent();
-      this._cancelLinger();
-      this._reveal(src, effectiveType);
-      return;
-    }
-
-    this._startIntent(src, effectiveType);
+    this._execute(commands);
   }
 
   /** Grown/anchored placement never sits on the cursor: 'cursor' becomes 'right'. */
@@ -333,28 +314,6 @@ export class SharedMediaPreview {
 
   private _reducedMotion(): boolean {
     return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  }
-
-  /**
-   * Sequential shape-swap (album ↔ other). Collapse the current bubble in its
-   * own shape (scale + opacity only), then — once hidden — tear down the old
-   * visuals and reveal the new target, whose geometry is applied while still
-   * invisible. So the square↔circle change is never seen; only the entrance
-   * animates. Uses the generation guard so a newer interaction supersedes it.
-   */
-  private _deferReveal(trigger: PreviewTrigger, opts: RevealOptions): void {
-    const gen = this._gen;
-    if (this._isPlaying) this._stopPlayback();
-    this._cancelIntent();
-    this._cancelLinger();
-    this._pauseAllMedia();
-    this._stopTracking();
-
-    void this._container.hide().then(() => {
-      if (gen !== this._gen) return; // superseded by a newer reveal/hide
-      this._teardown();
-      this.reveal(trigger, { ...opts, immediate: true });
-    });
   }
 
   /**
@@ -372,39 +331,38 @@ export class SharedMediaPreview {
     const effectiveType = trigger.type || this.inferType(src);
     if (!effectiveType) return false;
 
-    this._gen++;
-
-    // Reveal-only types never enter the playing state.
+    // Reveal-only types never enter the playing state — a direct show,
+    // bypassing the choreography's commit/shape-swap handling entirely.
     if (!this.isPlayable(effectiveType)) {
-      this._reveal(src, effectiveType);
+      this._applyShow({ src, type: effectiveType, kind: trigger.kind, cover: trigger.cover });
       return false;
     }
 
-    // Second commit on the live media → stop.
-    if (this._isPlaying && this._currentSrc === src) {
-      this.stop();
-      return false;
-    }
+    const isToggleOff = this._choreography.isCommitted && this._choreography.target?.src === src;
 
     this._ensureAttached();
-    this._cancelIntent();
-    this._cancelLinger();
+    const target: PreviewTarget = { src, type: effectiveType, kind: trigger.kind, cover: trigger.cover };
+    const commands = this._choreography.commit(target);
+
+    if (isToggleOff) {
+      this._execute(commands);
+      return false;
+    }
 
     const rect = trigger.getRect();
     // Grown playback always anchors beside the card, never on the cursor.
     const placement = this._anchorPlacementFor(trigger.placement);
 
     // Album keeps its fixed box and slides the disc (ADR 0005); every other kind
-    // grows the round Face. Load the media (glimpse first frame) then start it.
+    // grows the round Face.
     const isAlbum = trigger.kind === 'album';
     this._applyMeta(effectiveType, trigger.kind, isAlbum ? this._albumBox() : this._grownSize());
     this._applyFace(trigger.kind, trigger.cover);
-    this._reveal(src, effectiveType);
-
-    this._isPlaying = true;
     this._anchorRect = rect;
     this._anchorPlacement = placement;
 
+    this._pendingTrigger = trigger;
+    this._execute(commands);
     this._positionAnchored();
 
     // Visual play (album disc) is owned by the Presentation; sound by the Channel.
@@ -430,8 +388,7 @@ export class SharedMediaPreview {
    * a deliberate stop / scroll-out / dismiss.
    */
   stop(): void {
-    this._stopPlayback();
-    this._doHide();
+    this._execute(this._choreography.stop());
   }
 
   /**
@@ -440,7 +397,7 @@ export class SharedMediaPreview {
    * already retargeted the single shared bubble.
    */
   hideIfCurrent(src: string): void {
-    if (this._currentSrc === src) this.hide();
+    if (this._choreography.target?.src === src) this.hide();
   }
 
   /** Coarse pointer (touch): drives follow-on-scroll and the smaller grown size. */
@@ -494,7 +451,7 @@ export class SharedMediaPreview {
         this._reposition();
 
         // Committed playback ends when its source has fully left the viewport.
-        if (this._isPlaying) {
+        if (this._choreography.isCommitted) {
           const rect = this._trackGetRect();
           if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
             this.stop();
@@ -505,7 +462,7 @@ export class SharedMediaPreview {
     }
 
     // Desktop: scrolling away from a playing preview dismisses it.
-    if (this._isPlaying && Math.abs(this._scrollY() - this._playStartScrollY) > DESKTOP_SCROLL_STOP_PX) {
+    if (this._choreography.isCommitted && Math.abs(this._scrollY() - this._playStartScrollY) > DESKTOP_SCROLL_STOP_PX) {
       this.stop();
     }
   }
@@ -524,33 +481,79 @@ export class SharedMediaPreview {
   }
 
   /**
-   * Starts (or restarts) the intent sampler: reveal once the cursor's travel
-   * over one tick drops under the threshold — i.e. it settled on the trigger.
+   * Executes the choreography's commands, one real side effect per command.
+   * The only place in the singleton that touches `_choreography` state
+   * indirectly (via the commands it hands back).
    */
-  private _startIntent(src: string, type: MediaType): void {
-    this._cancelIntent();
-
-    this._lastSample = { ...this._cursor };
-    this._intentTimer = setInterval(() => {
-      const dx = this._cursor.x - (this._lastSample?.x ?? 0);
-      const dy = this._cursor.y - (this._lastSample?.y ?? 0);
-
-      if (Math.hypot(dx, dy) < INTENT_MAX_TRAVEL_PX) {
-        this._cancelIntent();
-        this._reveal(src, type);
-        return;
+  private _execute(commands: ChoreographyCommand[]): void {
+    for (const command of commands) {
+      switch (command.type) {
+        case 'show':
+          this._applyShow(command.target);
+          break;
+        case 'startIntentSampler':
+          this._realStartIntentSampler();
+          break;
+        case 'stopIntentSampler':
+          this._realStopIntentSampler();
+          break;
+        case 'startLinger':
+          this._realStartLinger();
+          break;
+        case 'cancelLinger':
+          this._realCancelLinger();
+          break;
+        case 'stopPlayback':
+          this._stopPlayback();
+          break;
+        case 'startCollapse':
+          this._realStartCollapse(command.gen);
+          break;
+        case 'teardown':
+          this._teardown();
+          break;
+        case 'revealDeferred':
+          this._revealDeferred(command.opts);
+          break;
       }
+    }
+  }
 
-      this._lastSample = { ...this._cursor };
+  /** Real interval backing the intent sampler; ticks feed `_choreography.intentTick`. */
+  private _realStartIntentSampler(): void {
+    this._realStopIntentSampler();
+    this._intentTimer = setInterval(() => {
+      this._execute(this._choreography.intentTick(this._cursor));
     }, INTENT_TICK_MS);
   }
 
-  private _cancelIntent(): void {
+  private _realStopIntentSampler(): void {
     if (this._intentTimer !== null) {
       clearInterval(this._intentTimer);
       this._intentTimer = null;
     }
-    this._lastSample = null;
+  }
+
+  /** Real Warm-state linger timeout; its elapse feeds `_choreography.lingerElapsed`. */
+  private _realStartLinger(): void {
+    this._lingerTimer = setTimeout(() => {
+      this._lingerTimer = null;
+      this._execute(this._choreography.lingerElapsed());
+    }, LINGER_MS);
+  }
+
+  private _realCancelLinger(): void {
+    if (this._lingerTimer !== null) {
+      clearTimeout(this._lingerTimer);
+      this._lingerTimer = null;
+    }
+  }
+
+  /** Re-invokes `reveal()` for the trigger behind a resolved shape-swap defer. */
+  private _revealDeferred(opts: { immediate: boolean; reducedMotion: boolean }): void {
+    const trigger = this._pendingTrigger;
+    if (!trigger) return;
+    this.reveal(trigger, { immediate: opts.immediate });
   }
 
   /**
@@ -593,31 +596,27 @@ export class SharedMediaPreview {
     }
   }
 
-  /** Loads the media (if it changed), activates its Channel, and shows the bubble. */
-  private _reveal(src: string, type: MediaType): void {
-    const isSameMedia = this._currentSrc === src && this._currentType === type;
-
-    if (!isSameMedia) {
-      const channel = this._channels[type];
-      // Exactly one channel is visible at a time: retire the outgoing one.
-      if (this._active && this._active !== channel) this._active.deactivate();
-      channel.load(src);
-      channel.activate();
-
-      this._active = channel;
-      this._currentSrc = src;
-      this._currentType = type;
-    }
-
-    this._show();
-  }
-
   /**
-   * Shows the container. `is-visible` drives a CSS transition on scale + opacity
+   * Loads the media (if it changed) into its Channel, activates it, and shows
+   * the container. `is-visible` drives a CSS transition on scale + opacity
    * only (never geometry), which interrupts cleanly on a fast hover in/out —
    * adding it while already visible is an idempotent no-op (warm swap).
    */
-  private _show(): void {
+  private _applyShow(target: PreviewTarget): void {
+    const isSameMedia = this._currentSrc === target.src && this._currentType === target.type;
+
+    if (!isSameMedia) {
+      const channel = this._channels[target.type];
+      // Exactly one channel is visible at a time: retire the outgoing one.
+      if (this._active && this._active !== channel) this._active.deactivate();
+      channel.load(target.src);
+      channel.activate();
+
+      this._active = channel;
+      this._currentSrc = target.src;
+      this._currentType = target.type;
+    }
+
     this._container.show();
   }
 
@@ -626,7 +625,7 @@ export class SharedMediaPreview {
    * playback is committed — the anchored bubble stays put.
    */
   move(trigger: PreviewTrigger, cursor: { x: number; y: number }): void {
-    if (this._isPlaying) return;
+    if (this._choreography.isCommitted) return;
     this._ensureAttached();
     this._cursor = cursor;
     this._setPosition({ x: cursor.x, y: cursor.y, placement: trigger.placement, triggerRect: trigger.getRect() });
@@ -638,47 +637,21 @@ export class SharedMediaPreview {
    * Committed playback stops immediately (no linger on an explicit leave).
    */
   hide(): void {
-    this._cancelIntent();
-
-    if (this._isPlaying) {
-      this._stopPlayback();
-      this._doHide();
-      return;
-    }
-
-    if (!this._container.isVisible) {
-      this._doHide();
-      return;
-    }
-
-    if (this._lingerTimer !== null) return;
-
-    this._lingerTimer = setTimeout(() => {
-      this._lingerTimer = null;
-      this._doHide();
-    }, LINGER_MS);
-  }
-
-  private _cancelLinger(): void {
-    if (this._lingerTimer !== null) {
-      clearTimeout(this._lingerTimer);
-      this._lingerTimer = null;
-    }
+    this._execute(this._choreography.hide());
   }
 
   /**
    * Pauses any playing media, stops the Presentation's play animation, and
-   * clears the playing state — WITHOUT hiding the bubble; callers decide whether
-   * to hide or retarget.
+   * shrinks the box back down — WITHOUT hiding the bubble; the choreography
+   * decides whether to hide or retarget. Only ever run as the `stopPlayback`
+   * command, i.e. only when playback really was committed.
    */
   private _stopPlayback(): void {
-    const wasPlaying = this._isPlaying;
     const stoppedSrc = this._currentSrc;
 
     this._pauseAllMedia();
     this._activePresentation?.stop();
 
-    this._isPlaying = false;
     this._anchorRect = null;
     const kind = this._wrapper.dataset.kind as MediaKind | undefined;
     // Album keeps its fixed box; other kinds shrink back to the glimpse circle.
@@ -686,25 +659,23 @@ export class SharedMediaPreview {
 
     // Playback can end without the owning card knowing (scroll-out, dismiss, or
     // another card taking over). Announce it so that card can drop aria-pressed.
-    if (wasPlaying && stoppedSrc && typeof window !== 'undefined') {
+    if (stoppedSrc && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent(SharedMediaPreview.STOPPED_EVENT, { detail: { src: stoppedSrc } }));
     }
   }
 
   /**
-   * Collapses the bubble, then tears down its visuals once it is hidden. Only
-   * scale + opacity animate, so the bubble keeps its current shape/artwork
-   * *through* the collapse; the shape/kind/src reset waits for the generation
-   * guard to confirm nothing newer superseded this hide.
+   * Starts the real collapse for the `startCollapse` command, feeding its
+   * completion back into the choreography as `collapseFinished(gen)` — which
+   * decides whether to tear down (superseded collapses yield nothing) and
+   * whether a deferred shape-swap reveal follows.
    */
-  private _doHide(): void {
-    const gen = ++this._gen;
-    this._cancelLinger();
+  private _realStartCollapse(gen: number): void {
     this._pauseAllMedia();
     this._stopTracking();
 
     void this._container.hide().then(() => {
-      if (gen === this._gen) this._teardown();
+      this._execute(this._choreography.collapseFinished(gen));
     });
   }
 

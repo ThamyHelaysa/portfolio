@@ -64,6 +64,10 @@ _Avoid_: hover delay, debounce, dwell
 The window after intent has been proven while the preview is up (or lingering). While warm, moving to a sibling trigger swaps the preview instantly — intent is not re-proven per item. Leaving all triggers ends the warm state after a short linger.
 _Avoid_: grace period, open state
 
+**Choreography**:
+The pure state machine that decides the Media preview's show/hide sequencing — Hover intent, Warm state, the album shape-swap defer, and generation superseding. Owns no DOM, timers, or `window`; the singleton feeds it real events (reveal/commit/hide/stop, timer and transition completions) and executes the commands it returns. See [ADR-0006](docs/adr/0006-preview-faces-and-waapi-animation.md).
+_Avoid_: state machine (as the primary term in prose), controller, orchestrator
+
 **Preview clip**:
 A short (~3s), silent, small-format excerpt cut from a full recording — the thing a video Media preview plays. Generated ahead of time from local source recordings; the full recording never ships.
 _Avoid_: video, trailer, thumbnail

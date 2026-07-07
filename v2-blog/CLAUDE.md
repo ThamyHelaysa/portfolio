@@ -85,3 +85,5 @@ Both layouts build the `Content-Security-Policy` meta tag **at build time** by h
 - Changing a page's `permalink` can break the Lighthouse route list (`.lighthouserc*.json`) and the frontmatter tests.
 - Don't edit `dist/` — it's build output.
 - Component lifecycle: cleanup in `disconnectedCallback` must mirror setup (listeners, observers, rAF, timers, GSAP handles).
+- Dev-server watch doesn't track TS imports: editing only a `src/_helpers/*.ts` file does **not** rebuild the component bundles that import it — `touch` the importing `src/components/*.ts` file (or restart the server) and verify the change actually landed in `dist/` before browser-testing.
+- Multiple `<theme-toggle>` instances echo through `setTheme` via the `theme-change` event — any side effect added to the theme path must be idempotent under same-tick repeat calls (see the `pendingTheme` guard in `_helpers/theme.ts`).

@@ -94,8 +94,10 @@ html.dark {
     padding-block: 2px;
   }
 
-  /* Linear-stream lines: command echoes get a prompt glyph; title/error/status
-     get an uppercase badge pill from the core's data-badge attribute. */
+  /* Linear-stream lines: command echoes get a prompt glyph; info/title/error/
+     status get an uppercase badge pill from the core's data-badge attribute.
+     Glyphs live here (CSS content) so aria text and persisted scrollback stay
+     clean — keep the set in sync with the overlay's shadow styles (ADR-0002). */
   .terminal-msg {
     display: flex;
     flex-wrap: wrap;
@@ -116,14 +118,66 @@ html.dark {
     color: var(--term-on-accent);
   }
 
+  .info[data-badge]::before {
+    content: "▸ " attr(data-badge);
+    background: transparent;
+    border: 1px solid var(--term-border);
+    color: var(--term-text);
+  }
+
+  .title[data-badge]::before {
+    content: "▮ " attr(data-badge);
+  }
+
   .error[data-badge]::before {
+    content: "✗ " attr(data-badge);
     background: var(--term-err-bg);
     color: var(--term-badge-text);
   }
 
   .status[data-badge]::before {
-    background: var(--term-ok-bg);
-    color: var(--term-badge-text);
+    content: "✓ " attr(data-badge);
+    background: transparent;
+    border: 1px dashed var(--term-ok-bg);
+    color: var(--term-text);
+  }
+
+  /* Structured blocks: columns grid with tone cells (book listing rows). */
+  .terminal-cols {
+    display: grid;
+    gap: 0.1rem 1ch;
+    margin-block: 0.35rem;
+  }
+
+  .terminal-cell {
+    white-space: pre;
+  }
+
+  .terminal-cell[data-align="end"] {
+    justify-self: end;
+    text-align: right;
+  }
+
+  .terminal-cell[data-tone="muted"] {
+    color: var(--term-muted);
+  }
+
+  a.terminal-cell {
+    color: var(--term-text);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  a.terminal-cell:hover,
+  a.terminal-cell:focus-visible {
+    color: var(--term-accent);
+  }
+
+  /* "Ring · Koji Suzuki" — decorative separator after a linked cell. */
+  a.terminal-cell + .terminal-cell::before {
+    content: "· ";
+    color: var(--term-muted);
   }
 
   .command {

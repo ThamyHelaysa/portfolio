@@ -14,6 +14,8 @@ export enum CommandType {
   "title" = 3,
   "error" = 4,
   "status" = 5,
+  /** System speaking to the user (help, identity); appended so persisted scrollback kinds stay valid. */
+  "info" = 6,
 }
 
 export type CommandHandler = (ctx: ParsedCommand) => Promise<void> | void;
@@ -33,6 +35,8 @@ export function commandBadge(type: CommandType): string | undefined {
       return "ERR";
     case CommandType.status:
       return "OK";
+    case CommandType.info:
+      return "INFO";
     default:
       return undefined;
   }
@@ -116,7 +120,7 @@ export class TerminalCore {
     const handler = this.opts.commands[parsed.cmd];
 
     if (!handler) {
-      await this.append(`Command not found: ${parsed.raw}`, 0, CommandType.error);
+      await this.append(`command not recognized: ${parsed.raw} >.<`, 0, CommandType.error);
       return;
     }
 
@@ -209,12 +213,14 @@ export class TerminalCore {
     for (const row of rows) {
       for (let i = 0; i < cols; i++) {
         const cell = row[i] ?? { text: "" };
-        const span = document.createElement("span");
-        span.className = "terminal-cell";
-        if (cell.tone) span.dataset.tone = cell.tone;
-        if (cell.align) span.dataset.align = cell.align;
-        span.textContent = cell.text;
-        grid.appendChild(span);
+        const el = cell.href
+          ? Object.assign(document.createElement("a"), { href: cell.href })
+          : document.createElement("span");
+        el.className = "terminal-cell";
+        if (cell.tone) el.dataset.tone = cell.tone;
+        if (cell.align) el.dataset.align = cell.align;
+        el.textContent = cell.text;
+        grid.appendChild(el);
       }
     }
     return grid;

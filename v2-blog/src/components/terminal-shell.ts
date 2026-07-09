@@ -11,6 +11,7 @@ import {
   type ShellState,
 } from '../_helpers/terminal/shell-state.ts';
 import { markUnlocked } from '../_helpers/terminal/unlock.ts';
+import { getTheme, setTheme, type Theme } from '../_helpers/theme.ts';
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -26,12 +27,13 @@ export class TerminalShell extends LitElement {
   // @property({ type: String, reflect: true })
   // private commandCLI: String = "";
 
-  private bookData: Array<{ title: string, author: string, id: string }> = [];
+  private bookData: Array<{ title: string, author: string, id: string, url?: string }> = [];
   private _asciiCache = new Map<string, string[]>();
   private identity = IdentityManager.getInstance();
   private hasUserName = this.identity.getCachedName();
   private _resizeObs?: ResizeObserver;
   private _typingTimer?: number;
+  private _staggerTimer?: number;
   private _startupRafOne?: number;
   private _startupRafTwo?: number;
   private _asciiRenderRaf?: number;
@@ -80,11 +82,10 @@ export class TerminalShell extends LitElement {
           this._inputCLI?.blur();
           this.dispatch({ type: "SIDEBAR_SET", open: true });
         } else {
-          await this.appendToLog("commands", 0.2, CommandType.title);
           await this.appendToLog(
-            "help/h - list command options\nlist [--all] - list the books by batch, if you want list all by flag --all\nctrl+shift+c - summon this console on any page of the site",
+            "help · list · open <id> · theme · whoami υ.υ",
             0.5,
-            CommandType.logdata
+            CommandType.info
           )
         }
       },
@@ -108,19 +109,53 @@ export class TerminalShell extends LitElement {
 
       continue: async (ctx) => this.COMMANDS.list(ctx),
 
-      book: async (ctx) => {
-        // supports: "book 5" or "book id 5"
+      open: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
+
+        // supports: "open 5" or "open id 5"
         const idToken =
           ctx.positionals[0] === "id" ? ctx.positionals[1] : ctx.positionals[0];
 
         const id = Number(idToken);
         if (!Number.isFinite(id)) {
-          await this.appendToLog("USAGE: BOOK <id>  (example: BOOK 5)", 0.05, CommandType.log);
+          await this.appendToLog("usage: open <id>  (example: open 12)", 0.05, CommandType.info);
           return;
         }
 
-        await this.appendToLog(`OPENING BOOK ${id}...`, 0.05, CommandType.log);
-        // Todo: this.openBookById(id);
+        this._ensureBookDataLoaded();
+        const book = this.bookData.find((b) => Number(b.id) === id);
+
+        if (!book || !book.url) {
+          await this.appendToLog(`no book #${idToken} >.<`, 0.05, CommandType.error);
+          return;
+        }
+
+        await this.appendToLog(`opening [${book.id}] ${book.title}...`, 0.05, CommandType.status);
+        this._navigateTo(book.url);
+      },
+
+      book: async (ctx) => this.COMMANDS.open(ctx),
+
+      // `theme [dark|pinky]` — no arg toggles; an explicit value sets it.
+      // Same contract as the overlay's theme command (shared helper keeps
+      // the toggle component in sync).
+      theme: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
+
+        const arg = ctx.positionals[0]?.toLowerCase();
+        let next: Theme;
+
+        if (!arg) {
+          next = getTheme() === "dark" ? "pinky" : "dark";
+        } else if (arg === "dark" || arg === "pinky") {
+          next = arg;
+        } else {
+          await this.appendToLog(`theme: unknown "${arg}" — try: dark, pinky`, 0.05, CommandType.error);
+          return;
+        }
+
+        setTheme(next);
+        await this.appendToLog(`theme → ${next}`, 0.05, CommandType.status);
       },
 
       skip: async (ctx) => {
@@ -137,12 +172,9 @@ export class TerminalShell extends LitElement {
         }
       },
 
-      // Todo: add content
       whoami: async (ctx) => {
         await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-        // await this.appendToLog("life scan complete.", 0.2, CommandType.log);
-        // await this.appendToLog(`[RECORD - ]\n   `, 0.15, CommandType.logdata);
-        // await this.appendToLog(`[AUTHOR]\n   `, 0.15, CommandType.logdata);
+        await this.appendToLog(`you are ${this.userID} — guest of book_os υ.υ`, 0.2, CommandType.info);
       },
 
       // list portfolio branchs/commits and more
@@ -227,6 +259,11 @@ export class TerminalShell extends LitElement {
     if (this._typingTimer != null) {
       clearTimeout(this._typingTimer);
       this._typingTimer = undefined;
+    }
+
+    if (this._staggerTimer != null) {
+      clearTimeout(this._staggerTimer);
+      this._staggerTimer = undefined;
     }
 
     if (this._startupRafOne != null) {
@@ -349,7 +386,7 @@ export class TerminalShell extends LitElement {
     if (!payload) return [];
 
     try {
-      const parsed = JSON.parse(payload) as Array<Partial<{ title: string; author: string; id: string }>>;
+      const parsed = JSON.parse(payload) as Array<Partial<{ title: string; author: string; id: string; url: string }>>;
 
       if (!Array.isArray(parsed)) {
         return [];
@@ -359,6 +396,7 @@ export class TerminalShell extends LitElement {
         title: item.title || "Unknown",
         author: item.author || "Unknown",
         id: item.id || "Unknown",
+        ...(item.url ? { url: item.url } : {}),
       }));
     } catch {
       return [];
@@ -662,27 +700,62 @@ export class TerminalShell extends LitElement {
     const batch = this.bookData.slice(this.shell.booksDisplayed, this.shell.booksDisplayed + this.batchSize);
 
     if (batch.length === 0) {
-      await this.appendToLog("Bookshelf scan complete.", 0.2, CommandType.log);
+      await this.appendToLog("bookshelf scan complete.", 0.2, CommandType.status);
       this._scrollToBottom(this._outputCLI);
       return;
+    }
+
+    if (this.shell.booksDisplayed === 0) {
+      const total = this.bookData.length;
+      await this.appendToLog(`Bookshelf — ${total} ${total === 1 ? "record" : "records"}`, 0, CommandType.title);
     }
 
     for (const book of batch) {
       const artId = this.shell.booksDisplayed + 1;
       this._queueAsciiRenderForBook(artId);
 
-      await this.appendToLog(`\n[${book.id}] ${book.title}`, 0.15, CommandType.logdata);
-      await this.appendToLog(`      ${book.author}`, 0.15, CommandType.logdata);
+      await this._core.render({
+        type: "columns",
+        rows: [[
+          { text: `[${book.id}]`, tone: "muted" },
+          book.url ? { text: book.title, href: book.url } : { text: book.title },
+          { text: book.author },
+        ]],
+      });
 
       this.dispatch({ type: "BOOKS_ADVANCED", count: 1 });
       this._scrollToBottom(this._outputCLI);
+      await this._staggerRowReveal();
     }
 
-    if (this.bookData.length - this.shell.booksDisplayed) {
-      await this.appendToLog(`books remaining: ${this.bookData.length - this.shell.booksDisplayed}`, 0, CommandType.status);
+    const remaining = this.bookData.length - this.shell.booksDisplayed;
+    if (remaining) {
+      await this.appendToLog(`books remaining: ${remaining} — type list to continue`, 0, CommandType.status);
     } else {
-      await this.appendToLog("bookshelf scan complete.", 0.2, CommandType.status);
+      await this.appendToLog("type 'open <id>' to read a card :)))", 0, CommandType.status);
     }
+  }
+
+  /**
+   * Leaves the terminal for a book page (seam for tests: jsdom can't navigate).
+   *
+   * @param url - The destination book URL.
+   * @returns `void`.
+   */
+  private _navigateTo(url: string) {
+    window.location.assign(url);
+  }
+
+  /**
+   * Paces listing rows so batches reveal row-by-row instead of dumping at once.
+   *
+   * @returns A promise resolved after the stagger delay (or at once when animations are skipped).
+   */
+  private _staggerRowReveal(): Promise<void> {
+    if (this.shell.skipAnimations) return Promise.resolve();
+    return new Promise((resolve) => {
+      this._staggerTimer = window.setTimeout(resolve, 90);
+    });
   }
 
   private async _handleSubmit(e: Event) {

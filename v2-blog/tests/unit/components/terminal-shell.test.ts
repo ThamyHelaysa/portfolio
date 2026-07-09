@@ -26,6 +26,16 @@ vi.mock("gsap", () => ({
   gsap: gsapMock,
 }));
 
+const { getThemeMock, setThemeMock } = vi.hoisted(() => ({
+  getThemeMock: vi.fn(() => "pinky"),
+  setThemeMock: vi.fn(),
+}));
+
+vi.mock("../../../src/_helpers/theme.ts", () => ({
+  getTheme: getThemeMock,
+  setTheme: setThemeMock,
+}));
+
 vi.mock("../../../src/_helpers/identityManager.ts", () => {
   const identityInstance = {
     getCachedName: getCachedNameMock,
@@ -60,7 +70,8 @@ function listingMarkup() {
         {
           "id": "012",
           "title": "A seca",
-          "author": "Jane Harper"
+          "author": "Jane Harper",
+          "url": "/books/a-seca/"
         }
       ]</script>
     </div>
@@ -104,6 +115,9 @@ describe("terminal-shell startup phases", () => {
     getFullIdentityMock.mockReset();
     getFullIdentityMock.mockReturnValue("echo_shell::1111");
     cacheNameMock.mockReset();
+    getThemeMock.mockReset();
+    getThemeMock.mockReturnValue("pinky");
+    setThemeMock.mockReset();
     resizeObserveMock.mockReset();
     resizeDisconnectMock.mockReset();
     gsapMock.to.mockClear();
@@ -203,6 +217,7 @@ describe("terminal-shell startup phases", () => {
         id: "012",
         title: "A seca",
         author: "Jane Harper",
+        url: "/books/a-seca/",
       },
     ]);
     expect(element.querySelector("#raw-book-data")).toBeNull();
@@ -258,20 +273,155 @@ describe("terminal-shell startup phases", () => {
     const renderSpy = vi
       .spyOn(element as any, "_renderAsciiForBook")
       .mockImplementation(() => new Promise<void>(() => undefined));
-    const logSpy = vi.spyOn(element as any, "appendToLog");
-    logSpy.mockResolvedValue(undefined);
 
     await (element as any).displayNextBatch();
 
     expect(renderSpy).not.toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith("\n[012] A seca", 0.15, 1);
-    expect(logSpy).toHaveBeenCalledWith("      Jane Harper", 0.15, 1);
+    expect(element.querySelector("#boot-log .terminal-cols")).not.toBeNull();
 
     const callbacks = rafQueue.splice(0);
     callbacks.forEach((cb) => cb(16));
     await Promise.resolve();
 
     expect(renderSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("lists books as structured rows: muted id, linked title, author", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    (element as any)._ensureBookDataLoaded();
+    vi.spyOn(element as any, "_renderAsciiForBook").mockResolvedValue(undefined);
+
+    await (element as any).displayNextBatch();
+
+    const log = element.querySelector("#boot-log")!;
+    const row = log.querySelector(".terminal-cols")!;
+    const cells = row.querySelectorAll(".terminal-cell");
+    expect((cells[0] as HTMLElement).textContent).toBe("[012]");
+    expect((cells[0] as HTMLElement).dataset.tone).toBe("muted");
+
+    const title = row.querySelector("a.terminal-cell") as HTMLAnchorElement;
+    expect(title.textContent).toBe("A seca");
+    expect(title.getAttribute("href")).toBe("/books/a-seca/");
+
+    expect((cells[2] as HTMLElement).textContent).toBe("Jane Harper");
+  });
+
+  it("opens the listing with a Bookshelf title only on the first batch", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    (element as any)._ensureBookDataLoaded();
+    vi.spyOn(element as any, "_renderAsciiForBook").mockResolvedValue(undefined);
+
+    await (element as any).displayNextBatch();
+
+    const log = element.querySelector("#boot-log")!;
+    const titles = log.querySelectorAll("p.terminal-msg.title");
+    expect(titles).toHaveLength(1);
+    expect(titles[0].textContent).toBe("Bookshelf — 1 record");
+    expect(titles[0].getAttribute("data-badge")).toBe("TITLE");
+  });
+
+  it("open <id> errs with the no-book message for unknown ids", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("open 999");
+
+    const error = element.querySelector("#boot-log p.terminal-msg.error")!;
+    expect(error.textContent).toBe("no book #999 >.<");
+    expect(error.getAttribute("data-badge")).toBe("ERR");
+  });
+
+  it("open <id> navigates to the matching book's page (lenient about leading zeros)", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    const navSpy = vi.spyOn(element as any, "_navigateTo").mockImplementation(() => undefined);
+
+    await (element as any)._executeCommand("open 12");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.status")?.textContent)
+      .toBe("opening [012] A seca...");
+    expect(navSpy).toHaveBeenCalledWith("/books/a-seca/");
+  });
+
+  it("book <id> stays as an alias of open", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    const navSpy = vi.spyOn(element as any, "_navigateTo").mockImplementation(() => undefined);
+
+    await (element as any)._executeCommand("book 012");
+
+    expect(navSpy).toHaveBeenCalledWith("/books/a-seca/");
+  });
+
+  it("theme <value> sets the theme and confirms with an OK line", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("theme dark");
+
+    expect(setThemeMock).toHaveBeenCalledWith("dark");
+    expect(element.querySelector("#boot-log p.terminal-msg.status")?.textContent)
+      .toBe("theme → dark");
+  });
+
+  it("bare theme toggles away from the current theme", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    getThemeMock.mockReturnValue("pinky");
+
+    await (element as any)._executeCommand("theme");
+
+    expect(setThemeMock).toHaveBeenCalledWith("dark");
+  });
+
+  it("theme rejects unknown values with an ERR line", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("theme neon");
+
+    expect(setThemeMock).not.toHaveBeenCalled();
+    expect(element.querySelector("#boot-log p.terminal-msg.error")?.textContent)
+      .toBe('theme: unknown "neon" — try: dark, pinky');
+  });
+
+  it("whoami answers with an INFO identity line", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    (element as any)._ensureInteractionStartup();
+
+    await (element as any)._executeCommand("whoami");
+
+    const info = element.querySelector("#boot-log p.terminal-msg.info")!;
+    expect(info.textContent).toBe("you are echo_shell::1111 — guest of book_os υ.υ");
+    expect(info.getAttribute("data-badge")).toBe("INFO");
+  });
+
+  it("help prints the command palette as one INFO line on desktop", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("help");
+
+    const info = element.querySelector("#boot-log p.terminal-msg.info")!;
+    expect(info.textContent).toBe("help · list · open <id> · theme · whoami υ.υ");
+  });
+
+  it("ends the final batch with the open-a-card hint", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    (element as any)._ensureBookDataLoaded();
+    vi.spyOn(element as any, "_renderAsciiForBook").mockResolvedValue(undefined);
+
+    await (element as any).displayNextBatch();
+
+    const status = element.querySelector("#boot-log p.terminal-msg.status")!;
+    expect(status.textContent).toBe("type 'open <id>' to read a card :)))");
+    expect(status.getAttribute("data-badge")).toBe("OK");
   });
 });
 

@@ -10,7 +10,8 @@ permalink: /books/
     {
       "id": {{ book.data.id | dump | safe }},
       "title": {{ book.data.title | dump | safe }},
-      "author": {{ book.data.author | dump | safe }}
+      "author": {{ book.data.author | dump | safe }},
+      "url": {{ book.url | dump | safe }}
     }{% if not loop.last %},{% endif %}
   {% endfor %}
 ]</script>

@@ -63,9 +63,6 @@ export function applyTheme(theme: Theme): void {
  *
  * @param theme - The theme to switch to.
  */
-/** Theme currently being applied by a running view transition, if any. */
-let pendingTheme: Theme | null = null;
-
 function applyThemeAnimated(theme: Theme): void {
   const root = document.documentElement;
 
@@ -73,9 +70,15 @@ function applyThemeAnimated(theme: Theme): void {
   // <theme-toggle> re-broadcasting through setTheme after the theme-change
   // event). Starting another view transition would skip the running one and
   // yank the .theme-vt class off mid-sweep, so bail before animating.
-  // `pendingTheme` is needed because applyTheme runs inside the async view
-  // transition callback, so dataset.theme is still stale when echoes arrive.
-  if (root.dataset.theme === theme || pendingTheme === theme) return;
+  // The pending flag lives on the DOM (not in a module variable) because
+  // esbuild bundles this helper separately into every component — the
+  // terminal-overlay and theme-toggle copies don't share module state, and a
+  // module-level guard lets the cross-bundle echo start a second transition
+  // that skips the first and strips .theme-vt mid-capture (the overlay
+  // z-index bug). A dataset flag is the same for every copy. It's also
+  // needed at all because applyTheme runs inside the async view transition
+  // callback, so dataset.theme is still stale when echoes arrive.
+  if (root.dataset.theme === theme || root.dataset.themePending === theme) return;
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -84,15 +87,15 @@ function applyThemeAnimated(theme: Theme): void {
     return;
   }
 
-  pendingTheme = theme;
+  root.dataset.themePending = theme;
   root.classList.add("theme-vt");
 
   const transition = document.startViewTransition(() => applyTheme(theme));
   transition.finished.finally(() => {
     // Only clean up if a newer swap hasn't taken over (rapid re-toggle skips
     // this transition, and its own finally must not undo the newer one).
-    if (pendingTheme === theme) {
-      pendingTheme = null;
+    if (root.dataset.themePending === theme) {
+      delete root.dataset.themePending;
       root.classList.remove("theme-vt");
     }
   });

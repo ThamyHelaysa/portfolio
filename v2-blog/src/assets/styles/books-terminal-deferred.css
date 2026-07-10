@@ -38,6 +38,11 @@ html.dark {
 }
 
 #results-area {
+  .book-info {
+    max-width: 500px;
+    text-align: justify;
+    white-space: pre-line;
+  }
   &::-webkit-scrollbar {
     display: none;
     width: 0;
@@ -103,6 +108,7 @@ html.dark {
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0 0.6ch;
+    margin-block-end: 0.6ch;
   }
 
   .terminal-msg[data-badge]::before {
@@ -137,9 +143,9 @@ html.dark {
 
   .status[data-badge]::before {
     content: "✓ " attr(data-badge);
-    background: transparent;
-    border: 1px dashed var(--term-ok-bg);
-    color: var(--term-text);
+    background: var(--term-ok-bg);
+    border: 1px solid var(--term-ok-bg);
+    color: var(--term-badge-text);
   }
 
   /* Structured blocks: columns grid with tone cells (book listing rows). */
@@ -178,6 +184,11 @@ html.dark {
   a.terminal-cell + .terminal-cell::before {
     content: "· ";
     color: var(--term-muted);
+  }
+
+  .log {
+    margin-block-start: 0;
+    margin-block-end: 0;
   }
 
   .command {

@@ -21,13 +21,38 @@ function stubSystemDark(enabled: boolean) {
   });
 }
 
+/**
+ * Stubs document.startViewTransition with a controllable fake: the update
+ * callback runs asynchronously (like the real API, so dataset.theme is stale
+ * when same-tick echoes arrive) and `finished` resolves on demand.
+ */
+function stubViewTransition() {
+  let resolveFinished!: () => void;
+  const finished = new Promise<void>((r) => {
+    resolveFinished = r;
+  });
+  const start = vi.fn((cb: () => void) => {
+    const updateCallbackDone = Promise.resolve().then(() => cb());
+    return {
+      finished,
+      ready: updateCallbackDone,
+      updateCallbackDone,
+      skipTransition: vi.fn(),
+    };
+  });
+  document.startViewTransition = start as unknown as typeof document.startViewTransition;
+  return { start, resolveFinished };
+}
+
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
-  document.documentElement.classList.remove("dark");
+  document.documentElement.removeAttribute("data-theme-pending");
+  document.documentElement.classList.remove("dark", "theme-vt");
 });
 
 afterEach(() => {
+  delete (document as { startViewTransition?: unknown }).startViewTransition;
   vi.restoreAllMocks();
 });
 
@@ -73,5 +98,28 @@ describe("theme helper", () => {
     localStorage.setItem(THEME_STORAGE_KEY, "neon");
     stubSystemDark(false);
     expect(getTheme()).toBe("pinky");
+  });
+
+  it("starts a single view transition when an echo repeats the in-flight theme", async () => {
+    // The pending flag lives on the DOM because every component bundle gets
+    // its own copy of this module — the guard must hold even when the echo
+    // comes from another copy (terminal-overlay -> theme-change -> toggle).
+    stubSystemDark(false);
+    const { start, resolveFinished } = stubViewTransition();
+    const root = document.documentElement;
+
+    setTheme("dark");
+    setTheme("dark"); // echo while the transition is still pending
+
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(root.dataset.themePending).toBe("dark");
+    expect(root.classList.contains("theme-vt")).toBe(true);
+
+    resolveFinished();
+    await vi.waitFor(() => {
+      expect(root.classList.contains("theme-vt")).toBe(false);
+    });
+    expect(root.dataset.themePending).toBeUndefined();
+    expect(root.dataset.theme).toBe("dark");
   });
 });

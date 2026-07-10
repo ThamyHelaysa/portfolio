@@ -56,8 +56,23 @@ export class TerminalOverlay extends LitElement {
     #overlay-dialog:not([open]) { display: none; }
     #overlay-dialog[open] { display: flex; flex-direction: column; }
 
+    /* The theme swap runs a view transition (see _helpers/theme.ts); its
+       ::view-transition overlay paints above the top layer, and top-layer
+       content is NOT part of the root snapshot — an unnamed open dialog gets
+       covered by the page sweep. Naming dialog + backdrop promotes them into
+       their own snapshot groups, which paint above the root group. Scoped to
+       [open] so a closed dialog never claims a name during page-nav
+       transitions. */
+    #overlay-dialog[open] {
+      view-transition-name: terminal-overlay;
+    }
+
     #overlay-dialog::backdrop {
       background: rgba(0, 0, 0, 0.55);
+    }
+
+    #overlay-dialog[open]::backdrop {
+      view-transition-name: terminal-overlay-backdrop;
     }
 
     @media (prefers-reduced-motion: no-preference) {

@@ -46,7 +46,6 @@ export class TerminalOverlay extends LitElement {
       max-width: 92vw;
       max-height: 80vh;
       border: 1px solid var(--term-border);
-      border-radius: 10px;
       overflow: hidden;
       background: var(--term-bg);
       color: var(--term-text);
@@ -146,6 +145,7 @@ export class TerminalOverlay extends LitElement {
       flex-wrap: wrap;
       align-items: baseline;
       gap: 0 0.6ch;
+      margin-block-end: 0.6ch;
     }
 
     .terminal-msg[data-badge]::before {
@@ -161,13 +161,34 @@ export class TerminalOverlay extends LitElement {
       color: var(--term-on-accent);
     }
 
+    .terminal-msg.log {
+      margin-block-start: 0;
+      margin-block-end: 0;
+    }
+
+    /* Glyphs live in CSS content so aria text and persisted scrollback stay
+       clean — keep the set in sync with books-terminal-deferred.css (ADR-0002). */
+    .terminal-msg.info[data-badge]::before {
+      content: "▸ " attr(data-badge);
+      background: transparent;
+      border: 1px solid var(--term-border);
+      color: var(--term-text);
+    }
+
+    .terminal-msg.title[data-badge]::before {
+      content: "▮ " attr(data-badge);
+    }
+
     .terminal-msg.error[data-badge]::before {
+      content: "✗ " attr(data-badge);
       background: var(--term-err-bg);
       color: var(--term-badge-text);
     }
 
     .terminal-msg.status[data-badge]::before {
+      content: "✓ " attr(data-badge);
       background: var(--term-ok-bg);
+      border: 1px solid var(--term-ok-bg);
       color: var(--term-badge-text);
     }
 
@@ -264,6 +285,24 @@ export class TerminalOverlay extends LitElement {
       text-align: right;
     }
 
+    a.terminal-cell {
+      color: var(--term-text);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    a.terminal-cell:hover,
+    a.terminal-cell:focus-visible {
+      color: var(--term-accent);
+    }
+
+    /* "Ring · Koji Suzuki" — decorative separator after a linked cell. */
+    a.terminal-cell + .terminal-cell::before {
+      content: "· ";
+      color: var(--term-muted);
+    }
+
     [data-tone="muted"] {
       color: var(--term-muted);
     }
@@ -344,7 +383,7 @@ export class TerminalOverlay extends LitElement {
           0.3,
           CommandType.logdata
         );
-        await this._core.append("psst — this is a cheat console. the classics still work.", 0.2, CommandType.logdata);
+        await this._core.append("psst — this is a cheat console. the classics still work.", 0.2, CommandType.info);
       },
 
       ls: async (ctx: ParsedCommand) => this._listContent(ctx),
@@ -357,7 +396,7 @@ export class TerminalOverlay extends LitElement {
       whoami: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         // Read fresh each run so it reflects a name chosen on the home page.
-        await this._core.append(getIdentity(), 0.2, CommandType.logdata);
+        await this._core.append(getIdentity(), 0.2, CommandType.info);
       },
 
       rosebud: async (ctx: ParsedCommand) => {

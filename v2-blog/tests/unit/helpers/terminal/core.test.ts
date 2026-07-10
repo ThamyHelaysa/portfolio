@@ -113,6 +113,29 @@ describe("TerminalCore", () => {
       expect(count.dataset.align).toBe("end");
     });
 
+    it("renders a cell with an href as a real link, keeping tone", async () => {
+      const { core, logEl } = createCore();
+
+      await core.render({
+        type: "columns",
+        rows: [
+          [
+            { text: "[105]", tone: "muted" },
+            { text: "Ring", href: "/books/ring/", tone: "accent" },
+            { text: "Koji Suzuki" },
+          ],
+        ],
+      });
+
+      const link = logEl.querySelector("a.terminal-cell") as HTMLAnchorElement;
+      expect(link).not.toBeNull();
+      expect(link.textContent).toBe("Ring");
+      expect(link.getAttribute("href")).toBe("/books/ring/");
+      expect(link.dataset.tone).toBe("accent");
+      // href-less cells stay plain spans
+      expect(logEl.querySelectorAll("span.terminal-cell")).toHaveLength(2);
+    });
+
     it("renders a section with a title, tone, and nested body", async () => {
       const { core, logEl } = createCore();
 
@@ -155,7 +178,7 @@ describe("TerminalCore", () => {
     await core.run("frobnicate");
 
     const error = logEl.querySelector("p.terminal-msg.error");
-    expect(error?.textContent).toBe("Command not found: frobnicate");
+    expect(error?.textContent).toBe("command not recognized: frobnicate >.<");
     expect(core.history.prev()).toBe("frobnicate");
   });
 

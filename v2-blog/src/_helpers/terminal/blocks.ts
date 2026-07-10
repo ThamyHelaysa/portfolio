@@ -20,6 +20,8 @@ export interface Cell {
   tone?: Tone;
   /** Horizontal placement within its grid column (default: start). */
   align?: "start" | "end";
+  /** When set, the cell renders as a real anchor to this URL. */
+  href?: string;
 }
 
 /**

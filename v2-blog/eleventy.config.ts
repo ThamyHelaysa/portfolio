@@ -286,6 +286,8 @@ export default function (eleventyConfig: any) {
     "src/assets/styles/books-terminal-deferred.css": "assets/css/books-terminal-deferred.css"
   });
 
+  eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
+
   return {
     dir: {
       input: 'src',

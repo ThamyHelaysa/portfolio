@@ -3,6 +3,9 @@ title: "The iOS WAAPI trap: Why commitStyles breaks CSP and how to fix it"
 date: "2025-12-25"
 updateDate: "2025-12-27"
 description: "A deep dive into a specific Web Animations API bug on iOS Safari involving Content Security Policy and commitStyles, and how to fix it."
+mood:
+    label: "annoyed at Safari >.<"
+    level: 4
 tags: 
     - dev
     - waapi

@@ -1,21 +1,18 @@
 import { html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { onceInViewport, prefersReducedMotion } from "../_helpers/motion.ts";
-import { sampleSpringProgress } from "../_helpers/spring.ts";
+import { onceInViewport } from "../_helpers/motion.ts";
 
-const CELL_DURATION_MS = 450;
-const CELL_STAGGER_MS = 80;
 const FADE_DURATION_MS = 200;
-const SPRING_SAMPLES = 30;
 
 const FILLED_GLYPH = "▌";
 const EMPTY_GLYPH = "░";
 
 // Animated segment meter (mood level, reading time). Light DOM, styled by
-// default.css (`mb-*` rules). Filled cells rise in left → right over the
-// `░` base glyphs; final states live in CSS classes so the bar reads
-// correctly even where WAAPI is unavailable.
+// default.css (`mb-*` rules). Filled cells wipe in from the left over the
+// `░` base glyphs once `data-ready` lands — the cell animation and its
+// sibling-index() stagger live entirely in CSS, so final states hold even
+// where WAAPI is unavailable.
 @customElement("meter-bar")
 export class MeterBar extends LitElement {
   @property({ type: Number }) value = 0;
@@ -62,36 +59,6 @@ export class MeterBar extends LitElement {
         fill: "backwards",
       }),
     );
-
-    if (prefersReducedMotion()) return;
-
-    const progress = sampleSpringProgress(SPRING_SAMPLES);
-    const cells = this.querySelectorAll<HTMLElement>(".mb-filled");
-
-    cells.forEach((cell, index) => {
-      const fill = cell.querySelector<HTMLElement>(".mb-fill");
-      const base = cell.querySelector<HTMLElement>(".mb-base");
-      if (!fill || !base) return;
-
-      const timing: KeyframeAnimationOptions = {
-        duration: CELL_DURATION_MS,
-        delay: index * CELL_STAGGER_MS,
-        easing: "linear",
-        fill: "backwards",
-      };
-
-      this.animations.push(
-        fill.animate(
-          progress.map((p, i) => ({
-            offset: i / SPRING_SAMPLES,
-            opacity: p,
-            transform: `translateY(${((1 - p) * 40).toFixed(3)}%)`,
-          })),
-          timing,
-        ),
-        base.animate([{ opacity: 1 }, { opacity: 0 }], timing),
-      );
-    });
   }
 
   protected render(): unknown {

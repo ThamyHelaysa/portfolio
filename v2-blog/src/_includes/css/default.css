@@ -4,6 +4,16 @@
    over these element rules without needing `!important`. */
 @layer theme, base, app, components, utilities;
 
+/* Registered so sibling-index() resolves on the .mb-cell that declares it
+   (an unregistered custom property would defer evaluation to the .mb-fill
+   consuming the var(), where the index is always 2). Browsers without
+   sibling-index() keep the 0s initial value: no stagger, same final bar. */
+@property --mb-delay {
+  syntax: "<time>";
+  inherits: true;
+  initial-value: 0s;
+}
+
 @layer app {
 
 body {
@@ -158,8 +168,11 @@ meter-bar .mb-view {
 }
 
 meter-bar .mb-cell {
+  --mb-delay: calc(80ms * (sibling-index() - 1));
+
   position: relative;
   display: inline-block;
+  overflow: hidden;
 }
 
 meter-bar .mb-fill {
@@ -168,9 +181,45 @@ meter-bar .mb-fill {
   will-change: transform, opacity;
 }
 
-/* Final state after the crossfade — also the no-WAAPI fallback. */
+/* Final state — also the fallback wherever the animation never runs. */
 meter-bar .mb-filled .mb-base {
   opacity: 0;
+}
+
+/* Cells wipe in from the left once the component flags data-ready,
+   staggered left → right by each cell's sibling-index(). */
+@media (prefers-reduced-motion: no-preference) {
+  meter-bar[data-ready] .mb-filled .mb-fill {
+    animation: mb-fill-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--mb-delay);
+  }
+
+  meter-bar[data-ready] .mb-filled .mb-base {
+    animation: mb-base-exit 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--mb-delay);
+  }
+}
+
+@keyframes mb-fill-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mb-base-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 em {

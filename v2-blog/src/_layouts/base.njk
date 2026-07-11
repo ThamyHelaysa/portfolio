@@ -42,15 +42,23 @@
       {% endfor %}
     {% endif %}
 
+    {# Global element styles first: they declare the cascade-layer order and
+       live in the `app` layer. Page-specific inline styles (e.g. markdown.css)
+       are injected AFTER, so they win intra-layer conflicts by source order. #}
+    {% set compsCss %}{% include "css/default.css" %}{% endset %}
+    {% set compsHash = compsCss | trim | cspHash %}
+    {% set cspStyleSrc = cspStyleSrc + " " + compsHash %}
+    {% set stylesOutput = stylesOutput + '<style>' + (compsCss | safe | trim) + '</style>' %}
+
     {% if inlineStyles %}
       {% for path in inlineStyles %}
         {# 1. Read file #}
         {% set content %}{% include path %}{% endset %}
-        
+
         {# 2. Hash it #}
         {% set hash = content | trim | cspHash %}
         {% set cspStyleSrc = cspStyleSrc + " " + hash %}
-        
+
         {# 3. Store the tag for later #}
         {% set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' %}
       {% endfor %}
@@ -62,15 +70,8 @@
     {% set cspStyleSrc = cspStyleSrc + " " + fontHash %}
 
     {% set stylesOutput = stylesOutput + '<style>' + (fontCss | safe | trim) + '</style>' %}
-    {# /////////////// #}
-    {% set compsCss %}{% include "css/default.css" %}{% endset %}
 
-    {% set compsHash = compsCss | trim | cspHash %}
-    {% set cspStyleSrc = cspStyleSrc + " " + compsHash %}
-
-    {% set stylesOutput = stylesOutput + '<style>' + (compsCss | safe | trim) + '</style>' %}
-
-    <meta 
+    <meta
       http-equiv="Content-Security-Policy" 
       content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }}; img-src 'self' data:;"
     >

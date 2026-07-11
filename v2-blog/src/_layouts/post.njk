@@ -1,29 +1,85 @@
 ---
 layout: base.njk
-inlineStyles: 
+inlineStyles:
   - "css/markdown.css"
 ---
 
-<div class="max-w-4xl mx-auto">
-  <h1>{{ title }}</h1>
+{% set minutes = content | readingTime %}
+{% set authorName = author or personal.info.displayName %}
 
-  <article class="bg-background py-4 px-2 md:py-16 md:px-10">
-    <p class="flex flex-col gap-y-2 mb-20!">
+<div class="max-w-4xl mx-auto">
+
+  <header class="bg-background text-sm flex flex-col gap-4 py-4 px-2 md:py-16 md:px-10">
+
+    <h1 class="mb-0 text-3xl italic font-serif text-accent leading-tight">{{ title }}</h1>
+
+    {% if description %}
+      <p class="text-xs my-2 inline-block font-mono text-text-gray">
+        <span class="shrink-0 text-accent/60 uppercase tracking-widest">Desc&nbsp;/</span>
+        <span>{{ description }}</span>
+      </p>
+    {% endif %}
+
+    <hr class="border-0 border-t border-dashed border-accent/30" />
+
+    <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 font-mono">
+      <div class="hidden md:flex flex-col">
+        <dt class=" text-accent/60 uppercase tracking-widest">Author</dt>
+        <dd class="text-accent">{{ authorName }}</dd>
+      </div>
+
       {% if date %}
-      {% set formatedDate = date | formatDatefull(date) %}
-        <small class="text-xs font-mono text-accent/60 uppercase tracking-widest group-hover:text-accent transition-colors">
-        Posted on: {{ formatedDate }}</small>
+        <div class="flex flex-col">
+          <dt class=" text-accent/60 uppercase tracking-widest">Published</dt>
+          <dd class="text-accent">{{ date | formatDateShort }}</dd>
+        </div>
       {% endif %}
 
       {% if updateDate %}
-      {% set formatedLastUpDate = updateDate | formatDatefull(updateDate) %}
-        <small class="text-xs font-mono text-accent/60 uppercase tracking-widest group-hover:text-accent transition-colors">
-        Last update: {{ formatedLastUpDate }}</small>
+        <div class="hidden md:flex flex-col">
+          <dt class=" text-accent/60 uppercase tracking-widest">Last updated</dt>
+          <dd class="text-accent">{{ updateDate | formatDateShort }}</dd>
+        </div>
       {% endif %}
-    </p>
 
-    {{ content | safe }}
+      <div class="flex flex-col">
+        <dt class=" text-accent/60 uppercase tracking-widest">Time to read</dt>
+        <dd class="text-accent flex items-center gap-x-2">
+          <span>{{ minutes }} min</span>
+          <span aria-hidden="true" class="text-accent/70">{{ minutes | readingTimeMeter(5) }}</span>
+        </dd>
+      </div>
+    </dl>
+
+    <hr class="border-0 border-t border-dashed border-accent/30" />
     
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between font-mono">
+      {% if mood %}
+        <p class="flex flex-wrap min-w-0 items-baseline gap-x-3 my-0">
+          <span class="flex min-w-0 items-baseline gap-x-2">
+            <span class="shrink-0 text-xs text-accent/60 uppercase tracking-widest">Mood in the writing</span>
+            <span aria-hidden="true" class="shrink-0 text-accent/70">{{ mood.level | meterBar(5) }}</span>
+          </span>
+          <span class="min-w-0 text-xs text-accent wrap-anywhere">{{ mood.label }}</span>
+        </p>
+      {% else %}
+        <span></span>
+      {% endif %}
+
+      <ul class="flex shrink-0 flex-wrap gap-2 my-0 p-0">
+        {% for tag in tags %}
+          {% if tag != "posts" %}
+            <li class="text-xs list-none my-0 leading-4 whitespace-nowrap border border-accent/30 text-accent/80 px-2 py-1 rounded-full uppercase tracking-wider">{{ tag }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+
+  </header>
+
+
+  <article class="bg-background py-4 px-2 md:py-4 md:px-10">
+    {{ content | safe }}
   </article>
 
   <nav>

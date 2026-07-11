@@ -1,3 +1,10 @@
+/* Establish the cascade-layer order once, before global.css loads.
+   Our hand-authored element styles live in `app`, which ranks ABOVE
+   Tailwind's preflight (`base`) but BELOW `utilities` — so utilities win
+   over these element rules without needing `!important`. */
+@layer theme, base, app, components, utilities;
+
+@layer app {
 
 body {
   color: var(--color-foreground, #292524);
@@ -78,8 +85,17 @@ a {
 
 p {
   margin-bottom: calc(var(--spacing, .25rem) * 4);
-  font-size: var(--text-lg, 1.25rem);
   text-wrap: pretty;
+}
+
+/* Description lists default to a label/value scale (used by the post meta
+   header). Utilities still override, since `app` ranks below `utilities`. */
+dt {
+  font-size: var(--text-xs, 0.75rem);
+}
+
+dd {
+  font-size: var(--text-sm, 0.875rem);
 }
 
 em {
@@ -145,3 +161,6 @@ html.term-unlocked .terminal-launch-desktop {
 html.term-unlocked .terminal-launch-mobile {
   display: inline-flex;
 }
+
+}
+/* end @layer app */

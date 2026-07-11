@@ -114,6 +114,8 @@
     --term-err-bg: #e5484d;
     --term-warn-bg: #c8860d;
     --term-badge-text: #fff;
+
+    --noise-opacity: 0.05;
   }
 
   html.dark {
@@ -156,6 +158,8 @@
     --color-h2: var(--color-pink-400);
     --color-h3: var(--color-gray-400);
     --color-h4: var(--color-gray-500);
+
+    --noise-opacity: 0.08;
   }
 }
 
@@ -205,6 +209,23 @@
       visibility: visible;
     }
   }
+}
+
+/* Film-grain overlay. The tile is a pre-rasterized feTurbulence SVG baked
+   into a data URI, so the browser never runs a live full-viewport SVG filter
+   — it paints once as a repeated 128px background. No view-transition-name
+   and no blend mode, so during the .theme-vt sweep it flattens into the
+   single root snapshot and rides the clip-path like everything else.
+   Intensity comes from the per-theme --noise-opacity token. */
+.noise-fx::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: var(--noise-opacity, 0.05);
 }
 
 ::view-transition-old(post) {

@@ -151,6 +151,11 @@ export default function (eleventyConfig: any) {
   // Filters
   eleventyConfig.addFilter("formatYear", filters.formatYear);
   eleventyConfig.addFilter("formatDatefull", filters.formatDateFull);
+  eleventyConfig.addFilter("formatDateShort", filters.formatDateShort);
+  eleventyConfig.addFilter("readingTime", filters.readingTime);
+  eleventyConfig.addFilter("meterBar", filters.meterBar);
+  eleventyConfig.addFilter("readingTimeMeter", filters.readingTimeMeter);
+  eleventyConfig.addFilter("readingTimeCells", filters.readingTimeCells);
 
   // Shortcodes
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);
@@ -280,6 +285,8 @@ export default function (eleventyConfig: any) {
   eleventyConfig.addPassthroughCopy({
     "src/assets/styles/books-terminal-deferred.css": "assets/css/books-terminal-deferred.css"
   });
+
+  eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
 
   return {
     dir: {

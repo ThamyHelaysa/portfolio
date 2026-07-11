@@ -1,3 +1,9 @@
+/* Article/markdown element styles. Share the `app` cascade layer with
+   default.css (order declared there). This file is injected AFTER default.css,
+   so its element rules win intra-layer conflicts by source order — no
+   `!important` needed. Utilities still override everything here. */
+@layer app {
+
 em {
   font-family: var(--font-serif);
   color: var(--color-accent-secondary);
@@ -19,7 +25,7 @@ blockquote {
 
 h2, h3, h4 {
   margin-block-start: calc(var(--spacing) * 10);
-  margin-block-end: calc(var(--spacing) * 7)!important;
+  margin-block-end: calc(var(--spacing) * 7);
 }
 
 article a {
@@ -179,3 +185,6 @@ h3:hover .header-anchor,
 h4:hover .header-anchor {
   opacity: 1;
 }
+
+}
+/* end @layer app */

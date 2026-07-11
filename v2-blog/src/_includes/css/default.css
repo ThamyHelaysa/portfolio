@@ -1,3 +1,20 @@
+/* Establish the cascade-layer order once, before global.css loads.
+   Our hand-authored element styles live in `app`, which ranks ABOVE
+   Tailwind's preflight (`base`) but BELOW `utilities` — so utilities win
+   over these element rules without needing `!important`. */
+@layer theme, base, app, components, utilities;
+
+/* Registered so sibling-index() resolves on the .mb-cell that declares it
+   (an unregistered custom property would defer evaluation to the .mb-fill
+   consuming the var(), where the index is always 2). Browsers without
+   sibling-index() keep the 0s initial value: no stagger, same final bar. */
+@property --mb-delay {
+  syntax: "<time>";
+  inherits: true;
+  initial-value: 0s;
+}
+
+@layer app {
 
 body {
   color: var(--color-foreground, #292524);
@@ -11,6 +28,7 @@ body {
  contain-intrinsic-size: 1000px;  */
 main {
   view-transition-name: post;
+  scrollbar-gutter: stable both-edges;
 }
 
 h1, h2, h3, h4 {
@@ -78,8 +96,130 @@ a {
 
 p {
   margin-bottom: calc(var(--spacing, .25rem) * 4);
-  font-size: var(--text-lg, 1.25rem);
   text-wrap: pretty;
+}
+
+/* Description lists default to a label/value scale (used by the post meta
+   header). Utilities still override, since `app` ranks below `utilities`. */
+dt {
+  font-size: var(--text-xs, 0.75rem);
+}
+
+dd {
+  font-size: var(--text-sm, 0.875rem);
+}
+
+/* Animated post-meta elements (spin-date, meter-bar). Kept invisible until
+   their module upgrades and the entrance animation starts; `html.js` is set
+   by inline-theme.js, so no-JS visitors keep the server-rendered fallback
+   text visible. */
+html.js spin-date:not([data-ready]),
+html.js meter-bar:not([data-ready]) {
+  opacity: 0;
+}
+
+/* Screen readers get the plain date; the odometer view is aria-hidden. */
+spin-date .sd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+spin-date .sd-view {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* One-line viewport clipping the digit strip below it. */
+spin-date .sd-sec {
+  display: block;
+  height: 1.25em;
+  overflow: hidden;
+}
+
+spin-date .sd-sec-2 {
+  width: 2ch;
+}
+
+spin-date .sd-sec-4 {
+  width: 4ch;
+}
+
+spin-date .sd-strip {
+  display: block;
+  will-change: transform;
+}
+
+spin-date .sd-item {
+  display: block;
+  height: 1.25em;
+  line-height: 1.25em;
+  text-align: center;
+}
+
+meter-bar .mb-view {
+  display: inline-flex;
+}
+
+meter-bar .mb-cell {
+  --mb-delay: calc(80ms * (sibling-index() - 1));
+
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+meter-bar .mb-fill {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+
+/* Final state — also the fallback wherever the animation never runs. */
+meter-bar .mb-filled .mb-base {
+  opacity: 0;
+}
+
+/* Cells wipe in from the left once the component flags data-ready,
+   staggered left → right by each cell's sibling-index(). */
+@media (prefers-reduced-motion: no-preference) {
+  meter-bar[data-ready] .mb-filled .mb-fill {
+    animation: mb-fill-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--mb-delay);
+  }
+
+  meter-bar[data-ready] .mb-filled .mb-base {
+    animation: mb-base-exit 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--mb-delay);
+  }
+}
+
+@keyframes mb-fill-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mb-base-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 em {
@@ -145,3 +285,6 @@ html.term-unlocked .terminal-launch-desktop {
 html.term-unlocked .terminal-launch-mobile {
   display: inline-flex;
 }
+
+}
+/* end @layer app */

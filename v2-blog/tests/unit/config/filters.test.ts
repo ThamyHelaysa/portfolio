@@ -65,3 +65,15 @@ describe("readingTimeMeter", () => {
     expect(filters.readingTimeMeter(7, 5)).toBe("▌▌░░░");
   });
 });
+
+describe("readingTimeCells", () => {
+  it("matches readingTimeMeter's fill count", () => {
+    expect(filters.readingTimeCells(15, 5)).toBe(5);
+    expect(filters.readingTimeCells(7, 5)).toBe(2);
+    expect(filters.readingTimeCells(0, 5)).toBe(0);
+  });
+
+  it("caps long reads at max", () => {
+    expect(filters.readingTimeCells(60, 5)).toBe(5);
+  });
+});

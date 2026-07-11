@@ -155,6 +155,7 @@ export default function (eleventyConfig: any) {
   eleventyConfig.addFilter("readingTime", filters.readingTime);
   eleventyConfig.addFilter("meterBar", filters.meterBar);
   eleventyConfig.addFilter("readingTimeMeter", filters.readingTimeMeter);
+  eleventyConfig.addFilter("readingTimeCells", filters.readingTimeCells);
 
   // Shortcodes
   eleventyConfig.addPairedShortcode("sectionBlock", shortcodes.sectionBlock);

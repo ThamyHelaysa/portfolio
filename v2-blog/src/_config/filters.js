@@ -50,7 +50,17 @@ export default {
   // Reading-time length as meter cells (0..5): ~15 min = full bar.
   readingTimeMeter: function (minutes, max = 5) {
     const total = Math.max(1, Math.floor(max));
-    const cells = Math.min(total, Math.round((Number(minutes) || 0) / 15 * total));
+    const cells = readingCells(minutes, total);
     return "▌".repeat(cells) + "░".repeat(total - cells);
   },
+
+  // Same scale as readingTimeMeter, but as a number — feeds meter-bar's
+  // `value` attribute while the glyph string stays as its fallback child.
+  readingTimeCells: function (minutes, max = 5) {
+    return readingCells(minutes, Math.max(1, Math.floor(max)));
+  },
+}
+
+function readingCells(minutes, total) {
+  return Math.min(total, Math.round((Number(minutes) || 0) / 15 * total));
 }

@@ -100,7 +100,8 @@
 
     {{ scriptsOutput | safe }}
   </head>
-  <body class="font-sans dotted-bg noise-fx">
+  <body class="font-sans dotted-bg">
+    <div class="noise-fx" aria-hidden="true"></div>
     <div class="min-h-screen selection:bg-accent selection:text-white flex flex-col">
       
       {% include "partials/header.njk" %}

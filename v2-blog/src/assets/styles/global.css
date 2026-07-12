@@ -114,6 +114,8 @@
     --term-err-bg: #e5484d;
     --term-warn-bg: #c8860d;
     --term-badge-text: #fff;
+
+    --noise-opacity: 0.05;
   }
 
   html.dark {
@@ -156,6 +158,8 @@
     --color-h2: var(--color-pink-400);
     --color-h3: var(--color-gray-400);
     --color-h4: var(--color-gray-500);
+
+    --noise-opacity: 0.08;
   }
 }
 
@@ -207,6 +211,45 @@
   }
 }
 
+/* Film-grain overlay. The tile is a pre-rasterized feTurbulence SVG baked
+   into a data URI, so the browser never runs a live full-viewport SVG filter
+   — it paints once as a repeated 128px background.
+   A real element (not a body::before) because it needs its own
+   view-transition-name: <main> is a separate VT group (post) that stacks
+   above root during page navigation, so grain baked only into the root
+   snapshot vanishes behind main's opaque backgrounds mid-crossfade. As its
+   own group (painted last → stacked topmost) the grain stays put; old/new
+   snapshots are identical so the crossfade is invisible.
+   Intensity comes from the per-theme --noise-opacity token. */
+.noise-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.4' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: var(--noise-opacity, 0.05);
+  view-transition-name: noise-fx;
+}
+
+/* The grain never animates during navigation. Kill the default crossfade —
+   old and new snapshots are identical, and fading them across each other
+   would stack two grain layers (intensity visibly doubles mid-transition).
+   Show only the new snapshot at full strength. */
+::view-transition-group(noise-fx),
+::view-transition-old(noise-fx),
+::view-transition-new(noise-fx) {
+  animation: none;
+}
+
+::view-transition-old(noise-fx) {
+  opacity: 0;
+}
+
+::view-transition-new(noise-fx) {
+  opacity: 1;
+}
+
 ::view-transition-old(post) {
   animation: var(--animate-fade-out);
 }
@@ -239,10 +282,12 @@
   will-change: auto !important;
 }
 
-/* <main> carries view-transition-name:post for the page-nav morph. During a
-   theme swap that name would split main into its own (fading) group instead of
-   the root clip — drop it so the whole page sweeps as one root snapshot. */
-:root.theme-vt main {
+/* <main> carries view-transition-name:post for the page-nav morph, and the
+   grain overlay carries noise-fx. During a theme swap those names would split
+   them into their own (fading) groups instead of the root clip — drop them so
+   the whole page sweeps as one root snapshot. */
+:root.theme-vt main,
+:root.theme-vt .noise-fx {
   view-transition-name: none;
 }
 

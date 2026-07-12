@@ -15,6 +15,7 @@ import tailwindcss from '@tailwindcss/postcss';
 import collections from './src/_config/collections.js';
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
+import { classifyTsInput, cssTargets } from './src/_config/buildConventions.js';
 
 export default function (eleventyConfig: any) {
 
@@ -30,8 +31,9 @@ export default function (eleventyConfig: any) {
   eleventyConfig.addExtension("ts", {
     outputFileExtension: "js", // Output as .js
     compile: async (_: any, inputPath: string) => {
-      // Skip files outside the '_helpers and components' directory 
-      if (!inputPath.includes("_helpers") && !inputPath.includes("components")) return;
+      // Convention: src/components/ and src/_helpers/ compile to browser JS,
+      // known non-browser TS is ignored, anything else throws (no silent skip).
+      if (classifyTsInput(inputPath) === "ignore") return;
 
       return async (_: any) => {
         // Compile using esbuild
@@ -83,36 +85,11 @@ export default function (eleventyConfig: any) {
 
   // Compile tailwind
   eleventyConfig.on('eleventy.before', async () => {
-    // INPUT: Where your source CSS lives
-    // const tailwindInputPath = path.resolve('./src/assets/styles/global.css');
-    // 1. Define your compilation targets
-
-    const targets = [
-      {
-        input: './src/assets/styles/global.css',
-        output: './dist/assets/css/global.css'
-      },
-      {
-        input: './src/assets/styles/shadow.css',
-        output: './dist/assets/css/shadow.css'
-      },
-      {
-        input: './src/assets/styles/toggle-theme-shadow.css',
-        output: './dist/assets/css/toggle-theme-shadow.css'
-      },
-      {
-        input: './src/assets/styles/note-modal-shadow.css',
-        output: './dist/assets/css/note-modal-shadow.css'
-      },
-      {
-        input: './src/assets/styles/menu-mobile-shadow.css',
-        output: './dist/assets/css/menu-mobile-shadow.css'
-      },
-      {
-        input: './src/assets/styles/terminal-overlay-shadow.css',
-        output: './dist/assets/css/terminal-overlay-shadow.css'
-      }
-    ];
+    // Convention: every src/assets/styles/*.css (minus @import-only partials)
+    // compiles to dist/assets/css/<basename> — see src/_config/buildConventions.ts.
+    const styleDir = './src/assets/styles';
+    const styleFiles = fs.readdirSync(path.resolve(styleDir));
+    const targets = cssTargets(styleDir, './dist/assets/css', styleFiles);
 
     for (const target of targets) {
       const inputPath = path.resolve(target.input);
@@ -280,10 +257,6 @@ export default function (eleventyConfig: any) {
 
   eleventyConfig.addPassthroughCopy({
     "src/assets/asciiart": "assets/asciiart"
-  });
-
-  eleventyConfig.addPassthroughCopy({
-    "src/assets/styles/books-terminal-deferred.css": "assets/css/books-terminal-deferred.css"
   });
 
   eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });

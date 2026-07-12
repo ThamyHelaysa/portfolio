@@ -16,8 +16,9 @@ pagination:
   <ul class="space-y-6">
     {% for post in collections.published | reverse %}
       {% set formatedDate = post.date | formatDatefull(post.date) %}
-      <li>
-        {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
+      <li class="border-t border-accent/10 last:pb-0 mb-0">
+        {% set authorName = post.data.author or personal.info.displayName %}
+        {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags, loop.index %}
           <p>{{ post.data.description }}</p>
         {% endblogSectionBlock %}
       </li>

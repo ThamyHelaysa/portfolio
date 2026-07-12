@@ -420,7 +420,7 @@ describe("terminal-shell startup phases", () => {
 
     const info = element.querySelector("#boot-log p.terminal-msg.info")!;
     expect(info.textContent).toBe(
-      "help · list · open <id> · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ"
+      "help · list · open <id> · random · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ"
     );
   });
 
@@ -464,6 +464,19 @@ describe("terminal-shell startup phases", () => {
     await (element as any)._executeCommand("c");
 
     expect(element.querySelector("#boot-log p.terminal-msg.error")).toBeNull();
+  });
+
+  it("random opens a randomly picked book (the sidebar button's command)", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    const navSpy = vi.spyOn(element as any, "_navigateTo").mockImplementation(() => undefined);
+
+    await (element as any)._executeCommand("random");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.status")?.textContent)
+      .toBe("rolling the dice... [012] A seca");
+    expect(navSpy).toHaveBeenCalledWith("/books/a-seca/");
   });
 
   it("git is no longer a command", async () => {

@@ -82,7 +82,7 @@ export class TerminalShell extends LitElement {
           this.dispatch({ type: "SIDEBAR_SET", open: true });
         } else {
           await this.appendToLog(
-            "help · list · open <id> · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ",
+            "help · list · open <id> · random · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ",
             0.5,
             CommandType.info
           )
@@ -158,6 +158,22 @@ export class TerminalShell extends LitElement {
         } else {
           await this.appendToLog(ctx.raw, 0.2, CommandType.command);
         }
+      },
+
+      // picks a random book and opens it (the sidebar's "random book" button)
+      random: async (ctx) => {
+        await this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
+
+        this._ensureBookDataLoaded();
+        const books = this.bookData.filter((b) => b.url);
+        if (books.length === 0) {
+          await this.appendToLog("no books to pick from >.<", 0.05, CommandType.error);
+          return;
+        }
+
+        const book = books[Math.floor(Math.random() * books.length)];
+        await this.appendToLog(`rolling the dice... [${book.id}] ${book.title}`, 0.05, CommandType.status);
+        this._navigateTo(book.url!);
       },
 
       clear: async (ctx) => {

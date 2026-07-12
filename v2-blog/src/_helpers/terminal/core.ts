@@ -42,6 +42,30 @@ export function commandBadge(type: CommandType): string | undefined {
   }
 }
 
+/**
+ * Maps a badged line's kind to its decorative glyph. The single source of the
+ * glyph vocabulary (ADR-0002): every surface renders it from the `data-glyph`
+ * attribute via one generic CSS rule, so it stays out of aria text and
+ * persisted scrollback and the surfaces can't drift.
+ *
+ * @param type - The line kind.
+ * @returns The glyph character, or `undefined` for kinds without a badge.
+ */
+export function commandGlyph(type: CommandType): string | undefined {
+  switch (type) {
+    case CommandType.title:
+      return "▮";
+    case CommandType.error:
+      return "✗";
+    case CommandType.status:
+      return "✓";
+    case CommandType.info:
+      return "▸";
+    default:
+      return undefined;
+  }
+}
+
 type TerminalCoreOptions = {
   /** Command registry; consumers register their own command sets. */
   commands: Record<string, CommandHandler>;
@@ -142,11 +166,13 @@ export class TerminalCore {
     const lines = String(text).replace(/\r\n/g, "\n").split("\n");
 
     const badge = commandBadge(kind);
+    const glyph = commandGlyph(kind);
 
     for (const line of lines) {
       const p = document.createElement("p");
       p.className = `terminal-msg ${CommandType[kind]}`;
       if (badge) p.dataset.badge = badge;
+      if (glyph) p.dataset.glyph = glyph;
       p.textContent = "";
       log.appendChild(p);
 
@@ -199,6 +225,8 @@ export class TerminalCore {
     p.className = `terminal-msg ${CommandType[kind]}`;
     const badge = commandBadge(kind);
     if (badge) p.dataset.badge = badge;
+    const glyph = commandGlyph(kind);
+    if (glyph) p.dataset.glyph = glyph;
     p.textContent = text;
     return p;
   }

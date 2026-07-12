@@ -82,7 +82,7 @@ export class TerminalShell extends LitElement {
           this.dispatch({ type: "SIDEBAR_SET", open: true });
         } else {
           await this.appendToLog(
-            "help · list · open <id> · theme · whoami υ.υ",
+            "help · list · open <id> · random · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ",
             0.5,
             CommandType.info
           )
@@ -135,11 +135,15 @@ export class TerminalShell extends LitElement {
 
       book: async (ctx) => this.COMMANDS.open(ctx),
 
-      // Shared Commands (theme, whoami) — semantics owned by the factory so
-      // this surface and the summoned overlay can never diverge. Only the
-      // whoami flavor line is books-specific.
+      // Shared Commands (theme, whoami, ls, grep, cat, random) — semantics
+      // owned by the factory so this surface and the summoned overlay can
+      // never diverge. Only the whoami flavor line is books-specific.
       ...createSharedCommands(
-        { append: (text, duration, kind) => this.appendToLog(text, duration ?? 0.2, kind ?? CommandType.log) },
+        {
+          append: (text, duration, kind) => this.appendToLog(text, duration ?? 0.2, kind ?? CommandType.log),
+          render: (block) => this._core.render(block),
+          navigate: (url) => this._navigateTo(url),
+        },
         { whoamiFlavor: (id) => `you are ${id} — guest of book_os υ.υ` }
       ),
 
@@ -157,37 +161,15 @@ export class TerminalShell extends LitElement {
         }
       },
 
-      // list portfolio branchs/commits and more
-      // just like git but without the write permission
-      git: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-
-      },
-
-      // list terminal archives
-      ls: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-
-      },
-
-      // search posts, files 
-      grep: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-
-      },
-
-      // display contents only no flags 
-      cat: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-
-      },
-
       clear: async (ctx) => {
         await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-        // Todo: improve clear
-        // this._clearOutput();
-        // await this.appendToLog("SCREEN CLEARED.", 0.05, CommandType.log);
+        this._clearOutput();
       },
+
+      cls: async (ctx) => this.COMMANDS.clear(ctx),
+      c: async (ctx) => this.COMMANDS.clear(ctx),
+
+      l: async (ctx) => this.COMMANDS.list(ctx),
     };
 
   // Declared after COMMANDS so the initializer can hand it to the core.
@@ -930,7 +912,7 @@ export class TerminalShell extends LitElement {
               <span> - clear the console</span>
             </p>
             <p class="info item">
-              <button type="button" class="btn mobile" @click=${() => this._onQuickAction("random")}>random book</button>
+              <button type="button" class="btn mobile" @click=${() => this._onQuickAction("random books")}>random book</button>
               <span> - get a random book to be analized</span>
             </p>
           </div>

@@ -13,7 +13,7 @@ A named, pre-registered handler the Terminal can run (e.g. `help`, `list`, `open
 _Avoid_: program, process
 
 **Shared Command**:
-A Command whose semantics are site-wide — it must behave identically on every Terminal surface (`theme`, `whoami`). Shared Commands come from one registry factory (`_helpers/terminal/commands.ts`) that each surface spreads into its own registry; a surface may wrap presentation (flavor text) but never semantics. Commands that are not shared are **surface Commands** (`exit`, `skip`, the cheats) and stay owned by their surface.
+A Command whose semantics are site-wide — it must behave identically on every Terminal surface (`theme`, `whoami`, `ls`, `grep`, `cat`, `random`). Shared Commands come from one registry factory (`_helpers/terminal/commands.ts`) that each surface spreads into its own registry; a surface may wrap presentation (flavor text) but never semantics. Commands that are not shared are **surface Commands** (`exit`, `skip`, `clear`, the cheats) and stay owned by their surface.
 _Avoid_: global command, common command, built-in
 
 **Summon**:

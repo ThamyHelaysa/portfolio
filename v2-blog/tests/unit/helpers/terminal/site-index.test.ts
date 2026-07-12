@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, rootListingBlock, renderSubtree, resolveOpen, sanitizeNavQuery, searchEntries } from "../../../../src/_helpers/terminal/site-index.ts";
+import { buildTree, collectPages, findNode, matchEntry, parseSiteIndex, renderRootListing, rootListingBlock, renderSubtree, resolveOpen, sanitizeNavQuery, searchEntries } from "../../../../src/_helpers/terminal/site-index.ts";
 
 const ENTRIES = parseSiteIndex([
   { section: "posts", title: "Why I never heard of Lit", url: "/blog/2025/why-i-never-heard-of-lit/" },
@@ -232,6 +232,30 @@ describe("resolveOpen", () => {
     expect(resolveOpen(root, ENTRIES, "ngrok")).toMatchObject({ kind: "navigate", url: "/blog/2025/using-ngrok-to-test-some-web-things/" });
     expect(resolveOpen(root, ENTRIES, "test").kind).toBe("ambiguous");
     expect(resolveOpen(root, ENTRIES, "zzz").kind).toBe("none");
+  });
+});
+
+describe("collectPages", () => {
+  it("gathers every descendant carrying a page url, excluding the node itself", () => {
+    const root = buildTree(ENTRIES);
+
+    const all = collectPages(root);
+    expect(all.map((n) => n.url).sort()).toEqual([
+      "/about/",
+      "/blog/2025/test-driven-fun/",
+      "/blog/2025/using-ngrok-to-test-some-web-things/",
+      "/blog/2025/why-i-never-heard-of-lit/",
+      "/books/a-seca/",
+      "/books/ring/",
+    ]);
+
+    const books = collectPages(findNode(root, "books")!);
+    expect(books.map((n) => n.url).sort()).toEqual(["/books/a-seca/", "/books/ring/"]);
+  });
+
+  it("returns nothing for a leaf (the node itself doesn't count)", () => {
+    const root = buildTree(ENTRIES);
+    expect(collectPages(findNode(root, "about")!)).toEqual([]);
   });
 });
 

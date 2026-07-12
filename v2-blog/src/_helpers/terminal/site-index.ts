@@ -283,6 +283,23 @@ export function matchEntry(entries: SiteIndexEntry[], query: string): MatchResul
 }
 
 /**
+ * Gathers every descendant of `node` that carries a page url (the `random`
+ * Command's pool). The node itself is excluded — `random books` rolls a book,
+ * never the books listing page.
+ *
+ * @param node - The subtree to collect from.
+ * @returns The descendant nodes that are real pages, in DFS order.
+ */
+export function collectPages(node: TreeNode): TreeNode[] {
+  const pages: TreeNode[] = [];
+  for (const child of node.children) {
+    if (child.url) pages.push(child);
+    pages.push(...collectPages(child));
+  }
+  return pages;
+}
+
+/**
  * Case-insensitive substring search over entry titles and descriptions
  * (the `grep` Command's engine). A blank term matches nothing.
  *

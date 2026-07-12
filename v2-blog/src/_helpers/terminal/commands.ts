@@ -14,6 +14,7 @@ import type { ParsedCommand } from "./parser.ts";
 import type { Block } from "./blocks.ts";
 import {
   buildTree,
+  collectPages,
   fetchSiteIndex,
   findNode,
   renderSubtree,
@@ -32,6 +33,8 @@ export type CommandIo = {
   append: (text: string, duration?: number, kind?: CommandType) => Promise<void>;
   /** Renders a structured block; same contract as `TerminalCore.render`. */
   render: (block: Block) => Promise<void>;
+  /** Navigates to a site-internal URL (the surface owns how). */
+  navigate: (url: string) => void;
 };
 
 export type SharedCommandOptions = {
@@ -147,6 +150,34 @@ export function createSharedCommands(
           },
         ],
       });
+    },
+
+    // `random [folder]` — rolls a random page (site-wide, or scoped to a
+    // folder: `random books`, `random blog`) and navigates to it.
+    random: async (ctx: ParsedCommand): Promise<void> => {
+      await io.append(ctx.raw, 0.2, CommandType.command);
+
+      const root = buildTree(await fetchSiteIndex());
+      const target = sanitizeNavQuery(ctx.positionals[0] ?? "");
+
+      let scope: TreeNode | undefined = root;
+      if (target) {
+        scope = findNode(root, target);
+        if (!scope) {
+          await io.append(`random: ${target}: no such folder`, 0.2, CommandType.error);
+          return;
+        }
+      }
+
+      const pages = collectPages(scope);
+      if (pages.length === 0) {
+        await io.append(`random: nothing to roll in ${target || "~"}`, 0.2, CommandType.error);
+        return;
+      }
+
+      const pick = pages[Math.floor(Math.random() * pages.length)];
+      await io.append(`rolling the dice... ${pick.title ?? pick.name}`, 0.2, CommandType.status);
+      io.navigate(pick.url!);
     },
 
     // `cat <page>` — print a page's title and description; folders belong to `ls`.

@@ -135,13 +135,14 @@ export class TerminalShell extends LitElement {
 
       book: async (ctx) => this.COMMANDS.open(ctx),
 
-      // Shared Commands (theme, whoami, ls, grep, cat) — semantics owned by
-      // the factory so this surface and the summoned overlay can never
-      // diverge. Only the whoami flavor line is books-specific.
+      // Shared Commands (theme, whoami, ls, grep, cat, random) — semantics
+      // owned by the factory so this surface and the summoned overlay can
+      // never diverge. Only the whoami flavor line is books-specific.
       ...createSharedCommands(
         {
           append: (text, duration, kind) => this.appendToLog(text, duration ?? 0.2, kind ?? CommandType.log),
           render: (block) => this._core.render(block),
+          navigate: (url) => this._navigateTo(url),
         },
         { whoamiFlavor: (id) => `you are ${id} — guest of book_os υ.υ` }
       ),
@@ -158,22 +159,6 @@ export class TerminalShell extends LitElement {
         } else {
           await this.appendToLog(ctx.raw, 0.2, CommandType.command);
         }
-      },
-
-      // picks a random book and opens it (the sidebar's "random book" button)
-      random: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
-
-        this._ensureBookDataLoaded();
-        const books = this.bookData.filter((b) => b.url);
-        if (books.length === 0) {
-          await this.appendToLog("no books to pick from >.<", 0.05, CommandType.error);
-          return;
-        }
-
-        const book = books[Math.floor(Math.random() * books.length)];
-        await this.appendToLog(`rolling the dice... [${book.id}] ${book.title}`, 0.05, CommandType.status);
-        this._navigateTo(book.url!);
       },
 
       clear: async (ctx) => {
@@ -927,7 +912,7 @@ export class TerminalShell extends LitElement {
               <span> - clear the console</span>
             </p>
             <p class="info item">
-              <button type="button" class="btn mobile" @click=${() => this._onQuickAction("random")}>random book</button>
+              <button type="button" class="btn mobile" @click=${() => this._onQuickAction("random books")}>random book</button>
               <span> - get a random book to be analized</span>
             </p>
           </div>

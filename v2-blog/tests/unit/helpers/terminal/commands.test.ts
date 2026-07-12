@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const gsapMock = vi.hoisted(() => ({
   to: vi.fn(),
@@ -39,15 +39,20 @@ type Line = { text: string; kind: CommandType | undefined };
 function makeIo() {
   const lines: Line[] = [];
   const blocks: Block[] = [];
+  const navs: string[] = [];
   return {
     lines,
     blocks,
+    navs,
     io: {
       append: async (text: string, _duration?: number, kind?: CommandType) => {
         lines.push({ text, kind });
       },
       render: async (block: Block) => {
         blocks.push(block);
+      },
+      navigate: (url: string) => {
+        navs.push(url);
       },
     },
   };
@@ -75,9 +80,62 @@ describe("createSharedCommands registry", () => {
       "cat",
       "grep",
       "ls",
+      "random",
       "theme",
       "whoami",
     ]);
+  });
+});
+
+describe("random (shared Command)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rolls a page site-wide on bare random and navigates to it", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { io, lines, navs } = makeIo();
+
+    await run(createSharedCommands(io), "random");
+
+    expect(lines[0]).toEqual({ text: "random", kind: CommandType.command });
+    expect(lines.at(-1)).toEqual({ text: "rolling the dice... About me", kind: CommandType.status });
+    expect(navs).toEqual(["/about/"]);
+  });
+
+  it("scopes the roll to a folder", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const { io, lines, navs } = makeIo();
+
+    await run(createSharedCommands(io), "random books");
+
+    expect(lines.at(-1)).toEqual({
+      text: "rolling the dice... The Dispossessed",
+      kind: CommandType.status,
+    });
+    expect(navs).toEqual(["/books/the-dispossessed/"]);
+  });
+
+  it("errors on an unknown folder without navigating", async () => {
+    const { io, lines, navs } = makeIo();
+
+    await run(createSharedCommands(io), "random nope");
+
+    expect(navs).toEqual([]);
+    expect(lines.at(-1)).toEqual({ text: "random: nope: no such folder", kind: CommandType.error });
+  });
+
+  it("errors when the scope has no pages to roll", async () => {
+    const { io, lines, navs } = makeIo();
+
+    // "about" is a leaf: the node itself doesn't count as a rollable page.
+    await run(createSharedCommands(io), "random about");
+
+    expect(navs).toEqual([]);
+    expect(lines.at(-1)).toEqual({
+      text: "random: nothing to roll in about",
+      kind: CommandType.error,
+    });
   });
 });
 

@@ -380,13 +380,14 @@ export class TerminalOverlay extends LitElement {
   /** Per-tab command-history store (survives full-page navigations). */
   private _session = new TerminalSession();
 
-  // Shared Commands (theme, whoami, ls, grep, cat) — semantics owned by the
-  // factory so this surface and the books shell can never diverge. Declared
-  // before _core so the registry below can alias into it; the io closures
-  // resolve this._core lazily.
+  // Shared Commands (theme, whoami, ls, grep, cat, random) — semantics owned
+  // by the factory so this surface and the books shell can never diverge.
+  // Declared before _core so the registry below can alias into it; the io
+  // closures resolve this._core lazily.
   private _shared = createSharedCommands({
     append: (text, duration, kind) => this._core.append(text, duration, kind),
     render: (block) => this._core.render(block),
+    navigate: (url) => this._navigateTo(url),
   });
 
   private _core: TerminalCore = new TerminalCore({
@@ -394,7 +395,7 @@ export class TerminalOverlay extends LitElement {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
         await this._core.append(
-          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\ngrep <term> - search pages\ncat <page> - peek at a page\nopen <slug> - go to a page\ntheme [dark|pinky] - switch the theme\nwhoami - who are you, really\nexit / q - close the terminal",
+          "help - list commands\nls [folder] - browse the site tree (blog, books, …)\ngrep <term> - search pages\ncat <page> - peek at a page\nopen <slug> - go to a page\nrandom [folder] - roll a page and go\ntheme [dark|pinky] - switch the theme\nwhoami - who are you, really\nexit / q - close the terminal",
           0.3,
           CommandType.logdata
         );
@@ -431,7 +432,7 @@ export class TerminalOverlay extends LitElement {
         switch (result.kind) {
           case "navigate":
             await this._core.append(`opening ${result.title}...`, 0.2, CommandType.status);
-            window.location.href = result.url;
+            this._navigateTo(result.url);
             break;
           case "ambiguous":
             await this._core.append(`"${query}" is ambiguous — did you mean:`, 0.2, CommandType.error);
@@ -453,6 +454,11 @@ export class TerminalOverlay extends LitElement {
     skipAnimations: () => this._skipAnimations,
     onLineWritten: () => this._scrollToBottom(),
   });
+
+  /** Full-page navigation to a site-internal URL (spy seam for tests). */
+  private _navigateTo(url: string): void {
+    window.location.href = url;
+  }
 
   /**
    * Closes the terminal in response to the `exit` / `q` command.

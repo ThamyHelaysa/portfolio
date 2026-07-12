@@ -35,6 +35,30 @@ function trigger(src: string, over: Partial<PreviewTrigger> = {}): PreviewTrigge
   };
 }
 
+/**
+ * Replaces rAF with a manual queue and returns its flush, so a real window
+ * `scroll` event drives the ScrollAnchor's throttled frame deterministically
+ * — the public surface, no reaching into the singleton.
+ */
+function stubRaf(): () => void {
+  let cbs: Array<FrameRequestCallback | undefined> = [];
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => cbs.push(cb));
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+    cbs[id - 1] = undefined;
+  });
+  return () => {
+    const pending = cbs;
+    cbs = [];
+    pending.forEach((cb) => cb?.(0));
+  };
+}
+
+/** One user scroll: the window event plus the animation frame it schedules. */
+function scroll(flushRaf: () => void) {
+  window.dispatchEvent(new Event("scroll"));
+  flushRaf();
+}
+
 describe("sharedPreview", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
@@ -46,6 +70,7 @@ describe("sharedPreview", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 
@@ -540,6 +565,7 @@ describe("sharedPreview", () => {
   });
 
   it("desktop: dismisses committed playback once scrolled past the threshold", async () => {
+    const flushRaf = stubRaf();
     const { SharedMediaPreview } = await import("../../../src/_helpers/sharedPreview.ts");
     const preview = SharedMediaPreview.getInstance();
     const wrapper = document.querySelector<HTMLDivElement>("#mediaPreview");
@@ -556,12 +582,12 @@ describe("sharedPreview", () => {
 
     // A tiny jitter must not dismiss.
     Object.defineProperty(window, "scrollY", { configurable: true, value: 4 });
-    (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+    scroll(flushRaf);
     expect(preview.isPlaying()).toBe(true);
 
     // Real scroll past the threshold dismisses.
     Object.defineProperty(window, "scrollY", { configurable: true, value: 40 });
-    (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+    scroll(flushRaf);
     expect(preview.isPlaying()).toBe(false);
     expect(wrapper?.classList.contains("is-visible")).toBe(false);
     expect(pause).toHaveBeenCalled();
@@ -570,6 +596,7 @@ describe("sharedPreview", () => {
   });
 
   it("touch: stops committed playback when the source scrolls fully off-screen", async () => {
+    const flushRaf = stubRaf();
     const mm = vi.fn((q: string) => ({ matches: q.includes("hover: none") })) as unknown as typeof window.matchMedia;
     const prev = window.matchMedia;
     window.matchMedia = mm;
@@ -590,12 +617,12 @@ describe("sharedPreview", () => {
 
       // Still partly visible → keeps playing.
       rect = new DOMRect(0, 10, 300, 80);
-      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+      scroll(flushRaf);
       expect(preview.isPlaying()).toBe(true);
 
       // Fully above the viewport → stop.
       rect = new DOMRect(0, -200, 300, 80);
-      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+      scroll(flushRaf);
       expect(preview.isPlaying()).toBe(false);
       expect(pause).toHaveBeenCalled();
     } finally {
@@ -604,6 +631,7 @@ describe("sharedPreview", () => {
   });
 
   it("touch: a tracked glimpse trails its source past the top edge (vertical unclamped)", async () => {
+    const flushRaf = stubRaf();
     const mm = vi.fn((q: string) => ({ matches: q.includes("hover: none") })) as unknown as typeof window.matchMedia;
     const prev = window.matchMedia;
     window.matchMedia = mm;
@@ -621,7 +649,7 @@ describe("sharedPreview", () => {
 
       // Card scrolled above the viewport: y follows it negative, not pinned.
       rect = new DOMRect(0, -100, 300, 40);
-      (preview as unknown as { _onScrollFrame(): void })._onScrollFrame();
+      scroll(flushRaf);
 
       // right placement, glimpse h=100: eixoY = -100 + (40 - 100) / 2 = -130.
       expect(wrapper?.style.getPropertyValue("--preview-y")).toBe("-130px");

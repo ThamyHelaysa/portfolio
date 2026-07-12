@@ -72,6 +72,10 @@ _Avoid_: grace period, open state
 The pure state machine that decides the Media preview's show/hide sequencing — Hover intent, Warm state, the album shape-swap defer, and generation superseding. Owns no DOM, timers, or `window`; the singleton feeds it real events (reveal/commit/hide/stop, timer and transition completions) and executes the commands it returns. See [ADR-0006](docs/adr/0006-preview-faces-and-waapi-animation.md).
 _Avoid_: state machine (as the primary term in prose), controller, orchestrator
 
+**Scroll policy**:
+The pure decision of what one throttled scroll frame does to the Media preview: on touch the bubble **follows** its source card (and committed playback stops once the card has fully left the viewport); on desktop any real scroll past a small jitter threshold dismisses committed playback; a hidden bubble detaches its tracking. Owns no DOM, `window`, or `matchMedia` — the singleton gathers the frame's facts as plain data, calls the policy (`previewScrollPolicy.ts`), and executes the commands it returns. The listener/rAF mechanics that decide *when* a frame happens belong to `scrollAnchor.ts`, not the policy. See [ADR-0004](docs/adr/0004-media-preview-decorative-singleton-card-is-control.md).
+_Avoid_: scroll handler, scroll listener (those are the mechanics), dismiss-on-scroll (that's only the desktop half)
+
 **Preview clip**:
 A short (~3s), silent, small-format excerpt cut from a full recording — the thing a video Media preview plays. Generated ahead of time from local source recordings; the full recording never ships.
 _Avoid_: video, trailer, thumbnail

@@ -1,22 +1,15 @@
 import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 
-import { IdentityManager } from "../_helpers/identityManager.ts";
-import { getIdentity, nextRandomIdentity, setIdentity } from "../_helpers/identity.ts";
+import { getIdentity, getStoredIdentity, nextRandomIdentity, setIdentity } from "../_helpers/identity.ts";
+import { animateIdentityReveal } from "../_helpers/identityReveal.ts";
 
 @customElement('user-fakeid')
 export class UserFakeID extends LitElement {
-  constructor() {
-    super();
-    this.identity = IdentityManager.getInstance();
-  }
-
   @query('#userId') private _userElID!: HTMLSpanElement;
 
   @property({ type: String, reflect: true })
   userID: string = "";
-  // @property({ type: typeof IdentityManager })
-  // identity = IdentityManager.getInstance();
 
   @state() private isRandom = false;
   @state() private isDesktop = true;
@@ -26,8 +19,7 @@ export class UserFakeID extends LitElement {
     this.isDesktop = e.matches;
   };
 
-  private identity = IdentityManager.getInstance();
-  private hasUserName = this.identity.getCachedName();
+  private hasUserName = getStoredIdentity();
 
   static styles = css`
     :host {
@@ -100,7 +92,7 @@ export class UserFakeID extends LitElement {
     if (!this.allowReveal) return;
 
     if (this.hasUserName) {
-      this.identity.animateReveal(this._userElID, this.hasUserName);
+      animateIdentityReveal(this._userElID, this.hasUserName);
       return;
     }
 
@@ -116,7 +108,7 @@ export class UserFakeID extends LitElement {
       this.updateComplete.then(() => {
         if (!this.allowReveal) return;
         if (!this._userElID) return;
-        this.identity.animateReveal(this._userElID, this.userID!);
+        animateIdentityReveal(this._userElID, this.userID!);
       })
     }
   }
@@ -124,7 +116,7 @@ export class UserFakeID extends LitElement {
   private async _handleRandomID(): Promise<void> {
     this.isRandom = true;
     this.userID = nextRandomIdentity();
-    await this.identity.animateReveal(this._userElID, this.userID);
+    animateIdentityReveal(this._userElID, this.userID);
   }
 
   private setRandomID(): void {

@@ -219,6 +219,18 @@ describe("terminal-overlay", () => {
       expect(localStorage.getItem("theme")).not.toBe("neon");
     });
 
+    // Drift guard: theme is a shared Command — the light alias must behave the
+    // same on this surface as on the books shell (see _helpers/terminal/commands.ts).
+    it("theme accepts light as an alias for pinky (shared Command contract)", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      submit(el, "theme light");
+      await flush();
+      expect(localStorage.getItem("theme")).toBe("pinky");
+    });
+
     it("whoami prints the generated identity", async () => {
       const el = await mountOverlay();
       el.open = true;

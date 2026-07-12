@@ -14,8 +14,7 @@ import {
 } from "../_helpers/terminal/site-index.ts";
 import { takeFirstBootOfSession, TerminalSession } from "../_helpers/terminal/session.ts";
 import { playFirstSummonChime } from "../_helpers/terminal/chime.ts";
-import { getTheme, setTheme, type Theme } from "../_helpers/theme.ts";
-import { getIdentity } from "../_helpers/identity.ts";
+import { createSharedCommands } from "../_helpers/terminal/commands.ts";
 
 /**
  * Site-wide summonable terminal — an accessible modal window (issue #93).
@@ -389,7 +388,7 @@ export class TerminalOverlay extends LitElement {
   /** Per-tab command-history store (survives full-page navigations). */
   private _session = new TerminalSession();
 
-  private _core = new TerminalCore({
+  private _core: TerminalCore = new TerminalCore({
     commands: {
       help: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
@@ -407,12 +406,11 @@ export class TerminalOverlay extends LitElement {
       exit: async (ctx: ParsedCommand) => this._exit(ctx),
       q: async (ctx: ParsedCommand) => this._exit(ctx),
 
-      theme: async (ctx: ParsedCommand) => this._theme(ctx),
-      whoami: async (ctx: ParsedCommand) => {
-        await this._core.append(ctx.raw, 0.2, CommandType.command);
-        // Read fresh each run so it reflects a name chosen on the home page.
-        await this._core.append(getIdentity(), 0.2, CommandType.info);
-      },
+      // Shared Commands (theme, whoami) — semantics owned by the factory so
+      // this surface and the books shell can never diverge.
+      ...createSharedCommands({
+        append: (text, duration, kind) => this._core.append(text, duration, kind),
+      }),
 
       rosebud: async (ctx: ParsedCommand) => {
         await this._core.append(ctx.raw, 0.2, CommandType.command);
@@ -469,33 +467,6 @@ export class TerminalOverlay extends LitElement {
   private async _exit(ctx: ParsedCommand): Promise<void> {
     await this._core.append(ctx.raw, 0.2, CommandType.command);
     this.open = false;
-  }
-
-  /**
-   * `theme [dark|pinky]` — no arg toggles; an explicit value sets it. Routes
-   * through the shared theme helper so the toggle component stays in sync.
-   *
-   * @param ctx - The parsed command (optional first positional is the target).
-   * @returns A promise that settles once the result is written.
-   */
-  private async _theme(ctx: ParsedCommand): Promise<void> {
-    await this._core.append(ctx.raw, 0.2, CommandType.command);
-    const arg = (ctx.positionals[0] ?? "").toLowerCase();
-
-    let next: Theme;
-    if (!arg) {
-      next = getTheme() === "dark" ? "pinky" : "dark";
-    } else if (arg === "dark") {
-      next = "dark";
-    } else if (arg === "pinky" || arg === "light") {
-      next = "pinky";
-    } else {
-      await this._core.append(`theme: unknown "${arg}" — try: dark, pinky`, 0.2, CommandType.error);
-      return;
-    }
-
-    setTheme(next);
-    await this._core.append(`theme → ${next}`, 0.2, CommandType.status);
   }
 
   /**

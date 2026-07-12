@@ -12,6 +12,10 @@ _Avoid_: shell, console, REPL, emulator, TTY
 A named, pre-registered handler the Terminal can run (e.g. `help`, `list`, `open`). Commands form a closed registry; unknown input yields a "not recognized" response rather than execution.
 _Avoid_: program, process
 
+**Shared Command**:
+A Command whose semantics are site-wide — it must behave identically on every Terminal surface (`theme`, `whoami`). Shared Commands come from one registry factory (`_helpers/terminal/commands.ts`) that each surface spreads into its own registry; a surface may wrap presentation (flavor text) but never semantics. Commands that are not shared are **surface Commands** (`exit`, `skip`, the cheats) and stay owned by their surface.
+_Avoid_: global command, common command, built-in
+
 **Summon**:
 The act of opening the site-wide Terminal overlay from any base-layout page (via `Ctrl/Cmd+Shift+C` or the unlock button). Distinct from the books page, where the Terminal is always present.
 _Avoid_: open, launch, invoke

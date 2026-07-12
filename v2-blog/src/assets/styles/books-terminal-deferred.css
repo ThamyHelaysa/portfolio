@@ -201,7 +201,6 @@ html.dark {
     margin-block: var(--term-line, 1.25rem);
     padding-block: var(--term-line, 1.25rem);
     padding-inline: 1.5ch;
-    border-radius: 6px;
   }
 
   .terminal-section[data-tone="surface"] {

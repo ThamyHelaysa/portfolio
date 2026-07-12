@@ -123,7 +123,6 @@ export class TerminalOverlay extends LitElement {
       width: 2rem;
       height: 2rem;
       border: 0;
-      border-radius: 6px;
       background: transparent;
       color: var(--term-muted);
       font: inherit;
@@ -166,12 +165,13 @@ export class TerminalOverlay extends LitElement {
       max-height: 100%;
       max-height: round(down, 100cqb, var(--term-line, 1.25rem));
       overflow: auto;
-      padding-inline: 1.25rem;
+      padding-inline: var(--term-line, 1.25rem);
       white-space: pre-wrap;
       overflow-wrap: break-word;
       hyphens: none;
       font-size: 0.85rem;
       line-height: var(--term-line, 1.25rem);
+      scroll-snap-type: y mandatory
     }
 
     /* Linear-stream lines: badge pills from the core's data-badge attribute.
@@ -182,6 +182,7 @@ export class TerminalOverlay extends LitElement {
       align-items: baseline;
       gap: 0 0.6ch;
       margin-block: 0;
+      scroll-snap-align: start
     }
 
     /* Badge pill: glyph + label both come from the core's data attributes
@@ -193,6 +194,7 @@ export class TerminalOverlay extends LitElement {
       flex: none;
       align-self: flex-start;
       padding: 0 0.6ch;
+      margin-block-start: 2px; // visual alignment with the line text
       font-weight: 600;
       font-size: 0.82em;
       letter-spacing: 0.06em;
@@ -301,7 +303,6 @@ export class TerminalOverlay extends LitElement {
         max-width: none;
         max-height: none;
         border: 0;
-        border-radius: 0;
       }
       #overlay-status { display: none; }
     }
@@ -382,7 +383,6 @@ export class TerminalOverlay extends LitElement {
     .terminal-section {
       margin: var(--term-line, 1.25rem) 0;
       padding: var(--term-line, 1.25rem) 0.8rem;
-      border-radius: 6px;
     }
 
     .terminal-section-title {

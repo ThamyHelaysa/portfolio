@@ -177,7 +177,7 @@ export class TerminalShell extends LitElement {
     commands: this.COMMANDS,
     logEl: () => this.querySelector("#boot-log"),
     skipAnimations: () => this.shell.skipAnimations,
-    onLineWritten: () => this._scrollToBottom(this._outputCLI),
+    onLineWritten: () => this._scrollToBottom(this._bootLog),
   });
 
 
@@ -631,7 +631,7 @@ export class TerminalShell extends LitElement {
         duration: 0.08,
         stagger: 0.03,
         ease: "none",
-        onUpdate: () => this._scrollToBottom(this._outputCLI),
+        onUpdate: () => this._scrollToBottom(this._bootLog),
         onComplete: () => resolve()
       });
     });
@@ -663,7 +663,7 @@ export class TerminalShell extends LitElement {
 
     if (batch.length === 0) {
       await this.appendToLog("bookshelf scan complete.", 0.2, CommandType.status);
-      this._scrollToBottom(this._outputCLI);
+      this._scrollToBottom(this._bootLog);
       return;
     }
 
@@ -686,7 +686,7 @@ export class TerminalShell extends LitElement {
       });
 
       this.dispatch({ type: "BOOKS_ADVANCED", count: 1 });
-      this._scrollToBottom(this._outputCLI);
+      this._scrollToBottom(this._bootLog);
       await this._staggerRowReveal();
     }
 
@@ -729,7 +729,7 @@ export class TerminalShell extends LitElement {
 
     form.reset();
     this.dispatch({ type: "INPUT_CHANGED", value: "" });
-    this._scrollToBottom(this._outputCLI);
+    this._scrollToBottom(this._bootLog);
 
     await this._executeCommand(raw);
   }
@@ -742,7 +742,7 @@ export class TerminalShell extends LitElement {
    */
   private async _executeCommand(input: string) {
     await this._core.run(input);
-    this._scrollToBottom(this._outputCLI);
+    this._scrollToBottom(this._bootLog);
   }
 
   private _insertCommand(cmd: string, mode: "replace" | "append" = "replace") {
@@ -785,12 +785,16 @@ export class TerminalShell extends LitElement {
   }
 
   private _clearOutput() {
-    if (!this._outputCLI) return;
-    var logHeight = this._bootLog.scrollHeight;
-    var outputHeight = this._outputCLI.offsetHeight;
-    this._bootLog.style.height = `${logHeight + outputHeight}px`;
+    if (!this._bootLog) return;
+    // Terminal-style clear: push the scrollback one full viewport up with a
+    // spacer. The scroller's height is rounded to whole lines (terminal.css),
+    // so the spacer is a whole-line multiple too and the rhythm survives.
+    const spacer = document.createElement("div");
+    spacer.className = "clear-spacer";
+    spacer.style.height = `${this._bootLog.clientHeight}px`;
+    this._bootLog.appendChild(spacer);
     requestAnimationFrame(() => {
-      this._scrollToBottom(this._outputCLI);
+      this._scrollToBottom(this._bootLog);
     })
   }
 
@@ -815,7 +819,7 @@ export class TerminalShell extends LitElement {
     el.setSelectionRange(end, end);
 
     requestAnimationFrame(() => this._updateFakeCaretPosition());
-    this._scrollToBottom(this._outputCLI);
+    this._scrollToBottom(this._bootLog);
   }
 
   private _forceCaretRules(e: Event) {

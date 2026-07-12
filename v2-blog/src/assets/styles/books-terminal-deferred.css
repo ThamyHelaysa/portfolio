@@ -96,7 +96,8 @@ html.dark {
 #boot-log {
   p {
     max-width: 640px;
-    padding-block: 2px;
+    /* No block padding: every log line must stay exactly --term-line tall. */
+    padding-block: 0;
   }
 
   /* Linear-stream lines: command echoes get a prompt glyph; info/title/error/
@@ -104,12 +105,14 @@ html.dark {
      core's data attributes (commandGlyph/commandBadge — the single glyph
      source, ADR-0002), so the pill rule is generic and the per-kind rules
      below carry colours only. */
+  /* Line rhythm: contiguous lines (no inter-line margins) on the shared
+     --term-line unit; sections below carry the breathing room. */
   .terminal-msg {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0 0.6ch;
-    margin-block-end: 0.6ch;
+    margin-block: 0;
   }
 
   .terminal-msg[data-badge]::before {
@@ -120,6 +123,12 @@ html.dark {
     font-weight: 600;
     font-size: 0.82em;
     letter-spacing: 0.06em;
+    /* Hug the label instead of inheriting the full --term-line box; an
+       inline pill shorter than the line strut can't break the rhythm. The
+       transparent border reserves the bordered variants' 2px so no pill
+       ever outgrows the line. */
+    line-height: calc(1.5em - 2px);
+    border: 1px solid transparent;
     text-transform: uppercase;
     background: var(--term-accent);
     color: var(--term-on-accent);
@@ -142,15 +151,19 @@ html.dark {
     color: var(--term-badge-text);
   }
 
-  /* Structured blocks: columns grid with tone cells (book listing rows). */
+  /* Structured blocks: columns grid with tone cells (book listing rows).
+     Zero row-gap keeps rows on the line rhythm; cells wrap at word
+     boundaries (no hyphens, no overflow past the section edge). */
   .terminal-cols {
     display: grid;
-    gap: 0.1rem 1ch;
-    margin-block: 0.35rem;
+    gap: 0 1ch;
+    margin-block: 0;
   }
 
   .terminal-cell {
-    white-space: pre;
+    min-width: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
   }
 
   .terminal-cell[data-align="end"] {
@@ -177,6 +190,29 @@ html.dark {
   /* "Ring · Koji Suzuki" — decorative separator after a linked cell. */
   a.terminal-cell + .terminal-cell::before {
     content: "· ";
+    color: var(--term-muted);
+  }
+
+  /* Sections: the only vertical breathing room in the log. Whole-line
+     margin AND whole-line block padding: half-line padding would keep the
+     box height on rhythm but shift the lines inside it half a line out of
+     phase, so the viewport edge could cut them. */
+  .terminal-section {
+    margin-block: var(--term-line, 1.25rem);
+    padding-block: var(--term-line, 1.25rem);
+    padding-inline: 1.5ch;
+    border-radius: 6px;
+  }
+
+  .terminal-section[data-tone="surface"] {
+    background: var(--term-surface);
+  }
+
+  .terminal-section-title {
+    font-size: 0.78em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--term-muted);
   }
 

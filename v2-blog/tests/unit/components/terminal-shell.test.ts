@@ -453,8 +453,8 @@ describe("terminal-shell startup phases", () => {
     await (element as any)._executeCommand("clear");
 
     expect(element.querySelector("#boot-log p.terminal-msg.error")).toBeNull();
-    const bootLog = element.querySelector("#boot-log") as HTMLElement;
-    expect(bootLog.style.height).not.toBe("");
+    // The clear spacer pushes the scrollback a full viewport up.
+    expect(element.querySelector("#boot-log .clear-spacer")).not.toBeNull();
   });
 
   it("cls and c stay as aliases of clear", async () => {

@@ -21,9 +21,9 @@ npm run test:e2e     # playwright
 ## Build pipeline (eleventy.config.ts — everything happens here)
 
 1. **Eleventy runs through tsx** so the config itself is TypeScript (`--config=eleventy.config.ts`).
-2. **TS → browser JS**: a custom `addExtension("ts", ...)` compiles **only** files under `src/components/` and `src/_helpers/` with esbuild (bundled ESM, minified, es2020). Output mirrors the source path, so `src/components/theme-toggle.ts` is served as `/components/theme-toggle.js`. Any other `.ts` under `src/` is skipped (returns no output).
-3. **Tailwind v4 is compiled manually** in the `eleventy.before` hook via PostCSS (tailwind + autoprefixer + cssnano). There is a hardcoded `targets` array mapping `src/assets/styles/*.css` → `dist/assets/css/*.css`. **A new shadow/global CSS file does nothing until it's added to that array** (or to a passthrough copy, like `books-terminal-deferred.css`).
-4. Passthrough copies: images, fonts, videos, `asciiart/` JSON, and the deferred books CSS.
+2. **TS → browser JS**: a custom `addExtension("ts", ...)` compiles files under `src/components/` and `src/_helpers/` with esbuild (bundled ESM, minified, es2020). Output mirrors the source path, so `src/components/theme-toggle.ts` is served as `/components/theme-toggle.js`. The rules live in `src/_config/buildConventions.ts` (`classifyTsInput`): `.d.ts` files and known non-browser TS (`src/@types/`, `src/_config/`) are ignored; **any other `.ts` under `src/` fails the build** with an error naming the file — move it under `src/components|src/_helpers` or add it to the ignore list.
+3. **Tailwind v4 is compiled manually** in the `eleventy.before` hook via PostCSS (tailwind + autoprefixer + cssnano). Targets are discovered by convention (`cssTargets` in `src/_config/buildConventions.ts`): **every** `src/assets/styles/*.css` compiles to `dist/assets/css/<basename>` — a new shadow/global CSS file just works. Exception: `@import`-only partials (`config-theme.css`, `shadow-config.css`) are listed in `CSS_PARTIALS` there and produce no standalone output. `books-terminal-deferred.css` goes through the same pipeline (no passthrough copy anymore).
+4. Passthrough copies: images, fonts, videos, and `asciiart/` JSON.
 5. Markdown uses markdown-it + markdown-it-anchor with slugified header permalinks; templates render with Nunjucks (`markdownTemplateEngine: "njk"`).
 
 ## CSP pattern (the most fragile part of the head)
@@ -79,7 +79,6 @@ Both layouts build the `Content-Security-Policy` meta tag **at build time** by h
 
 ## Gotchas checklist
 
-- New shadow CSS file → add to the Tailwind `targets` array in `eleventy.config.ts`.
 - New inline script/style → follow the CSP capture/hash/buffer pattern in the layout; keep it static.
 - `src/_layouts/books.njk` duplicates the CSP machinery from `base.njk` — head changes usually need to land in both.
 - Changing a page's `permalink` can break the Lighthouse route list (`.lighthouserc*.json`) and the frontmatter tests.

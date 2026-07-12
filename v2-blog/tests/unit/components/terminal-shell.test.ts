@@ -389,6 +389,17 @@ describe("terminal-shell startup phases", () => {
       .toBe('theme: unknown "neon" — try: dark, pinky');
   });
 
+  // Drift guard: theme is a shared Command — the light alias must behave the
+  // same on this surface as on the overlay (see _helpers/terminal/commands.ts).
+  it("theme accepts light as an alias for pinky (shared Command contract)", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("theme light");
+
+    expect(setThemeMock).toHaveBeenCalledWith("pinky");
+  });
+
   it("whoami answers with an INFO identity line", async () => {
     const element = mountTerminalShell(listingMarkup());
     await element.updateComplete;

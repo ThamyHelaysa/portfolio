@@ -1,7 +1,7 @@
 import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { gsap } from 'gsap';
-import { IdentityManager, IDMode } from '../_helpers/identityManager.ts';
+import { getIdentity, getStoredIdentity, setIdentity } from '../_helpers/identity.ts';
 import { CommandType, TerminalCore } from '../_helpers/terminal/core.ts';
 import type { ParsedCommand } from '../_helpers/terminal/parser.ts';
 import {
@@ -11,7 +11,7 @@ import {
   type ShellState,
 } from '../_helpers/terminal/shell-state.ts';
 import { markUnlocked } from '../_helpers/terminal/unlock.ts';
-import { getTheme, setTheme, type Theme } from '../_helpers/theme.ts';
+import { createSharedCommands } from '../_helpers/terminal/commands.ts';
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -29,8 +29,7 @@ export class TerminalShell extends LitElement {
 
   private bookData: Array<{ title: string, author: string, id: string, url?: string }> = [];
   private _asciiCache = new Map<string, string[]>();
-  private identity = IdentityManager.getInstance();
-  private hasUserName = this.identity.getCachedName();
+  private hasUserName = getStoredIdentity();
   private _resizeObs?: ResizeObserver;
   private _typingTimer?: number;
   private _staggerTimer?: number;
@@ -136,27 +135,13 @@ export class TerminalShell extends LitElement {
 
       book: async (ctx) => this.COMMANDS.open(ctx),
 
-      // `theme [dark|pinky]` — no arg toggles; an explicit value sets it.
-      // Same contract as the overlay's theme command (shared helper keeps
-      // the toggle component in sync).
-      theme: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0, CommandType.command);
-
-        const arg = ctx.positionals[0]?.toLowerCase();
-        let next: Theme;
-
-        if (!arg) {
-          next = getTheme() === "dark" ? "pinky" : "dark";
-        } else if (arg === "dark" || arg === "pinky") {
-          next = arg;
-        } else {
-          await this.appendToLog(`theme: unknown "${arg}" — try: dark, pinky`, 0.05, CommandType.error);
-          return;
-        }
-
-        setTheme(next);
-        await this.appendToLog(`theme → ${next}`, 0.05, CommandType.status);
-      },
+      // Shared Commands (theme, whoami) — semantics owned by the factory so
+      // this surface and the summoned overlay can never diverge. Only the
+      // whoami flavor line is books-specific.
+      ...createSharedCommands(
+        { append: (text, duration, kind) => this.appendToLog(text, duration ?? 0.2, kind ?? CommandType.log) },
+        { whoamiFlavor: (id) => `you are ${id} — guest of book_os υ.υ` }
+      ),
 
       skip: async (ctx) => {
         if (this.shell.isMobile) {
@@ -170,11 +155,6 @@ export class TerminalShell extends LitElement {
         } else {
           await this.appendToLog(ctx.raw, 0.2, CommandType.command);
         }
-      },
-
-      whoami: async (ctx) => {
-        await this.appendToLog(`${ctx.raw}`, 0.2, CommandType.command);
-        await this.appendToLog(`you are ${this.userID} — guest of book_os υ.υ`, 0.2, CommandType.info);
       },
 
       // list portfolio branchs/commits and more
@@ -343,8 +323,8 @@ export class TerminalShell extends LitElement {
   private _ensureIdentityReady() {
     if (this.hasUserName || this.userID !== this._fallbackUserId) return;
 
-    this.userID = this.identity.getFullIdentity(IDMode.default);
-    this.identity.cacheName(this.userID);
+    this.userID = getIdentity();
+    setIdentity(this.userID);
     this.hasUserName = this.userID;
     this._syncPromptWidth();
   }

@@ -24,6 +24,17 @@ export function getIdentity(): string {
 }
 
 /**
+ * The stored identity only — no generation. Lets a surface show a neutral
+ * placeholder until the visitor interacts (the books shell's lazy prompt
+ * label) without forcing an identity into existence.
+ *
+ * @returns The cached identity, or null when none has been chosen/generated.
+ */
+export function getStoredIdentity(): string | null {
+  return IdentityManager.getInstance().getCachedName() ?? null;
+}
+
+/**
  * Persists a chosen identity and notifies other surfaces via
  * {@link IDENTITY_CHANGE_EVENT}.
  *

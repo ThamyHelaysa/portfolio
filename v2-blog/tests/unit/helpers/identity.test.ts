@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   getIdentity,
+  getStoredIdentity,
   IDENTITY_CHANGE_EVENT,
   setIdentity,
 } from "../../../src/_helpers/identity.ts";
@@ -36,5 +37,11 @@ describe("identity helper", () => {
     expect(getIdentity()).toBe("a::1111");
     setIdentity("b::2222");
     expect(getIdentity()).toBe("b::2222");
+  });
+
+  it("getStoredIdentity peeks without generating", () => {
+    expect(getStoredIdentity()).toBeNull();
+    setIdentity("chosen_name::7777");
+    expect(getStoredIdentity()).toBe("chosen_name::7777");
   });
 });

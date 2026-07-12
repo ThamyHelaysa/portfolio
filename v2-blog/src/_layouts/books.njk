@@ -8,82 +8,18 @@
     <meta name="description" content="{{ description or metadata.description }}">
     <title>{{ title or "My Portfolio" }}</title>
 
-    
-    {# Start our CSP lists with 'self' #}
-    {% set cspScriptSrc = "'self'" %}
-    {% set cspStyleSrc = "'self' https://use.typekit.net" %}
 
-    {# Initialize buffers to hold the actual HTML tags we want to print later #}
-    {% set scriptsOutput = "" %}
-    {% set stylesOutput = "" %}
-
-    {% set themeContent %}{% include "inline-theme.js" %}{% endset %}
-    {% set themeHash = themeContent | trim | cspHash %}
-
-    {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
-    {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
-
-    {% set deferredBooksShellCssContent %}{% include "inline-books-shell-css.js" %}{% endset %}
-    {% set deferredBooksShellCssHash = deferredBooksShellCssContent | trim | cspHash %}
-
-    {% set cspScriptSrc = cspScriptSrc + " " + deferredBooksShellCssHash %}
-    {% set scriptsOutput = scriptsOutput + '<script>' + (deferredBooksShellCssContent | safe | trim) + '</script>' %}
-    
-
-    {# Handle optional page script #}
-    {% if inlineScripts %}
-      {% for path in inlineScripts %}
-        {# 1. Read file #}
-        {% set content %}{% include path %}{% endset %}
-        
-        {# 2. Hash it #}
-        {% set hash = content | trim | cspHash %}
-        {% set cspScriptSrc = cspScriptSrc + " " + hash %}
-        
-        {# 3. Store the tag for later #}
-        {% set scriptsOutput = scriptsOutput + '<script>' + (content | safe | trim) + '</script>' %}
-      {% endfor %}
-    {% endif %}
-
-    {% if inlineStyles %}
-      {% for path in inlineStyles %}
-        {# 1. Read file #}
-        {% set content %}{% include path %}{% endset %}
-        
-        {# 2. Hash it #}
-        {% set hash = content | trim | cspHash %}
-        {% set cspStyleSrc = cspStyleSrc + " " + hash %}
-        
-        {# 3. Store the tag for later #}
-        {% set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' %}
-      {% endfor %}
-    {% endif %}
-
-    {% set fontCss %}{% include "css/terminal-fonts.css" %}{% endset %}
-
-    {% set fontHash = fontCss | trim | cspHash %}
-    {% set cspStyleSrc = cspStyleSrc + " " + fontHash %}
-
-    {% set stylesOutput = stylesOutput + '<style>' + (fontCss | safe | trim) + '</style>' %}
-
-    {% set terminalCss %}{% include "css/terminal.css" %}{% endset %}
-
-    {% set terminalHash = terminalCss | trim | cspHash %}
-    {% set cspStyleSrc = cspStyleSrc + " " + terminalHash %}
-
-    {% set stylesOutput = stylesOutput + '<style>' + (terminalCss | safe | trim) + '</style>' %}
-
-    <meta 
-      http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }}; font-src 'self'; img-src 'self' data:; base-uri 'self'; object-src 'none'; form-action 'self';"
-    >
-    <meta name="view-transition" content="same-origin">
-    
-    {{ stylesOutput | safe }}
+    {# Head assembly (CSP hashing + inline tags) lives in macros/head.njk.
+       Scripts: the deferred books-shell CSS loader + the page's own.
+       Styles: page styles first, then the terminal fonts + shell CSS. #}
+    {% import "macros/head.njk" as heads %}
+    {{ heads.head({
+      scripts: ["inline-books-shell-css.js"].concat(inlineScripts or []),
+      styles: (inlineStyles or []).concat(["css/terminal-fonts.css", "css/terminal.css"]),
+      extraStyleSrc: "https://use.typekit.net"
+    }) }}
 
     <link rel="preload" href="/assets/fonts/ibm-plex-mono-v20-latin/ibm-plex-mono-v20-latin-regular.woff2" as="font" type="font/woff2" crossorigin/>
-
-    {{ scriptsOutput | safe }}
 
     <script type="module" src="/components/theme-toggle.js"></script>
     <script type="module" src="/components/terminal-shell.js"></script>

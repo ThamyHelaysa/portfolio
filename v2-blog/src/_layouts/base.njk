@@ -6,78 +6,17 @@
     <meta name="description" content="{{ description or metadata.description }}">
     <title>{{ title or "My Portfolio" }}</title>
 
-    
-    {# Start our CSP lists with 'self' #}
-    {% set cspScriptSrc = "'self'" %}
-    {% set cspStyleSrc = "'self'" %}
 
-    {# Initialize buffers to hold the actual HTML tags we want to print later #}
-    {% set scriptsOutput = "" %}
-    {% set stylesOutput = "" %}
-
-    {% set themeContent %}{% include "inline-theme.js" %}{% endset %}
-    {% set themeHash = themeContent | trim | cspHash %}
-
-    {% set cspScriptSrc = cspScriptSrc + " " + themeHash %}
-    {% set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' %}
-
-    {# Pre-paint reveal of the cheat-console summon button (#80) #}
-    {% set unlockContent %}{% include "inline-terminal-unlock.js" %}{% endset %}
-    {% set unlockHash = unlockContent | trim | cspHash %}
-    {% set cspScriptSrc = cspScriptSrc + " " + unlockHash %}
-    {% set scriptsOutput = scriptsOutput + '<script>' + (unlockContent | safe | trim) + '</script>' %}
-
-    {# Handle optional page script #}
-    {% if inlineScripts %}
-      {% for path in inlineScripts %}
-        {# 1. Read file #}
-        {% set content %}{% include path %}{% endset %}
-        
-        {# 2. Hash it #}
-        {% set hash = content | trim | cspHash %}
-        {% set cspScriptSrc = cspScriptSrc + " " + hash %}
-        
-        {# 3. Store the tag for later #}
-        {% set scriptsOutput = scriptsOutput + '<script>' + (content | safe | trim) + '</script>' %}
-      {% endfor %}
-    {% endif %}
-
-    {# Global element styles first: they declare the cascade-layer order and
-       live in the `app` layer. Page-specific inline styles (e.g. markdown.css)
-       are injected AFTER, so they win intra-layer conflicts by source order. #}
-    {% set compsCss %}{% include "css/default.css" %}{% endset %}
-    {% set compsHash = compsCss | trim | cspHash %}
-    {% set cspStyleSrc = cspStyleSrc + " " + compsHash %}
-    {% set stylesOutput = stylesOutput + '<style>' + (compsCss | safe | trim) + '</style>' %}
-
-    {% if inlineStyles %}
-      {% for path in inlineStyles %}
-        {# 1. Read file #}
-        {% set content %}{% include path %}{% endset %}
-
-        {# 2. Hash it #}
-        {% set hash = content | trim | cspHash %}
-        {% set cspStyleSrc = cspStyleSrc + " " + hash %}
-
-        {# 3. Store the tag for later #}
-        {% set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' %}
-      {% endfor %}
-    {% endif %}
-
-    {% set fontCss %}{% include "css/fonts.css" %}{% endset %}
-
-    {% set fontHash = fontCss | trim | cspHash %}
-    {% set cspStyleSrc = cspStyleSrc + " " + fontHash %}
-
-    {% set stylesOutput = stylesOutput + '<style>' + (fontCss | safe | trim) + '</style>' %}
-
-    <meta
-      http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }}; img-src 'self' data:; base-uri 'self'; object-src 'none'; form-action 'self';"
-    >
-    <meta name="view-transition" content="same-origin">
-    
-    {{ stylesOutput | safe }}
+    {# Head assembly (CSP hashing + inline tags) lives in macros/head.njk.
+       Scripts: the unlock pre-paint reveal (#80) + the page's own.
+       Styles: global element styles first (they declare the cascade-layer
+       order), page styles after (win intra-layer conflicts by source order),
+       fonts last. #}
+    {% import "macros/head.njk" as heads %}
+    {{ heads.head({
+      scripts: ["inline-terminal-unlock.js"].concat(inlineScripts or []),
+      styles: ["css/default.css"].concat(inlineStyles or []).concat(["css/fonts.css"])
+    }) }}
 
     <link rel="preload" href="/assets/css/menu-mobile-shadow.css" as="fetch" crossorigin>
     <link rel="preload" href="/assets/css/toggle-theme-shadow.css" as="fetch" crossorigin>
@@ -97,8 +36,6 @@
         <script type="module" src="{{ url }}"></script>
       {% endfor %}
     {% endif %}
-
-    {{ scriptsOutput | safe }}
   </head>
   <body class="font-sans dotted-bg">
     <div class="noise-fx" aria-hidden="true"></div>

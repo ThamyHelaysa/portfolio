@@ -12,11 +12,12 @@
     {# Head assembly (CSP hashing + inline tags) lives in macros/head.njk.
        Scripts: the deferred books-shell CSS loader + the page's own.
        Styles: the shared terminal palette first (single token source,
-       ADR-0002), page styles, then the terminal fonts + shell CSS. #}
+       ADR-0002), page styles, then the terminal fonts + shell CSS + the
+       shared .btn rule (this shell never loads global.css). #}
     {% import "macros/head.njk" as heads %}
     {{ heads.head({
       scripts: ["inline-books-shell-css.js"].concat(inlineScripts or []),
-      styles: ["css/term-palette.css"].concat(inlineStyles or []).concat(["css/terminal-fonts.css", "css/terminal.css"]),
+      styles: ["css/term-palette.css"].concat(inlineStyles or []).concat(["css/terminal-fonts.css", "css/terminal.css", "css/buttons.css"]),
       extraStyleSrc: "https://use.typekit.net"
     }) }}
 

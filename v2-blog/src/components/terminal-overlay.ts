@@ -86,7 +86,9 @@ export class TerminalOverlay extends LitElement {
       to { opacity: 1; }
     }
 
-    /* Title bar: tab label + close. */
+    /* Title bar: tab label + close. Muted is the bar's resting colour — the
+       close button inherits it (shared .btn sets color:inherit) and takes the
+       accent on hover from the same shared rule. */
     #overlay-titlebar {
       flex: none;
       display: flex;
@@ -95,6 +97,7 @@ export class TerminalOverlay extends LitElement {
       padding: 0.45rem 0.5rem 0.45rem 0.9rem;
       border-bottom: 1px solid var(--term-border);
       background: var(--term-surface);
+      color: var(--term-muted);
     }
 
     #overlay-tab {
@@ -115,28 +118,15 @@ export class TerminalOverlay extends LitElement {
       background: var(--term-accent);
     }
 
+    /* Geometry only. Look, brackets and hover come from the shared .btn rule
+       (buttons.css, imported into this shadow root by the overlay's Tailwind
+       sheet) — setting a color here would out-specify .btn:hover and kill it. */
     #overlay-close {
       flex: none;
-      display: inline-flex;
-      align-items: center;
       justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border: 0;
-      background: transparent;
-      color: var(--term-muted);
-      font: inherit;
+      padding-block: 0;
       font-size: 1rem;
       line-height: 1;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    #overlay-close:hover,
-    #overlay-close:focus-visible {
-      background: var(--term-accent);
-      color: var(--term-on-accent);
-      outline: none;
     }
 
     /* The slot flexbox hands to the log. A size container so the scroller
@@ -658,6 +648,7 @@ export class TerminalOverlay extends LitElement {
         <header id="overlay-titlebar">
           <span id="overlay-tab">book_os</span>
           <button
+            class="btn"
             id="overlay-close"
             type="button"
             aria-label="Close terminal"

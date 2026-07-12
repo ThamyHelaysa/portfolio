@@ -7,6 +7,10 @@
 /* Terminal palette + colour ramps + noise tokens: single source shared with
    the books shell (inlined there via the head macro). */
 @import '../../_includes/css/term-palette.css' layer(theme);
+/* The shared .btn control, same single-source deal: the books head inlines it
+   and terminal-overlay-shadow.css imports it into the overlay's shadow root.
+   In the components layer so Tailwind utilities can still override it. */
+@import '../../_includes/css/buttons.css' layer(components);
 
 @custom-variant dark (&:where(.dark, .dark *));
 

@@ -95,8 +95,9 @@ html.dark {
 
 #boot-log {
   p {
-    max-width: 640px;
-    /* No block padding: every log line must stay exactly --term-line tall. */
+    /* One line unit, no block padding: every log line must stay exactly
+       --term-line tall or the rounded scroller cuts one at the edge. */
+    line-height: var(--term-line, 1.25rem);
     padding-block: 0;
   }
 
@@ -338,15 +339,5 @@ html.dark {
 #skip {
   @media (width >=768px) {
     margin-inline-start: auto;
-  }
-}
-
-.btn {
-  &::before {
-    content: "[";
-  }
-
-  &::after {
-    content: "]";
   }
 }

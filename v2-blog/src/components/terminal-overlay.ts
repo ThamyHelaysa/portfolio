@@ -163,8 +163,12 @@ export class TerminalOverlay extends LitElement {
       margin-block-end: 0.6ch;
     }
 
+    /* Badge pill: glyph + label both come from the core's data attributes
+       (commandGlyph/commandBadge — the single glyph source, ADR-0002), so
+       aria text and persisted scrollback stay clean and this rule is
+       generic. Per-kind rules below carry colours only. */
     .terminal-msg[data-badge]::before {
-      content: attr(data-badge);
+      content: attr(data-glyph) " " attr(data-badge);
       flex: none;
       align-self: flex-start;
       padding: 0 0.6ch;
@@ -181,27 +185,18 @@ export class TerminalOverlay extends LitElement {
       margin-block-end: 0;
     }
 
-    /* Glyphs live in CSS content so aria text and persisted scrollback stay
-       clean — keep the set in sync with books-terminal-deferred.css (ADR-0002). */
     .terminal-msg.info[data-badge]::before {
-      content: "▸ " attr(data-badge);
       background: transparent;
       border: 1px solid var(--term-border);
       color: var(--term-text);
     }
 
-    .terminal-msg.title[data-badge]::before {
-      content: "▮ " attr(data-badge);
-    }
-
     .terminal-msg.error[data-badge]::before {
-      content: "✗ " attr(data-badge);
       background: var(--term-err-bg);
       color: var(--term-badge-text);
     }
 
     .terminal-msg.status[data-badge]::before {
-      content: "✓ " attr(data-badge);
       background: var(--term-ok-bg);
       border: 1px solid var(--term-ok-bg);
       color: var(--term-badge-text);

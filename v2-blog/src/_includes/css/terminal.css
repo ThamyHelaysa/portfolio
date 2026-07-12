@@ -1,31 +1,9 @@
 
+/* Colour ramps, --term-*, and --noise-* tokens come from term-palette.css,
+   inlined ahead of this file by the head macro (single source, ADR-0002). */
 :root,
 :host,
 html {
-  --color-gray-50: #fafaf9;
-  --color-gray-100: #f5f5f4;
-  --color-gray-200: #e7e5e4;
-  --color-gray-300: #d6d3d1;
-  --color-gray-400: #a8a29e;
-  --color-gray-500: #78716c;
-  --color-gray-600: #57534e;
-  --color-gray-700: #44403c;
-  --color-gray-800: #292524;
-  --color-gray-900: #1c1917;
-  --color-gray-950: #0c0a09;
-
-  --color-pink-50: #fffbfc;
-  --color-pink-100: #fdcfda;
-  --color-pink-200: #fba7bb;
-  --color-pink-300: #f9839f;
-  --color-pink-400: #f86285;
-  --color-pink-500: #f7446d;
-  --color-pink-600: #f62655;
-  --color-pink-700: #f50b40;
-  --color-pink-800: #dd0939;
-  --color-pink-900: #c70833;
-  --color-pink-950: #b3072e;
-
   --color-text-primary: var(--color-gray-800);
   --color-bg-default: var(--color-pink-50);
 
@@ -38,23 +16,6 @@ html {
   --color-text: var(--color-text-primary);
 
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
-
-  /* Terminal palette (ADR-0002). Background uses the theme default; surface,
-     border and text share the pink accent hue. Keep in sync with global.css. */
-  --term-bg: var(--color-bg-default);
-  --term-surface: color-mix(in oklab, var(--color-accent-primary) 12%, white);
-  --term-border: color-mix(in oklab, var(--color-accent-primary) 28%, white);
-  --term-text: color-mix(in oklab, var(--color-accent-primary) 78%, black);
-  --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
-  --term-accent: var(--color-accent-primary);
-  --term-on-accent: var(--color-pink-50);
-  --term-prompt: var(--color-accent-primary);
-  --term-ok-bg: #2fa46a;
-  --term-err-bg: #e5484d;
-  --term-warn-bg: #c8860d;
-  --term-badge-text: #fff;
-
-  --noise-opacity: 0.05;
 }
 
 html.dark {
@@ -69,20 +30,6 @@ html.dark {
   --color-code-bg: var(--color-gray-900);
   --color-code-border: var(--color-gray-800);
   --color-text: var(--color-text-primary);
-
-  /* Dark theme: same pink hue, mixed toward black (ADR-0002). */
-  --term-bg: var(--color-bg-default);
-  --term-surface: color-mix(in oklab, var(--color-accent-primary) 14%, #0c0a14);
-  --term-border: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-gray-800));
-  --term-text: color-mix(in oklab, var(--color-accent-primary) 32%, white);
-  --term-muted: color-mix(in oklab, var(--color-accent-primary) 45%, var(--color-gray-500));
-  --term-on-accent: var(--color-gray-900);
-  --term-ok-bg: #46d18a;
-  --term-err-bg: #ff6b6b;
-  --term-warn-bg: #ffc857;
-  --term-badge-text: #15131f;
-
-  --noise-opacity: 0.08;
 }
 
 @keyframes blink {
@@ -143,7 +90,7 @@ body::after {
   inset: 0;
   z-index: 100;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.4' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: var(--noise-tile);
   background-repeat: repeat;
   opacity: var(--noise-opacity, 0.05);
 }

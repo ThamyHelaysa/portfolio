@@ -68,6 +68,16 @@ describe("TerminalCore", () => {
     expect(logEl.querySelector("p.log")?.hasAttribute("data-badge")).toBe(false);
   });
 
+  it("stamps the data-glyph alongside the badge (single glyph source for every surface)", async () => {
+    const { core, logEl } = createCore();
+
+    await core.append("uh oh", 0, CommandType.error);
+    await core.append("plain", 0, CommandType.log);
+
+    expect(logEl.querySelector("p.error")?.getAttribute("data-glyph")).toBe("✗");
+    expect(logEl.querySelector("p.log")?.hasAttribute("data-glyph")).toBe(false);
+  });
+
   it("notifies onLineWritten after each appended line", async () => {
     const onLineWritten = vi.fn();
     const { core, logEl } = createCore({ onLineWritten });
@@ -87,6 +97,7 @@ describe("TerminalCore", () => {
       const p = logEl.querySelector("p.terminal-msg.status")!;
       expect(p.textContent).toBe("hi there");
       expect(p.getAttribute("data-badge")).toBe("OK");
+      expect(p.getAttribute("data-glyph")).toBe("✓");
     });
 
     it("renders a columns block as a grid with tone/align on cells, padding short rows", async () => {

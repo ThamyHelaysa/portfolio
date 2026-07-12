@@ -100,9 +100,10 @@ html.dark {
   }
 
   /* Linear-stream lines: command echoes get a prompt glyph; info/title/error/
-     status get an uppercase badge pill from the core's data-badge attribute.
-     Glyphs live here (CSS content) so aria text and persisted scrollback stay
-     clean — keep the set in sync with the overlay's shadow styles (ADR-0002). */
+     status get an uppercase badge pill. Glyph + label both come from the
+     core's data attributes (commandGlyph/commandBadge — the single glyph
+     source, ADR-0002), so the pill rule is generic and the per-kind rules
+     below carry colours only. */
   .terminal-msg {
     display: flex;
     flex-wrap: wrap;
@@ -112,7 +113,7 @@ html.dark {
   }
 
   .terminal-msg[data-badge]::before {
-    content: attr(data-badge);
+    content: attr(data-glyph) " " attr(data-badge);
     flex: none;
     align-self: flex-start;
     padding: 0 0.6ch;
@@ -125,24 +126,17 @@ html.dark {
   }
 
   .info[data-badge]::before {
-    content: "▸ " attr(data-badge);
     background: transparent;
     border: 1px solid var(--term-border);
     color: var(--term-text);
   }
 
-  .title[data-badge]::before {
-    content: "▮ " attr(data-badge);
-  }
-
   .error[data-badge]::before {
-    content: "✗ " attr(data-badge);
     background: var(--term-err-bg);
     color: var(--term-badge-text);
   }
 
   .status[data-badge]::before {
-    content: "✓ " attr(data-badge);
     background: var(--term-ok-bg);
     border: 1px solid var(--term-ok-bg);
     color: var(--term-badge-text);

@@ -236,7 +236,9 @@ export class TerminalCore {
     const cols = rows.reduce((max, row) => Math.max(max, row.length), 0);
     const grid = document.createElement("div");
     grid.className = "terminal-cols";
-    grid.style.gridTemplateColumns = `repeat(${cols}, max-content)`;
+    // minmax(0, max-content): tracks prefer their content width but may
+    // shrink below it, so long cells wrap instead of overflowing the grid.
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, max-content))`;
 
     for (const row of rows) {
       for (let i = 0; i < cols; i++) {

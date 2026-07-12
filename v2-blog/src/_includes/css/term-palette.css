@@ -48,6 +48,14 @@ html {
   --term-warn-bg: #c8860d;
   --term-badge-text: #fff;
 
+  /* Terminal line rhythm: the single line unit both Terminal surfaces build
+     on. Set as an absolute length so every descendant — any font-size —
+     inherits the same line box, and heights/margins/paddings can be rounded
+     to whole lines (round(up|down, …, var(--term-line))) so the log never
+     shows a split line at the viewport edges. ASCII art is excluded (keeps
+     its own 1em metrics). */
+  --term-line: 1.25rem;
+
   /* Film-grain overlay: pre-rasterized feTurbulence tile + per-theme
      strength. Consumers paint var(--noise-tile) on a fixed overlay. */
   --noise-opacity: 0.05;

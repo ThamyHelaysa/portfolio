@@ -86,7 +86,9 @@ export class TerminalOverlay extends LitElement {
       to { opacity: 1; }
     }
 
-    /* Title bar: tab label + close. */
+    /* Title bar: tab label + close. Muted is the bar's resting colour — the
+       close button inherits it (shared .btn sets color:inherit) and takes the
+       accent on hover from the same shared rule. */
     #overlay-titlebar {
       flex: none;
       display: flex;
@@ -95,6 +97,7 @@ export class TerminalOverlay extends LitElement {
       padding: 0.45rem 0.5rem 0.45rem 0.9rem;
       border-bottom: 1px solid var(--term-border);
       background: var(--term-surface);
+      color: var(--term-muted);
     }
 
     #overlay-tab {
@@ -115,48 +118,61 @@ export class TerminalOverlay extends LitElement {
       background: var(--term-accent);
     }
 
+    /* Geometry only. Look, brackets and hover come from the shared .btn rule
+       (buttons.css, imported into this shadow root by the overlay's Tailwind
+       sheet) — setting a color here would out-specify .btn:hover and kill it. */
     #overlay-close {
       flex: none;
-      display: inline-flex;
-      align-items: center;
       justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border: 0;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--term-muted);
-      font: inherit;
+      padding-block: 0;
       font-size: 1rem;
       line-height: 1;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
     }
 
-    #overlay-close:hover,
-    #overlay-close:focus-visible {
-      background: var(--term-accent);
-      color: var(--term-on-accent);
-      outline: none;
+    /* The slot flexbox hands to the log. A size container so the scroller
+       below can round itself to whole lines against 100cqb — rounding the
+       slot's own height wouldn't survive flex shrinking. */
+    #overlay-view {
+      flex: 1 1 auto;
+      min-height: 0;
+      container-type: size;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
     }
 
     #overlay-log {
       margin: 0;
-      flex: 1 1 auto;
+      /* Line rhythm (term-palette.css --term-line): absolute line unit, so
+         every descendant sits on the same line box; the viewport is capped
+         to a whole number of lines so the edges never cut a line in half
+         (https://ishadeed.com/article/css-round/).
+         Possible follow-up experiment for a hard tty feel: step the scroll
+         by line with scroll-snap-type: y mandatory here plus
+         scroll-snap-align: start on .terminal-msg — left off for now
+         because snap fights trackpad momentum and the typing autoscroll. */
+      max-height: 100%;
+      max-height: round(down, 100cqb, var(--term-line, 1.25rem));
       overflow: auto;
-      padding: 1rem 1.25rem;
+      padding-inline: var(--term-line, 1.25rem);
       white-space: pre-wrap;
+      overflow-wrap: break-word;
+      hyphens: none;
       font-size: 0.85rem;
-      line-height: 1.5;
+      line-height: var(--term-line, 1.25rem);
+      scroll-snap-type: y mandatory
     }
 
-    /* Linear-stream lines: badge pills from the core's data-badge attribute. */
+    /* Linear-stream lines: badge pills from the core's data-badge attribute.
+       Contiguous lines — no inter-line margins; sections carry the spacing. */
     .terminal-msg {
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
       gap: 0 0.6ch;
-      margin-block-end: 0.6ch;
+      margin-block: 0;
+      scroll-snap-align: start
     }
 
     /* Badge pill: glyph + label both come from the core's data attributes
@@ -168,9 +184,16 @@ export class TerminalOverlay extends LitElement {
       flex: none;
       align-self: flex-start;
       padding: 0 0.6ch;
+      margin-block-start: 2px; // visual alignment with the line text
       font-weight: 600;
       font-size: 0.82em;
       letter-spacing: 0.06em;
+      /* Hug the label instead of inheriting the full --term-line box; an
+         inline pill shorter than the line strut can't break the rhythm. The
+         transparent border reserves the bordered variants' 2px so no pill
+         ever outgrows the line. */
+      line-height: calc(1.5em - 2px);
+      border: 1px solid transparent;
       text-transform: uppercase;
       background: var(--term-accent);
       color: var(--term-on-accent);
@@ -270,20 +293,23 @@ export class TerminalOverlay extends LitElement {
         max-width: none;
         max-height: none;
         border: 0;
-        border-radius: 0;
       }
       #overlay-status { display: none; }
     }
 
-    /* Structured blocks: columns grid, tone chips, and sections. */
+    /* Structured blocks: columns grid, tone chips, and sections. Zero
+       row-gap keeps rows on the line rhythm; cells wrap at word boundaries
+       (no hyphens, no overflow past the section edge). */
     .terminal-cols {
       display: grid;
-      gap: 0.1rem 1.5ch;
-      margin: 0.15rem 0;
+      gap: 0 1.5ch;
+      margin: 0;
     }
 
     .terminal-cell {
-      white-space: pre;
+      min-width: 0;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
     }
 
     .terminal-cell[data-align="end"] {
@@ -341,10 +367,12 @@ export class TerminalOverlay extends LitElement {
       border-radius: 3px;
     }
 
+    /* Whole-line margin AND whole-line block padding: half-line padding
+       would keep the box height on rhythm but shift the lines inside it
+       half a line out of phase, so the viewport edge could cut them. */
     .terminal-section {
-      margin: 0.35rem 0;
-      padding: 0.6rem 0.8rem;
-      border-radius: 6px;
+      margin: var(--term-line, 1.25rem) 0;
+      padding: var(--term-line, 1.25rem) 0.8rem;
     }
 
     .terminal-section-title {
@@ -353,7 +381,7 @@ export class TerminalOverlay extends LitElement {
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--term-muted);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0;
     }
 
     .sr-only {
@@ -620,13 +648,14 @@ export class TerminalOverlay extends LitElement {
         <header id="overlay-titlebar">
           <span id="overlay-tab">book_os</span>
           <button
+            class="btn"
             id="overlay-close"
             type="button"
             aria-label="Close terminal"
             @click=${() => (this.open = false)}
           >✕</button>
         </header>
-        <pre id="overlay-log"></pre>
+        <div id="overlay-view"><pre id="overlay-log"></pre></div>
         <form id="overlay-form" @submit=${this._onSubmit}>
           <label class="sr-only" for="overlay-input">Terminal command</label>
           <textarea

@@ -24,14 +24,20 @@ export function getIdentity(): string {
 }
 
 /**
- * The stored identity only — no generation. Lets a surface show a neutral
+ * The stored identity only — no generation (unlike {@link getIdentity}, which
+ * falls back to a generated default). Lets a surface show a neutral
  * placeholder until the visitor interacts (the books shell's lazy prompt
  * label) without forcing an identity into existence.
+ *
+ * Behaviourally this is just `IdentityManager.getCachedName()`; it exists so
+ * consumers never import the manager directly — this helper is the only
+ * identity interface for components (the "never goes stale across surfaces"
+ * guarantee holds because every surface reads through here).
  *
  * @returns The cached identity, or null when none has been chosen/generated.
  */
 export function getStoredIdentity(): string | null {
-  return IdentityManager.getInstance().getCachedName() ?? null;
+  return IdentityManager.getInstance().getCachedName();
 }
 
 /**

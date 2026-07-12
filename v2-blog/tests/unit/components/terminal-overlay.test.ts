@@ -37,7 +37,9 @@ function submit(el: TerminalOverlay, value: string) {
 }
 
 async function flush() {
-  for (let i = 0; i < 12; i++) await Promise.resolve();
+  // Generous microtask budget: a command's appends resolve one line per tick
+  // (plus any interleaved boot-flavour lines and the site-index fetch).
+  for (let i = 0; i < 40; i++) await Promise.resolve();
 }
 
 beforeEach(() => {
@@ -229,6 +231,29 @@ describe("terminal-overlay", () => {
       submit(el, "theme light");
       await flush();
       expect(localStorage.getItem("theme")).toBe("pinky");
+    });
+
+    // Drift guard: ls is a shared Command — this surface renders the same
+    // site-tree listing as the books shell (see _helpers/terminal/commands.ts).
+    it("ls renders the shared site-tree listing (shared Command contract)", async () => {
+      const el = await mountOverlay();
+      el.open = true;
+      await el.updateComplete;
+
+      vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => [
+          { section: "pages", title: "About me", url: "/about/", description: "Who I am" },
+        ],
+      } as Response);
+
+      submit(el, "ls");
+      await flush();
+
+      const section = $(el, "#overlay-log .terminal-section")!;
+      expect(section).not.toBeNull();
+      expect(section.textContent).toContain("~/book_os");
+      expect(section.textContent).toContain("about");
     });
 
     it("whoami prints the generated identity", async () => {

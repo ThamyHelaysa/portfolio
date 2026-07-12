@@ -283,6 +283,25 @@ export function matchEntry(entries: SiteIndexEntry[], query: string): MatchResul
 }
 
 /**
+ * Case-insensitive substring search over entry titles and descriptions
+ * (the `grep` Command's engine). A blank term matches nothing.
+ *
+ * @param entries - The site index.
+ * @param term - The user's search term.
+ * @returns The matching entries, in index order.
+ */
+export function searchEntries(entries: SiteIndexEntry[], term: string): SiteIndexEntry[] {
+  const needle = term.trim().toLowerCase();
+  if (!needle) return [];
+
+  return entries.filter(
+    (entry) =>
+      entry.title.toLowerCase().includes(needle) ||
+      (entry.description ?? "").toLowerCase().includes(needle)
+  );
+}
+
+/**
  * Lazily fetches and parses the site index, caching it for the page load.
  * Coalesces concurrent calls; a failed fetch resolves to `[]` and is retryable.
  *

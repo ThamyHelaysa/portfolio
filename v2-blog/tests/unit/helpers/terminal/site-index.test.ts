@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, rootListingBlock, renderSubtree, resolveOpen, sanitizeNavQuery } from "../../../../src/_helpers/terminal/site-index.ts";
+import { buildTree, findNode, matchEntry, parseSiteIndex, renderRootListing, rootListingBlock, renderSubtree, resolveOpen, sanitizeNavQuery, searchEntries } from "../../../../src/_helpers/terminal/site-index.ts";
 
 const ENTRIES = parseSiteIndex([
   { section: "posts", title: "Why I never heard of Lit", url: "/blog/2025/why-i-never-heard-of-lit/" },
@@ -232,5 +232,26 @@ describe("resolveOpen", () => {
     expect(resolveOpen(root, ENTRIES, "ngrok")).toMatchObject({ kind: "navigate", url: "/blog/2025/using-ngrok-to-test-some-web-things/" });
     expect(resolveOpen(root, ENTRIES, "test").kind).toBe("ambiguous");
     expect(resolveOpen(root, ENTRIES, "zzz").kind).toBe("none");
+  });
+});
+
+describe("searchEntries", () => {
+  const searchable = parseSiteIndex([
+    { section: "posts", title: "Test driven fun", url: "/blog/2025/test-driven-fun/", description: "red green refactor" },
+    { section: "books", title: "Ring", url: "/books/ring/", description: "a cursed tape" },
+  ]);
+
+  it("matches titles case-insensitively", () => {
+    expect(searchEntries(searchable, "DRIVEN")).toHaveLength(1);
+    expect(searchEntries(searchable, "driven")[0].title).toBe("Test driven fun");
+  });
+
+  it("matches descriptions", () => {
+    expect(searchEntries(searchable, "cursed")[0].title).toBe("Ring");
+  });
+
+  it("returns nothing for a blank or unmatched term", () => {
+    expect(searchEntries(searchable, "   ")).toEqual([]);
+    expect(searchEntries(searchable, "zzz")).toEqual([]);
   });
 });

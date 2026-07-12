@@ -1,0 +1,56 @@
+{# Head assembly for every layout: the CSP capture/hash/buffer machinery
+   (issue: base.njk and books.njk used to carry a diverging copy each — the
+   books shell shipped without img-src because of it).
+
+   Interface — everything a layout must know:
+     scripts       array of inline-script include paths (relative to
+                   _includes). The layout composes the full ordered list:
+                   its own fixed scripts + the page's `inlineScripts`.
+     styles        array of inline-style include paths, same composition
+                   rule (layout chrome + page `inlineStyles`), in cascade
+                   order.
+     extraStyleSrc extra style-src CSP sources (e.g. a font host), optional.
+
+   Every path is included, trimmed, sha256-hashed into the CSP, and its tag
+   buffered; the macro then prints the CSP meta, the view-transition meta,
+   all <style> tags, and all <script> tags — in that order. Inline content
+   must stay static (any dynamic data goes into markup/data attributes),
+   because the hash is computed at build time.
+
+   `inline-theme.js` is not an argument: every page boots the theme
+   pre-paint, so the macro includes it first unconditionally. #}
+{% macro head(opts) -%}
+  {%- set cspScriptSrc = "'self'" -%}
+  {%- set cspStyleSrc = "'self'" -%}
+  {%- if opts.extraStyleSrc -%}
+    {%- set cspStyleSrc = cspStyleSrc + " " + opts.extraStyleSrc -%}
+  {%- endif -%}
+
+  {%- set scriptsOutput = "" -%}
+  {%- set stylesOutput = "" -%}
+
+  {%- set themeContent -%}{% include "inline-theme.js" %}{%- endset -%}
+  {%- set cspScriptSrc = cspScriptSrc + " " + (themeContent | trim | cspHash) -%}
+  {%- set scriptsOutput = scriptsOutput + '<script>' + (themeContent | safe | trim) + '</script>' -%}
+
+  {%- for path in opts.scripts -%}
+    {%- set content -%}{% include path %}{%- endset -%}
+    {%- set cspScriptSrc = cspScriptSrc + " " + (content | trim | cspHash) -%}
+    {%- set scriptsOutput = scriptsOutput + '<script>' + (content | safe | trim) + '</script>' -%}
+  {%- endfor -%}
+
+  {%- for path in opts.styles -%}
+    {%- set content -%}{% include path %}{%- endset -%}
+    {%- set cspStyleSrc = cspStyleSrc + " " + (content | trim | cspHash) -%}
+    {%- set stylesOutput = stylesOutput + '<style>' + (content | safe | trim) + '</style>' -%}
+  {%- endfor -%}
+
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src {{ cspScriptSrc }}; style-src {{ cspStyleSrc }}; font-src 'self'; img-src 'self' data:; base-uri 'self'; object-src 'none'; form-action 'self';"
+  >
+    <meta name="view-transition" content="same-origin">
+
+    {{ stylesOutput | safe }}
+    {{ scriptsOutput | safe }}
+{%- endmacro %}

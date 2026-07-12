@@ -16,15 +16,10 @@ import {
   INTENT_TICK_MS,
   LINGER_MS,
 } from './previewChoreography.ts';
+import { decideScrollFrame, type ScrollFrameCommand } from './previewScrollPolicy.ts';
 
 export type { PreviewPlacement } from './previewGeometry.ts';
 export type { MediaType, MediaKind } from './previewChoreography.ts';
-
-/**
- * Desktop dismiss-on-scroll (ADR 0004): once committed playback is scrolled
- * past this many pixels, it stops. A small threshold ignores trackpad jitter.
- */
-const DESKTOP_SCROLL_STOP_PX = 8;
 
 /**
  * Two sizes for the default round Face (ADR 0004/0006). The glimpse is the
@@ -446,34 +441,37 @@ export class SharedMediaPreview {
   }
 
   /**
-   * One throttled scroll frame. Touch: reposition the bubble to its card and
-   * stop committed playback once the card is fully off-screen. Desktop: dismiss
-   * committed playback once scrolled past the threshold.
+   * One throttled scroll frame: gathers the frame's facts (the only DOM/window
+   * reads), hands them to the pure scroll policy (`previewScrollPolicy.ts`),
+   * and executes the commands it returns — one real side effect per command.
    */
   private _onScrollFrame(): void {
-    if (!this._container.isVisible) {
-      this._stopTracking();
-      return;
-    }
+    const commands = decideScrollFrame({
+      visible: this._container.isVisible,
+      coarsePointer: this._coarsePointer(),
+      committed: this._choreography.isCommitted,
+      sourceRect: this._trackGetRect ? this._trackGetRect() : null,
+      viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
+      scrollY: this._scrollY(),
+      playStartScrollY: this._playStartScrollY,
+    });
+    this._executeScroll(commands);
+  }
 
-    if (this._coarsePointer()) {
-      if (this._trackGetRect) {
-        this._reposition();
-
-        // Committed playback ends when its source has fully left the viewport.
-        if (this._choreography.isCommitted) {
-          const rect = this._trackGetRect();
-          if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
-            this.stop();
-          }
-        }
+  /** Executes the scroll policy's commands; the counterpart of `_execute`. */
+  private _executeScroll(commands: ScrollFrameCommand[]): void {
+    for (const command of commands) {
+      switch (command.type) {
+        case 'stopTracking':
+          this._stopTracking();
+          break;
+        case 'follow':
+          this._reposition();
+          break;
+        case 'stop':
+          this.stop();
+          break;
       }
-      return;
-    }
-
-    // Desktop: scrolling away from a playing preview dismisses it.
-    if (this._choreography.isCommitted && Math.abs(this._scrollY() - this._playStartScrollY) > DESKTOP_SCROLL_STOP_PX) {
-      this.stop();
     }
   }
 

@@ -1,8 +1,10 @@
 import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 
+// IdentityManager is imported ONLY for animateReveal (presentation concern);
+// every identity-state read/write goes through the identity.ts seam.
 import { IdentityManager } from "../_helpers/identityManager.ts";
-import { getIdentity, nextRandomIdentity, setIdentity } from "../_helpers/identity.ts";
+import { getIdentity, getStoredIdentity, nextRandomIdentity, setIdentity } from "../_helpers/identity.ts";
 
 @customElement('user-fakeid')
 export class UserFakeID extends LitElement {
@@ -27,7 +29,7 @@ export class UserFakeID extends LitElement {
   };
 
   private identity = IdentityManager.getInstance();
-  private hasUserName = this.identity.getCachedName();
+  private hasUserName = getStoredIdentity();
 
   static styles = css`
     :host {

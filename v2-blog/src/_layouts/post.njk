@@ -7,6 +7,8 @@ pageModules:
   - "/components/meter-bar.js"
 ---
 
+{% from "macros/toc.njk" import toc as renderToc %}
+
 {% set minutes = content | readingTime %}
 {% set authorName = author or personal.info.displayName %}
 
@@ -53,6 +55,10 @@ pageModules:
         </dd>
       </div>
     </dl>
+
+    {% if toc != false %}
+      {{ renderToc(content | tocItems, tocConfig.minHeadings) }}
+    {% endif %}
 
     <hr class="border-0 border-t border-dashed border-accent/30" />
     

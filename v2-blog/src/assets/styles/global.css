@@ -112,8 +112,8 @@
     --color-sidebar: var(--color-gray-800);
 
     --color-h1: var(--color-accent-primary);
-    --color-h2: var(--color-pink-400);
-    --color-h3: var(--color-gray-400);
+    --color-h2: var(--color-pink-300);
+    --color-h3: var(--color-gray-300);
     --color-h4: var(--color-gray-500);
   }
 }

@@ -1,5 +1,6 @@
 ---
-date: "2030-01-16"
+date: "2026-07-17"
+draft: true
 title: "Bundle for using tailwind in eleventy with custom elements shadowDom"
 ---
 

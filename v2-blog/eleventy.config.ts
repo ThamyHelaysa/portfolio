@@ -16,8 +16,13 @@ import collections from './src/_config/collections.js';
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
 import { classifyTsInput, cssTargets } from './src/_config/buildConventions.js';
+import tocPlugin from './src/_config/toc/index.js';
 
 export default function (eleventyConfig: any) {
+
+  // Plugin defaults match site policy; it also publishes `tocConfig`
+  // global data for templates rendering their own TOC.
+  eleventyConfig.addPlugin(tocPlugin);
 
   // Watch CSS files
   eleventyConfig.addWatchTarget("./src/assets/styles/**/*.css");

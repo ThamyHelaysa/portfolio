@@ -1,6 +1,7 @@
 ---
 title: "Why I never heard of Lit?"
-date: "2035-12-01"
+date: "2026-07-17"
+draft: true
 description: "My life was a lie and the best thing to ever exist to write custom-elements has been bluried from my very eyes. And im ashame of it. But lets fix this."
 tags: 
     - dev

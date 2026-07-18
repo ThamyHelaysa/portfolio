@@ -1,0 +1,40 @@
+/* The site's button look: a bracketed monospace label — [ close ]. It started
+   inside the books terminal; it is now the shared control for every surface.
+
+   Imported in three places because none of them can see the others' CSS:
+     - global.css .............. light DOM on base.njk pages
+     - the books head .......... the shell ships its own inline CSS and never
+                                 loads global.css
+     - each shadow sheet ....... page rules don't cross a shadow boundary
+                                 (terminal-overlay-shadow.css)
+
+   Consumers should style geometry only (size, placement). Colour, brackets and
+   the hover state live here — an id-specificity rule setting `color` in a
+   component would win over `.btn:hover` and silently kill the hover. */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0 .5rem;
+  padding-block: .5rem;
+  text-transform: uppercase;
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.btn::before {
+  content: "[";
+}
+
+.btn::after {
+  content: "]";
+}
+
+/* No `outline: none` — the UA focus ring is the only keyboard cue here. */
+.btn:hover,
+.btn:focus-visible {
+  color: var(--color-accent-primary);
+}

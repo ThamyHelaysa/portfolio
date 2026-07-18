@@ -4,3 +4,7 @@
 @import "tailwindcss/utilities.css" layer(utilities) prefix(sw);
 
 @import "./shadow-config.css";
+
+/* Page rules don't cross the shadow boundary — the overlay's own copy of the
+   shared .btn control (unlayered, so it beats the prefixed utilities). */
+@import "../../_includes/css/buttons.css";

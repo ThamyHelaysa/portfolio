@@ -419,7 +419,85 @@ describe("terminal-shell startup phases", () => {
     await (element as any)._executeCommand("help");
 
     const info = element.querySelector("#boot-log p.terminal-msg.info")!;
-    expect(info.textContent).toBe("help · list · open <id> · theme · whoami υ.υ");
+    expect(info.textContent).toBe(
+      "help · list · open <id> · random · ls · grep <term> · cat <page> · theme · whoami · clear υ.υ"
+    );
+  });
+
+  // Drift guard: ls is a shared Command — this surface renders the same
+  // site-tree listing as the overlay (see _helpers/terminal/commands.ts).
+  it("ls renders the shared site-tree listing (shared Command contract)", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { section: "pages", title: "About me", url: "/about/", description: "Who I am" },
+        { section: "books", title: "A seca", url: "/books/a-seca/", description: "Harper" },
+      ],
+    } as Response);
+
+    await (element as any)._executeCommand("ls");
+
+    const section = element.querySelector("#boot-log .terminal-section")!;
+    expect(section).not.toBeNull();
+    expect(section.textContent).toContain("~/book_os");
+    expect(section.textContent).toContain("about");
+  });
+
+  it("clear pushes the scrollback out of view instead of erroring", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("clear");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.error")).toBeNull();
+    // The clear spacer pushes the scrollback a full viewport up.
+    expect(element.querySelector("#boot-log .clear-spacer")).not.toBeNull();
+  });
+
+  it("cls and c stay as aliases of clear", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("cls");
+    await (element as any)._executeCommand("c");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.error")).toBeNull();
+  });
+
+  // Drift guard: random is a shared Command — `random books` (the sidebar
+  // button's command) rolls a book page from the same site index everywhere.
+  it("random books opens a random book (shared Command contract)", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { section: "pages", title: "About me", url: "/about/", description: "Who I am" },
+        { section: "books", title: "A seca", url: "/books/a-seca/", description: "Harper" },
+      ],
+    } as Response);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const navSpy = vi.spyOn(element as any, "_navigateTo").mockImplementation(() => undefined);
+
+    await (element as any)._executeCommand("random books");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.status")?.textContent)
+      .toBe("rolling the dice... A seca");
+    expect(navSpy).toHaveBeenCalledWith("/books/a-seca/");
+  });
+
+  it("git is no longer a command", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+
+    await (element as any)._executeCommand("git status");
+
+    expect(element.querySelector("#boot-log p.terminal-msg.error")?.textContent)
+      .toBe("command not recognized: git status >.<");
   });
 
   it("ends the final batch with the open-a-card hint", async () => {

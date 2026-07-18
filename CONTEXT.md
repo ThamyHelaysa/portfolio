@@ -13,7 +13,7 @@ A named, pre-registered handler the Terminal can run (e.g. `help`, `list`, `open
 _Avoid_: program, process
 
 **Shared Command**:
-A Command whose semantics are site-wide — it must behave identically on every Terminal surface (`theme`, `whoami`). Shared Commands come from one registry factory (`_helpers/terminal/commands.ts`) that each surface spreads into its own registry; a surface may wrap presentation (flavor text) but never semantics. Commands that are not shared are **surface Commands** (`exit`, `skip`, the cheats) and stay owned by their surface.
+A Command whose semantics are site-wide — it must behave identically on every Terminal surface (`theme`, `whoami`, `ls`, `grep`, `cat`, `random`). Shared Commands come from one registry factory (`_helpers/terminal/commands.ts`) that each surface spreads into its own registry; a surface may wrap presentation (flavor text) but never semantics. Commands that are not shared are **surface Commands** (`exit`, `skip`, `clear`, the cheats) and stay owned by their surface.
 _Avoid_: global command, common command, built-in
 
 **Summon**:
@@ -79,6 +79,10 @@ _Avoid_: scroll handler, scroll listener (those are the mechanics), dismiss-on-s
 **Preview clip**:
 A short (~3s), silent, small-format excerpt cut from a full recording — the thing a video Media preview plays. Generated ahead of time from local source recordings; the full recording never ships.
 _Avoid_: video, trailer, thumbnail
+
+**Heading tree**:
+The structured outline of a post's in-body headings — each node carries the heading's anchor id, its visible text, and its child headings. It is *data, not markup*: the publishable TOC core produces only Heading trees; every rendered table of contents (the site's own template or the core's plain default) is a downstream consumer of one. Anchor ids are read from the rendered page, so they always match the ids the markdown pipeline actually emitted.
+_Avoid_: TOC HTML, outline markup, toc object
 
 **Site index**:
 The build-time manifest of navigable pages — blog posts, books, and top-level pages — that the Terminal lists with `ls` and navigates with `open`. The Terminal models it as a **tree** keyed on each page's real URL: containers (`blog/`, `books/`, year levels) are **folders** that carry a descendant count; individual pages are **leaves**. Page URLs always come from real Eleventy permalinks, never hardcoded.

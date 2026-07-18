@@ -36,12 +36,12 @@ pageModules:
 
 <h2>Last published</h2>
 {# Last published #}
-<ul class="space-y-6">
+<ul class="space-y-6 bg-background border-y border-accent/10">
   {% set postslist = collections.published | reverse %}
   {% for post in postslist.slice(0,5) %}
     {% set formatedDate = post.date | formatDatefull(post.date) %}
-    <li>
-      {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags %}
+    <li class="border-t border-accent/10 first:border-0 last:pb-0 mb-0">
+      {% blogSectionBlock post.url, post.data.title, formatedDate, post.data.tags, loop.index %}
         <p>{{ post.data.description }}</p>
       {% endblogSectionBlock %}
     </li>

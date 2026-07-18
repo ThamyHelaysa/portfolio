@@ -1,6 +1,7 @@
 ---
 title: "Please dont do these things"
-date: "2035-01-30"
+date: "2026-07-17"
+draft: true
 description: "bla"
 tags: 
     - dev

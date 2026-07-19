@@ -6,6 +6,9 @@ export interface TocItem {
   children: TocItem[];
 }
 
+/** Content accepted by the default TOC renderer. */
+export type TocInput = string | readonly TocItem[];
+
 /** Public configuration shared by the TOC data and rendering filters. */
 export interface TocOptions {
   tags: readonly string[];

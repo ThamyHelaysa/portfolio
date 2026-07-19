@@ -1,0 +1,4 @@
+{# Render metadata-row label content with its shared visual treatment. #}
+{% macro metaLabel(tag = "span", extraClasses = "") -%}
+  <{{ tag }} class="{% if extraClasses %}{{ extraClasses }} {% endif %}text-accent/60 uppercase tracking-widest">{{ caller() }}</{{ tag }}>
+{%- endmacro %}

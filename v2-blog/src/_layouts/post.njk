@@ -8,6 +8,7 @@ pageModules:
 ---
 
 {% from "macros/toc.njk" import toc as renderToc %}
+{% from "macros/meta-label.njk" import metaLabel %}
 
 {% set minutes = content | readingTime %}
 {% set authorName = author or personal.info.displayName %}
@@ -20,7 +21,7 @@ pageModules:
 
     {% if description %}
       <p class="text-xs my-2 inline-block font-mono text-text-gray">
-        <span class="shrink-0 text-accent/60 uppercase tracking-widest">Desc&nbsp;/</span>
+        {% call metaLabel("span", "shrink-0") %}Desc&nbsp;/{% endcall %}
         <span>{{ description }}</span>
       </p>
     {% endif %}
@@ -29,26 +30,26 @@ pageModules:
 
     <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 font-mono">
       <div class="hidden md:flex flex-col">
-        <dt class=" text-accent/60 uppercase tracking-widest">Author</dt>
+        {% call metaLabel("dt") %}Author{% endcall %}
         <dd class="text-accent">{{ authorName }}</dd>
       </div>
 
       {% if date %}
         <div class="flex flex-col">
-          <dt class=" text-accent/60 uppercase tracking-widest">Published</dt>
+          {% call metaLabel("dt") %}Published{% endcall %}
           <dd class="text-accent"><spin-date date="{{ date | formatDateShort }}">{{ date | formatDateShort }}</spin-date></dd>
         </div>
       {% endif %}
 
       {% if updateDate %}
         <div class="hidden md:flex flex-col">
-          <dt class=" text-accent/60 uppercase tracking-widest">Last updated</dt>
+          {% call metaLabel("dt") %}Last updated{% endcall %}
           <dd class="text-accent"><spin-date date="{{ updateDate | formatDateShort }}">{{ updateDate | formatDateShort }}</spin-date></dd>
         </div>
       {% endif %}
 
       <div class="flex flex-col">
-        <dt class=" text-accent/60 uppercase tracking-widest">Time to read</dt>
+        {% call metaLabel("dt") %}Time to read{% endcall %}
         <dd class="text-accent flex items-center gap-x-2">
           <span>{{ minutes }} min</span>
           <span aria-hidden="true" class="text-accent/70"><meter-bar value="{{ minutes | readingTimeCells(5) }}" max="5">{{ minutes | readingTimeMeter(5) }}</meter-bar></span>
@@ -66,7 +67,7 @@ pageModules:
       {% if mood %}
         <p class="flex flex-wrap min-w-0 items-baseline gap-x-3 my-0">
           <span class="flex min-w-0 items-baseline gap-x-2">
-            <span class="shrink-0 text-xs text-accent/60 uppercase tracking-widest">Mood in the writing</span>
+            {% call metaLabel("span", "shrink-0 text-xs") %}Mood in the writing{% endcall %}
             <span aria-hidden="true" class="shrink-0 text-accent/70"><meter-bar value="{{ mood.level }}" max="5">{{ mood.level | meterBar(5) }}</meter-bar></span>
           </span>
           <span class="min-w-0 text-xs text-accent wrap-anywhere">{{ mood.label }}</span>

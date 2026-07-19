@@ -1,0 +1,27 @@
+{# Render one nested level of a Heading tree. #}
+{% macro tocList(items) -%}
+  <ol>
+    {%- for item in items %}
+      <li>
+        <a href="#{{ item.id | escape }}">{{ item.text | escape }}</a>
+        {%- if item.children.length %}{{ tocList(item.children) }}{% endif -%}
+      </li>
+    {%- endfor %}
+  </ol>
+{%- endmacro %}
+
+{# Render the site's collapsible TOC when the Heading tree meets the minimum.
+   A missing minHeadings falls back to 1 (always show) — a visible TOC beats
+   one silently vanishing over a miswired argument. #}
+{% macro toc(items, minHeadings) -%}
+  {%- if items | tocCount >= (minHeadings or 1) %}
+    <details class="post-toc">
+      <summary class="text-xs my-2 font-mono text-text-gray">
+        <span class="text-accent/60 uppercase tracking-widest">Index&nbsp;/</span>
+      </summary>
+      <nav aria-label="Table of contents">
+        {{- tocList(items) -}}
+      </nav>
+    </details>
+  {% endif -%}
+{%- endmacro %}

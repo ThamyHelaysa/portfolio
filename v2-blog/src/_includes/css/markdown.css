@@ -28,6 +28,13 @@ h2, h3, h4 {
   margin-block-end: calc(var(--spacing) * 7);
 }
 
+/* The :target variant outranks the generic `:target` rule below, which
+   would otherwise win the cascade and cramp TOC/anchor jumps to 1rem. */
+article :is(h2, h3, h4),
+article :is(h2, h3, h4):target {
+  scroll-margin-top: calc(var(--spacing) * 20);
+}
+
 article a {
   font-weight: 900;
   text-decoration: underline;
@@ -93,7 +100,9 @@ ol ul {
 ol li {list-style: decimal;}
 ul li {list-style: disc;}
 
-details {
+/* Scoped to article so chrome like .post-toc styles itself from scratch
+   instead of fighting these content defaults. */
+article details {
   margin-block-start: calc(var(--spacing) * 7);
   margin-block-end: calc(var(--spacing) * 10);
   padding-block: calc(var(--spacing) * 3);
@@ -184,6 +193,70 @@ h2:hover .header-anchor,
 h3:hover .header-anchor,
 h4:hover .header-anchor {
   opacity: 1;
+}
+
+.post-toc {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+
+  &[open] summary {
+    margin-block-end: calc(var(--spacing) * 4);
+  }
+
+  summary {
+    width: fit-content;
+    cursor: pointer;
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    margin-block-end: calc(var(--spacing) * 2);
+    list-style: none;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  a:hover,
+  a:focus-visible {
+    text-decoration: underline;
+  }
+
+  > nav > ol {
+    counter-reset: toc-root;
+  }
+
+  > nav > ol > li {
+    counter-increment: toc-root;
+  }
+
+  > nav > ol > li > a::before {
+    content: counter(toc-root, decimal-leading-zero) ". ";
+    color: color-mix(in oklab, var(--color-accent) 60%, transparent);
+  }
+
+  ol ol {
+    padding-block-start: calc(var(--spacing) * 2);
+    padding-inline-start: calc(var(--spacing) * 5);
+    counter-reset: toc-sub;
+  }
+
+  ol ol > li {
+    counter-increment: toc-sub;
+  }
+
+  ol ol > li > a::before {
+    content: counter(toc-root) "." counters(toc-sub, ".") ". ";
+    color: color-mix(in oklab, var(--color-accent) 60%, transparent);
+  }
 }
 
 }

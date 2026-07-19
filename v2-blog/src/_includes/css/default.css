@@ -186,6 +186,12 @@ meter-bar .mb-filled .mb-base {
   opacity: 0;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Cells wipe in from the left once the component flags data-ready,
    staggered left → right by each cell's sibling-index(). */
 @media (prefers-reduced-motion: no-preference) {

@@ -80,6 +80,10 @@ _Avoid_: scroll handler, scroll listener (those are the mechanics), dismiss-on-s
 A short (~3s), silent, small-format excerpt cut from a full recording — the thing a video Media preview plays. Generated ahead of time from local source recordings; the full recording never ships.
 _Avoid_: video, trailer, thumbnail
 
+**Heading tree**:
+The structured outline of a post's in-body headings — each node carries the heading's anchor id, its visible text, and its child headings. It is *data, not markup*: the publishable TOC core produces only Heading trees; every rendered table of contents (the site's own template or the core's plain default) is a downstream consumer of one. Anchor ids are read from the rendered page, so they always match the ids the markdown pipeline actually emitted.
+_Avoid_: TOC HTML, outline markup, toc object
+
 **Site index**:
 The build-time manifest of navigable pages — blog posts, books, and top-level pages — that the Terminal lists with `ls` and navigates with `open`. The Terminal models it as a **tree** keyed on each page's real URL: containers (`blog/`, `books/`, year levels) are **folders** that carry a descendant count; individual pages are **leaves**. Page URLs always come from real Eleventy permalinks, never hardcoded.
 _Avoid_: sitemap, manifest, catalog

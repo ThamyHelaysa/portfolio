@@ -84,6 +84,18 @@ _Avoid_: video, trailer, thumbnail
 The structured outline of a post's in-body headings — each node carries the heading's anchor id, its visible text, and its child headings. It is *data, not markup*: the publishable TOC core produces only Heading trees; every rendered table of contents (the site's own template or the core's plain default) is a downstream consumer of one. Anchor ids are read from the rendered page, so they always match the ids the markdown pipeline actually emitted.
 _Avoid_: TOC HTML, outline markup, toc object
 
+**Favorite**:
+One of the fixed set of "currently into" slots shown on the home page — Last Read, On Repeat, Playing, Studying. A Favorite names the current occupant of its slot (title, blurb, preview media); updating a Favorite means replacing the occupant, not adding to a list. Each Favorite carries a Media kind and its preview media.
+_Avoid_: favorites list (it's fixed slots, not a growing list), pick, highlight
+
+**Game log**:
+The all-time record of games played — one entry per game, carrying its platform, factual play state (status), a single Mood, and freeform prose (opinions, tips). Distinct from the `Playing` Favorite, which only names the current game.
+_Avoid_: games list, collection (overloaded by Eleventy), library
+
+**Mood**:
+The single emotional label a Game log entry carries — one per game, from a closed set: `loved`, `rage` (rage quit territory), `nostalgia` ("keep playing"), `masochism` ("keep playing, but it hurts"), `meh`. Orthogonal to status: status says what happened (finished, dropped, replaying, shelved), Mood says how it felt. "Rage quit" is status `dropped` + Mood `rage`, never one merged value.
+_Avoid_: feeling, tag, category, rating
+
 **Site index**:
 The build-time manifest of navigable pages — blog posts, books, and top-level pages — that the Terminal lists with `ls` and navigates with `open`. The Terminal models it as a **tree** keyed on each page's real URL: containers (`blog/`, `books/`, year levels) are **folders** that carry a descendant count; individual pages are **leaves**. Page URLs always come from real Eleventy permalinks, never hardcoded.
 _Avoid_: sitemap, manifest, catalog

@@ -5,7 +5,6 @@ import { createHash } from 'node:crypto';
 
 import MarkdownIt from "markdown-it";
 import markdownItAnchor from "markdown-it-anchor";
-import slugifyCM from "slugify";
 import Image, { ImageMetadata, ImageEntry } from "@11ty/eleventy-img";
 
 import cssnano from 'cssnano';
@@ -15,6 +14,7 @@ import tailwindcss from '@tailwindcss/postcss';
 import collections from './src/_config/collections.js';
 import shortcodes from "./src/_config/shortcodes.js";
 import filters from './src/_config/filters.js';
+import { headingSlug } from './src/_config/headingSlug.js';
 import { classifyTsInput, cssTargets } from './src/_config/buildConventions.js';
 import tocPlugin from './src/_config/toc/index.js';
 
@@ -60,16 +60,9 @@ export default function (eleventyConfig: any) {
 
   eleventyConfig.addTemplateFormats("ts");
 
-  const moduleSlug = slugifyCM as any;
-  const linkSlugify = (s: string) => moduleSlug(s, {
-    lower: true,
-    strict: true,
-    remove: /["]/g,
-  });
-
   const mdLib = MarkdownIt({ html: true })
     .use(markdownItAnchor, {
-      slugify: linkSlugify,
+      slugify: headingSlug,
       permalink: markdownItAnchor.permalink.linkInsideHeader({
         symbol: "#",
         placement: "after",

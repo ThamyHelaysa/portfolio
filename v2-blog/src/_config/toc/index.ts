@@ -1,10 +1,10 @@
 import { DEFAULT_TOC_OPTIONS } from "./defaults.js";
 import { countItems, parseHeadings } from "./parse.js";
 import { renderToc } from "./render.js";
-import type { EleventyConfigLike, TocOptions, TocOptionsInput } from "./types.js";
+import type { EleventyConfigLike, TocInput, TocOptions, TocOptionsInput } from "./types.js";
 
 export { DEFAULT_TOC_OPTIONS } from "./defaults.js";
-export type { TocItem, TocOptions, TocOptionsInput } from "./types.js";
+export type { TocInput, TocItem, TocOptions, TocOptionsInput } from "./types.js";
 
 /**
  * Merge plugin configuration with a single filter call's overrides.
@@ -62,11 +62,11 @@ export default function tocPlugin(
   /**
    * Render plain fallback TOC with resolved rendering threshold.
    *
-   * @param content - Rendered HTML containing headings.
+   * @param content - Rendered HTML or a pre-built Heading tree.
    * @param callOptions - Per-call parsing and threshold overrides.
    * @returns Navigation HTML, or an empty string below threshold.
    */
-  function tocFilter(content: string, callOptions?: TocOptionsInput | number | null) {
+  function tocFilter(content: TocInput, callOptions?: TocOptionsInput | number | null) {
     return renderToc(content, resolveOptions(pluginOptions, callOptions));
   }
 

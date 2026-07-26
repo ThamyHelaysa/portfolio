@@ -1,4 +1,6 @@
 
+import { headingSlug } from "./headingSlug.js";
+
 export default {
   blogSectionBlock: function (content, url, title, date, tags, index) {
     // The listing index, zero-padded (01, 02, …). Callers pass Nunjucks'
@@ -8,7 +10,7 @@ export default {
       <div class="group bg-background flex flex-col gap-2 py-1 px-3">
         <a href="${url}" class="shrink-0 flex flex-col md:flex-row items-end gap-2 md:gap-4">
           <div class="flex flex-col flex-2/3 grow-0 shrink gap-1 md:gap-0">
-            <h3 class="flex items-baseline gap-3 text-xl tracking-wider md:text-2xl font-bold text-accent mb-2 leading-tight">
+            <h3 id="${headingSlug(title)}" class="flex items-baseline gap-3 text-xl tracking-wider md:text-2xl font-bold text-accent mb-2 leading-tight">
               ${ordinal ? `<span aria-hidden="true" class="w-5 shrink-0 text-xs font-mono tabular-nums text-accent/40 transition-colors group-hover:text-accent">${ordinal}</span>` : ""}
                 ${title}
             </h3>
@@ -30,7 +32,7 @@ export default {
     return `
       <div class="bg-background flex flex-col md:flex-row gap-8 md:gap-24 py-12 md:py-12 px-6 md:px-8 border-t border-accent/10 first:border-t-0">
         <div class="md:w-1/3 shrink-0">
-          <h2 class="text-2xl md:mb-2 md:text-3xl text-accent mb-2 leading-tight">
+          <h2 id="${headingSlug(title)}" class="text-2xl md:mb-2 md:text-3xl text-accent mb-2 leading-tight">
             ${title}
           </h2>
           ${subtitle ? `

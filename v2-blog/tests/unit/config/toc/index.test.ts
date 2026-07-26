@@ -25,6 +25,33 @@ describe("tocPlugin", () => {
     expect(filters.get("toc")?.(html, 2)).toContain("<nav");
   });
 
+  it("renders identical markup from HTML and a pre-built Heading tree", () => {
+    const filters = registerFilters();
+    const html = '<h2 id="one">One</h2><h3 id="child">Child</h3><h2 id="two">Two</h2>';
+
+    const items = filters.get("tocItems")?.(html);
+
+    expect(filters.get("toc")?.(items)).toBe(filters.get("toc")?.(html));
+  });
+
+  it("applies the rendering threshold to a pre-built Heading tree", () => {
+    const filters = registerFilters();
+    const html = '<h2 id="one">One</h2><h3 id="child">Child</h3><h2 id="two">Two</h2>';
+    const items = filters.get("tocItems")?.(html);
+
+    expect(filters.get("toc")?.(items, 4)).toBe("");
+    expect(filters.get("toc")?.(items, 3)).toContain("<nav");
+  });
+
+  it.each([undefined, null, 42, {}, [{ id: "one" }, { id: "two" }, { id: "three" }]])(
+    "fails soft for invalid TOC input %#",
+    (input) => {
+      const filters = registerFilters();
+
+      expect(filters.get("toc")?.(input)).toBe("");
+    }
+  );
+
   it("counts every Heading-tree node with the tocCount filter", () => {
     const filters = registerFilters();
 

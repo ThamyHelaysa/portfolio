@@ -1,3 +1,5 @@
+{% from "macros/meta-label.njk" import metaLabel %}
+
 {# Render one nested level of a Heading tree. #}
 {% macro tocList(items) -%}
   <ol>
@@ -17,7 +19,7 @@
   {%- if items | tocCount >= (minHeadings or 1) %}
     <details class="post-toc">
       <summary class="text-xs my-2 font-mono text-text-gray">
-        <span class="text-accent/60 uppercase tracking-widest">Index&nbsp;/</span>
+        {% call metaLabel() %}Index&nbsp;/{% endcall %}
       </summary>
       <nav aria-label="Table of contents">
         {{- tocList(items) -}}

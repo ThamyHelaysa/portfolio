@@ -1,6 +1,6 @@
 import { DEFAULT_TOC_OPTIONS } from "./defaults.js";
 import { countItems, parseHeadings } from "./parse.js";
-import type { TocItem, TocOptionsInput } from "./types.js";
+import type { TocInput, TocItem, TocOptionsInput } from "./types.js";
 
 /**
  * Escape text for safe placement in HTML element content.
@@ -28,12 +28,32 @@ function escapeAttribute(value: string): string {
 }
 
 /**
+ * Check that an unknown array contains complete Heading-tree nodes.
+ *
+ * @param value - Potential Heading tree supplied at runtime.
+ * @returns Whether the value is safe for counting and rendering.
+ */
+function isHeadingTree(value: unknown): value is readonly TocItem[] {
+  if (!Array.isArray(value)) return false;
+
+  return value.every((item: unknown) => {
+    if (!item || typeof item !== "object") return false;
+
+    const candidate = item as Partial<TocItem>;
+    return typeof candidate.id === "string"
+      && typeof candidate.text === "string"
+      && Number.isInteger(candidate.level)
+      && isHeadingTree(candidate.children);
+  });
+}
+
+/**
  * Render one ordered-list level of the plain default TOC.
  *
  * @param items - Heading tree nodes for this list level.
  * @returns Nested ordered-list HTML.
  */
-function renderList(items: TocItem[]): string {
+function renderList(items: readonly TocItem[]): string {
   let markup = "<ol>";
   for (const item of items) {
     markup += `<li><a href="#${escapeAttribute(item.id)}">${escapeText(item.text)}</a>`;
@@ -46,13 +66,19 @@ function renderList(items: TocItem[]): string {
 /**
  * Render the plugin's deliberately plain fallback navigation.
  *
- * @param content - Rendered HTML containing linkable headings.
+ * @param content - Rendered HTML or a pre-built Heading tree.
  * @param options - Per-call parsing and threshold overrides.
  * @returns Navigation HTML, or an empty string below the threshold.
  */
-export function renderToc(content: string, options: TocOptionsInput = {}): string {
+export function renderToc(content: TocInput, options: TocOptionsInput = {}): string {
   const minHeadings = options.minHeadings ?? DEFAULT_TOC_OPTIONS.minHeadings;
-  const items = parseHeadings(content, options);
+  let items: readonly TocItem[];
+
+  if (Array.isArray(content)) {
+    items = isHeadingTree(content) ? content : [];
+  } else {
+    items = parseHeadings(content as string, options);
+  }
 
   if (countItems(items) < minHeadings) return "";
 

@@ -11,7 +11,8 @@ supplied image:
 npm run fav -- set game
 ```
 
-Valid slot ids: `books`, `album`, `game`, `learning`.
+Valid slot ids: `books`, `game`, `learning`. Non-image slots are not supported
+yet; see #149.
 
 The CLI accepts an image URL or local path, copies it to an OS temp directory,
 opens it with macOS `open`, and requires explicit approval. Only then does it

@@ -214,7 +214,7 @@ async function main(): Promise<void> {
   const [command, slotId, ...extraArgs] = process.argv.slice(2);
   if (command !== "set" || !slotId || extraArgs.length > 0) {
     throw new Error(
-      "Usage: npm run fav -- set <books|album|game|learning>",
+      "Usage: npm run fav -- set <books|game|learning>",
     );
   }
 

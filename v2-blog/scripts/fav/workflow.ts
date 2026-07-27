@@ -50,6 +50,11 @@ async function readFavoriteSlot(
   if (!favorite) {
     throw new Error(`Unknown Favorite slot: ${slotId}`);
   }
+  if (favorite.previewType !== "image") {
+    throw new Error(
+      `Favorite slot "${slotId}" is not supported yet; see #149.`,
+    );
+  }
   return favorite;
 }
 

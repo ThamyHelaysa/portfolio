@@ -177,6 +177,77 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
+  it("refuses a non-image Favorite before any interactive work", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const events: string[] = [];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        `${JSON.stringify(
+          {
+            favorites: [
+              {
+                id: "album",
+                kind: "album",
+                category: "On Repeat",
+                title: "Cochise",
+                details: "Audioslave",
+                previewUrl: "/assets/audio/previews/cochise.mp3",
+                previewType: "audio",
+                coverUrl: "/assets/images/previews/cochise.jpg",
+              },
+            ],
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      const before = await readFile(dataPath, "utf8");
+
+      await expect(
+        runSetFavorite(
+          { projectRoot, slotId: "album" },
+          {
+            promptText: async () => {
+              events.push("prompt");
+              return "";
+            },
+            acquireCandidate: async () => {
+              events.push("acquire");
+              return "/tmp/fav-candidate.png";
+            },
+            previewCandidate: async () => {
+              events.push("preview");
+            },
+            approveCandidate: async () => {
+              events.push("approve");
+              return false;
+            },
+            processImage: async () => {
+              events.push("process");
+            },
+            confirmDeletion: async () => {
+              events.push("delete");
+              return false;
+            },
+            log: () => undefined,
+          },
+        ),
+      ).rejects.toThrow(
+        'Favorite slot "album" is not supported yet; see #149.',
+      );
+
+      expect(events).toEqual([]);
+      await expect(readFile(dataPath, "utf8")).resolves.toBe(before);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
   it("commits an approved image and updates the Favorite occupant", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");

@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import matter from "gray-matter";
+import matter from "@11ty/gray-matter";
 import { describe, expect, it } from "vitest";
 
 /**

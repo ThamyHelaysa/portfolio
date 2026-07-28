@@ -1,4 +1,6 @@
 export default {
+  gameLogByMood,
+
   formatYear: function () {
     return new Date().getFullYear();
   },
@@ -59,6 +61,17 @@ export default {
   readingTimeCells: function (minutes, max = 5) {
     return readingCells(minutes, Math.max(1, Math.floor(max)));
   },
+}
+
+/**
+ * Selects the Game log entries carrying one Mood.
+ *
+ * @param {Array<{ data?: { mood?: string } }>} entries Game log collection.
+ * @param {string} mood Mood value to select.
+ * @returns {Array<{ data?: { mood?: string } }>} Matching entries.
+ */
+function gameLogByMood(entries, mood) {
+  return entries.filter(entry => entry.data?.mood === mood);
 }
 
 function readingCells(minutes, total) {

@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import matter from "@11ty/gray-matter";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -13,21 +14,6 @@ import { describe, expect, it } from "vitest";
  */
 function readRepoFile(relativePath: string): string {
   return readFileSync(resolve(process.cwd(), relativePath), "utf8");
-}
-
-/**
- * Extracts a simple scalar frontmatter field from an Eleventy template file.
- *
- * @param source - The full file contents including frontmatter.
- * @param field - The frontmatter key to match.
- * @returns The trimmed scalar value when present, otherwise `null`.
- */
-function getFrontmatterField(source: string, field: string): string | null {
-  const match = source.match(
-    new RegExp(`^${field}:\\s*(.+)$`, "m"),
-  );
-
-  return match?.[1]?.trim() ?? null;
 }
 
 describe("page frontmatter", () => {
@@ -42,10 +28,10 @@ describe("page frontmatter", () => {
     ];
 
     for (const page of expectedRoutes) {
-      const source = readRepoFile(page.file);
+      const { data } = matter(readRepoFile(page.file));
 
       expect(
-        getFrontmatterField(source, "permalink"),
+        data.permalink,
         `${page.file} should keep permalink ${page.permalink}`,
       ).toBe(page.permalink);
     }

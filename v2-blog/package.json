@@ -12,6 +12,7 @@
   "scripts": {
     "build": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts",
     "start": "npx tsx --no-warnings node_modules/@11ty/eleventy/cmd.cjs --config=eleventy.config.ts --serve --incremental",
+    "fav": "tsx scripts/fav.ts",
     "new:post": "node scripts/new-post.js",
     "generate:previews": "node scripts/generate-previews.js",
     "audio:preview": "node scripts/audio-preview.js",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@eslint/js": "^10.0.1",
+    "@inquirer/prompts": "^8.5.2",
     "@netlify/plugin-lighthouse": "^6.0.4",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.17",

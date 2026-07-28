@@ -2,6 +2,27 @@
 
 Media preview generators. Both need `ffmpeg` on PATH; `audio-preview.js` also needs [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) (`brew install yt-dlp`).
 
+## fav.ts — replace a Favorite occupant
+
+Interactive local-only CLI for replacing one fixed Favorite slot with a manually
+supplied image:
+
+```bash
+npm run fav -- set game
+```
+
+Valid slot ids: `books`, `game`, `learning`. Non-image slots are not supported
+yet; see #149.
+
+The CLI accepts an image URL or local path, copies it to an OS temp directory,
+opens it with macOS `open`, and requires explicit approval. Only then does it
+resize/compress the image into `src/assets/images/previews/` and update
+`src/_data/personal.json`. It preserves each slot's `id`, `kind`, and `category`.
+
+After replacement, previous assets are checked for references across `src/`.
+Only unreferenced files are offered for deletion. The CLI never commits changes
+and refuses to run when `CI` is set.
+
 ---
 
 ## audio-preview.js — short MP3 previews from URLs

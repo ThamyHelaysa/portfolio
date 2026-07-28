@@ -66,7 +66,7 @@ export default {
 /**
  * Selects the Game log entries carrying one Mood.
  *
- * @param {Array<{ data?: { mood?: string } }>} entries Game log collection.
+ * @param {Array<{ data?: { mood?: string } }>} entries Game log entries.
  * @param {string} mood Mood value to select.
  * @returns {Array<{ data?: { mood?: string } }>} Matching entries.
  */

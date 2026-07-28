@@ -3,10 +3,13 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import matter from "gray-matter";
 import { describe, expect, it } from "vitest";
 
+import gameLog from "../../../src/_data/gameLog.js";
+
 const GAME_LOG_DIRECTORY = resolve(process.cwd(), "src/games");
-const GAME_LOG_FIELDS = [
+const REQUIRED_GAME_LOG_FIELDS = [
   "title",
   "platform",
   "yearPlayed",
@@ -14,10 +17,10 @@ const GAME_LOG_FIELDS = [
   "mood",
   "previewUrl",
   "previewType",
-  "coverUrl",
 ] as const;
-const MOODS = ["loved", "rage", "nostalgia", "masochism", "meh"] as const;
-const STATUSES = ["finished", "dropped", "replaying", "shelved"] as const;
+const OPTIONAL_GAME_LOG_FIELDS = ["coverUrl"] as const;
+const MOODS = gameLog.moods.map(({ value }) => value);
+const STATUSES = gameLog.statuses;
 
 /**
  * Lists the markdown file names that make up the Game log.
@@ -30,78 +33,60 @@ function gameLogFiles(): string[] {
 }
 
 /**
- * Reads scalar YAML frontmatter fields from a Game log markdown entry.
+ * Parses a Game log entry with the same frontmatter parser Eleventy uses.
  *
  * @param filePath - Absolute path to the markdown entry.
- * @returns A map of frontmatter field names to unquoted scalar values.
+ * @returns Parsed frontmatter data and markdown body.
  */
-function readFrontmatter(filePath: string): Record<string, string> {
-  const source = readFileSync(filePath, "utf8");
-  const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-
-  if (!frontmatter?.[1]) return {};
-
-  return Object.fromEntries(
-    frontmatter[1].split(/\r?\n/).flatMap((line) => {
-      const separator = line.indexOf(":");
-      if (separator === -1) return [];
-
-      const key = line.slice(0, separator).trim();
-      const value = line
-        .slice(separator + 1)
-        .trim()
-        .replace(/^(['"])(.*)\1$/, "$2");
-
-      return [[key, value]];
-    }),
-  );
-}
-
-/**
- * Reads the markdown body from a Game log entry.
- *
- * @param filePath - Absolute path to the markdown entry.
- * @returns The trimmed freeform prose after the frontmatter block.
- */
-function readBody(filePath: string): string {
-  const source = readFileSync(filePath, "utf8");
-  const body = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n([\s\S]*)$/);
-
-  return body?.[1]?.trim() ?? "";
+function parseGameEntry(filePath: string): matter.GrayMatterFile<string> {
+  return matter(readFileSync(filePath, "utf8"));
 }
 
 describe("Game log content", () => {
-  it("uses the approved frontmatter shape and closed enums", () => {
+  it("matches Eleventy's YAML parsing semantics", () => {
+    const fixtures = resolve(process.cwd(), "tests/fixtures/game-log");
+
+    expect(
+      parseGameEntry(resolve(fixtures, "valid-inline-comment.md")).data.mood,
+    ).toBe("loved");
+    expect(() => {
+      parseGameEntry(resolve(fixtures, "invalid-unquoted-colon.md"));
+    }).toThrow();
+  });
+
+  it("uses the approved content shape, closed enums, and body prose", () => {
     const gameFiles = gameLogFiles();
 
     expect(gameFiles.length, "the Game log should ship at least one entry")
       .toBeGreaterThan(0);
 
     for (const fileName of gameFiles) {
-      const frontmatter = readFrontmatter(
+      const { content, data } = parseGameEntry(
         resolve(GAME_LOG_DIRECTORY, fileName),
       );
 
-      for (const field of GAME_LOG_FIELDS) {
+      for (const field of REQUIRED_GAME_LOG_FIELDS) {
         expect(
-          Object.hasOwn(frontmatter, field),
+          Object.hasOwn(data, field),
           `${fileName} should define ${field}`,
         ).toBe(true);
       }
 
+      for (const field of OPTIONAL_GAME_LOG_FIELDS) {
+        if (!Object.hasOwn(data, field)) continue;
+
+        expect(data[field], `${fileName} should define a usable ${field}`)
+          .toBeTypeOf("string");
+        expect(data[field], `${fileName} should define a usable ${field}`)
+          .not.toBe("");
+      }
+
       expect(MOODS, `${fileName} should use a valid Mood`)
-        .toContain(frontmatter.mood);
+        .toContain(data.mood);
       expect(STATUSES, `${fileName} should use a valid status`)
-        .toContain(frontmatter.status);
-    }
-  });
-
-  it("keeps freeform prose in every entry body", () => {
-    const gameFiles = gameLogFiles();
-
-    for (const fileName of gameFiles) {
+        .toContain(data.status);
       expect(
-        readBody(resolve(GAME_LOG_DIRECTORY, fileName)),
+        content.trim(),
         `${fileName} should include body prose`,
       ).not.toBe("");
     }

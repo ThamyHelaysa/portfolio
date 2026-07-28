@@ -7,15 +7,7 @@ permalink: /games-that-i-may-or-may-not-play/
 
 <h1>{{ title }}</h1>
 
-{% set moodGroups = [
-  { value: "loved", label: "Loved" },
-  { value: "rage", label: "Rage quit territory" },
-  { value: "nostalgia", label: "Keep playing" },
-  { value: "masochism", label: "Keep playing, but it hurts" },
-  { value: "meh", label: "Meh" }
-] %}
-
-{% for moodGroup in moodGroups %}
+{% for moodGroup in gameLog.moods %}
   {% set games = collections.games | gameLogByMood(moodGroup.value) %}
   {% if games.length %}
     <section aria-labelledby="mood-{{ moodGroup.value }}" class="my-12">

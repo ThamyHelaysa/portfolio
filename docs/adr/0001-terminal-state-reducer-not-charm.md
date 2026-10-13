@@ -21,7 +21,7 @@ The reducer starts **shell-local but liftable** — written as a standalone func
 
 ## Considered options
 
-- **Charm / Bubble Tea directly** — rejected: they are Go libraries that render ANSI to a TTY. Using them in the browser would require Go→WASM + a canvas terminal emulator (xterm.js), blowing the performance budget and destroying SSG/SEO and accessibility. (See also the "not a shell" boundary in [CONTEXT.md](../../CONTEXT.md).)
+- **Charm / Bubble Tea directly** — rejected: they are Go libraries that render ANSI to a TTY. Using them in the browser would require Go→WASM + a canvas terminal emulator (xterm.js), blowing the performance budget and destroying SSG/SEO and accessibility. (See also the "not a shell" boundary in [GLOSSARY.md](../../GLOSSARY.md).)
 - **Full Elm/MVU with an effect-runtime** (`update` returns `(state, effects)`, a runner executes them and feeds messages back) — rejected: Bubble Tea needs this because a Go terminal has no UI lifecycle; Lit's `updated()` already is that lifecycle. An effect-runtime would be a redundant second framework competing with Lit.
 - **Tidy-only** (group flags, no reducer) — rejected: housekeeping that doesn't deliver explicit, testable transitions.
 - **Shared reducer/store utility now** — rejected: premature abstraction; the overlay has no scattered-state pain yet.

@@ -119,11 +119,13 @@ export default function (eleventyConfig: any) {
 
 
   eleventyConfig.addCollection("projects", collections.projects);
+  eleventyConfig.addCollection("games", collections.games);
   eleventyConfig.addCollection("pages", collections.pages);
   eleventyConfig.addCollection("published", collections.published);
   eleventyConfig.addCollection("notesPublished", collections.notesPublished);
 
   // Filters
+  eleventyConfig.addFilter("gameLogByMood", filters.gameLogByMood);
   eleventyConfig.addFilter("formatYear", filters.formatYear);
   eleventyConfig.addFilter("formatDatefull", filters.formatDateFull);
   eleventyConfig.addFilter("formatDateShort", filters.formatDateShort);

@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import filters from "../../../src/_config/filters.js";
 
+describe("gameLogByMood", () => {
+  it("returns only Game log entries carrying the requested Mood", () => {
+    const loved = { data: { title: "Chocolatier", mood: "loved" } };
+    const rage = { data: { title: "Getting Over It", mood: "rage" } };
+
+    expect(filters.gameLogByMood([loved, rage], "loved")).toEqual([loved]);
+  });
+});
+
 describe("formatDateShort", () => {
   it("formats as DD/MM/YYYY", () => {
     expect(filters.formatDateShort("2025-12-25")).toBe("25/12/2025");

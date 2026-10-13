@@ -3,7 +3,7 @@
  *
  * Extracted from the `SharedMediaPreview` singleton so the interaction
  * *policy* — Hover intent, Warm state, the album shape-swap defer, and
- * generation superseding (see CONTEXT.md) — is testable without a DOM, a
+ * generation superseding (see GLOSSARY.md) — is testable without a DOM, a
  * real `window`, real timers, or `matchMedia`. This module is a leaf: it
  * never touches any of those. The singleton owns the real `setInterval`/
  * `setTimeout` handles and the `PreviewContainer` promise, forwards their
@@ -52,7 +52,7 @@ export type ChoreographyCommand =
   | { type: 'revealDeferred'; target: PreviewTarget; opts: { immediate: boolean; reducedMotion: boolean } };
 
 /**
- * Hover intent (see CONTEXT.md): the preview only appears once the cursor
+ * Hover intent (see GLOSSARY.md): the preview only appears once the cursor
  * *settles* over a trigger — a fast sweep across the page never flashes it.
  * Intent is judged from velocity: every tick the cursor's travel since the
  * previous tick is compared against a threshold.
@@ -61,7 +61,7 @@ export const INTENT_TICK_MS = 100;
 export const INTENT_MAX_TRAVEL_PX = 7;
 
 /**
- * Warm state (see CONTEXT.md): once intent is proven the bubble survives a
+ * Warm state (see GLOSSARY.md): once intent is proven the bubble survives a
  * short linger after leave, so crossing the gap to a sibling trigger swaps
  * the preview instead of collapsing and re-proving intent.
  */

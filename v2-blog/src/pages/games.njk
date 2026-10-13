@@ -6,3 +6,23 @@ permalink: /games-that-i-may-or-may-not-play/
 ---
 
 <h1>{{ title }}</h1>
+
+{% for moodGroup in gameLog.moods %}
+  {% set games = collections.games | gameLogByMood(moodGroup.value) %}
+  {% if games.length %}
+    <section aria-labelledby="mood-{{ moodGroup.value }}" class="my-12">
+      <h2 id="mood-{{ moodGroup.value }}">{{ moodGroup.label }}</h2>
+      <ul class="space-y-10">
+        {% for game in games %}
+          <li>
+            <article>
+              <h3>{{ game.data.title }}</h3>
+              <p class="font-mono text-sm text-accent/70">{{ game.data.platform }}</p>
+              <div>{{ game.templateContent | safe }}</div>
+            </article>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endfor %}

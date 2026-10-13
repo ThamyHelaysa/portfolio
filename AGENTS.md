@@ -24,5 +24,5 @@ Five canonical roles mapped to `status:`-prefixed labels
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root,
+Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root,
 covering v2-blog (thamy-blog is legacy). See `docs/agents/domain.md`.

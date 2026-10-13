@@ -1,5 +1,5 @@
 /**
- * Shared Commands (see CONTEXT.md): the Commands whose semantics are
+ * Shared Commands (see GLOSSARY.md): the Commands whose semantics are
  * site-wide and must behave identically on every Terminal surface. Each
  * surface spreads the factory's registry into its own and may wrap
  * presentation (whoami flavor) but never semantics — the books shell and the

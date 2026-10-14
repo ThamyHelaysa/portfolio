@@ -5,6 +5,7 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -15,6 +16,18 @@ import {
 } from "../../../scripts/fav/helpers.ts";
 import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
 import { headingSlug } from "../../../src/_config/headingSlug.js";
+
+/** Keeps real I/O while allowing deterministic interrupts at async boundaries. */
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const original = await importOriginal<typeof fs>();
+  const mocked = {
+    ...original,
+    copyFile: vi.fn(original.copyFile),
+    readFile: vi.fn(original.readFile),
+    rm: vi.fn(original.rm),
+  };
+  return { ...mocked, default: mocked };
+});
 
 describe("Favorite CLI helpers", () => {
   it.each([
@@ -298,7 +311,7 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
-  it("validates personal.json once when committing an approved image", async () => {
+  it.each([false, true])("keeps the committed Favorite consistent (SIGINT after commit: %s)", async (interrupt) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const previewDirectory = path.join(
@@ -312,6 +325,8 @@ describe("Favorite CLI helpers", () => {
     const oldAssetPath = path.join(previewDirectory, "old-game.jpg");
     const answers = ["Don’t Starve & Play", "Fresh details", "/tmp/new-game.png"];
     const deletionOffers: string[] = [];
+    const logged: string[] = [];
+    const { rm } = await vi.importActual<typeof fs>("node:fs/promises");
 
     try {
       await mkdir(dataDirectory, { recursive: true });
@@ -340,7 +355,7 @@ describe("Favorite CLI helpers", () => {
 
       const initialContents = await readFile(dataPath, "utf8");
       const parse = vi.spyOn(JSON, "parse");
-      const result = await runSetFavorite(
+      const update = runSetFavorite(
         { projectRoot, slotId: "game" },
         {
           promptText: async () => answers.shift() ?? "",
@@ -353,16 +368,33 @@ describe("Favorite CLI helpers", () => {
           approveCandidate: async () => true,
           processImage: async (_candidatePath, outputPath) => {
             await writeFile(outputPath, "compressed image");
+            if (interrupt) {
+              /** Interrupts after the atomic commit but before its promise resolves. */
+              vi.mocked(fs.rm).mockImplementationOnce(async (...args) => {
+                await rm(...args);
+                expect(JSON.parse(await readFile(dataPath, "utf8")).favorites[0])
+                  .toMatchObject({
+                    title: "Don’t Starve & Play",
+                    previewUrl: "/assets/images/previews/dont-starve-and-play.jpg",
+                  });
+                process.emit("SIGINT");
+              });
+            }
           },
           confirmDeletion: async (assetUrl) => {
             deletionOffers.push(assetUrl);
             return false;
           },
-          log: () => undefined,
+          log: (message) => logged.push(message),
         },
       );
 
-      expect(result).toBe("updated");
+      await expect(update).resolves.toBe("updated");
+      expect(logged.at(-1)).toBe(
+        interrupt
+          ? 'Updated Favorite slot "game"; interrupted before unused-asset cleanup.'
+          : 'Updated Favorite slot "game".',
+      );
       expect(
         parse.mock.calls.filter(([contents]) => contents === initialContents),
       ).toHaveLength(1);
@@ -380,7 +412,7 @@ describe("Favorite CLI helpers", () => {
         readFile(path.join(previewDirectory, "dont-starve-and-play.jpg"), "utf8"),
       ).resolves.toBe("compressed image");
       await expect(readFile(oldAssetPath, "utf8")).resolves.toBe("old image");
-      expect(deletionOffers).toEqual([
+      expect(deletionOffers).toEqual(interrupt ? [] : [
         "/assets/images/previews/old-game.jpg",
       ]);
     } finally {
@@ -441,6 +473,126 @@ describe("Favorite CLI helpers", () => {
           path.join(projectRoot, "src", "assets", "images", "previews", "new-game.jpg"),
         ),
       ).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it.each(["processing", "asset copy", "data validation"])(
+    "rolls back SIGINT during %s without leaving a new repo file",
+    async (phase) => {
+      const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+      const dataDirectory = path.join(projectRoot, "src", "_data");
+      const dataPath = path.join(dataDirectory, "personal.json");
+      const previewDirectory = path.join(
+        projectRoot, "src", "assets", "images", "previews",
+      );
+      const initialContents = JSON.stringify({
+        favorites: [{
+          id: "game",
+          kind: "game",
+          category: "Playing",
+          title: "Old game",
+          details: "Old details",
+          previewUrl: "/assets/images/previews/old.jpg",
+          previewType: "image",
+        }],
+      });
+      const answers = ["New game", "New details", "/tmp/candidate.png"];
+      const listenersBefore = process.listeners("SIGINT");
+      const { copyFile, readFile } = await vi.importActual<typeof fs>(
+        "node:fs/promises",
+      );
+
+      try {
+        await mkdir(dataDirectory, { recursive: true });
+        await mkdir(previewDirectory, { recursive: true });
+        await writeFile(dataPath, initialContents);
+        if (phase === "asset copy") {
+          /** Places SIGINT exactly between the asset copy and data write. */
+          vi.mocked(fs.copyFile).mockImplementationOnce(async (...args) => {
+            await copyFile(...args);
+            process.emit("SIGINT");
+          });
+        }
+
+        await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+          promptText: async () => answers.shift() ?? "",
+          acquireCandidate: async (_source, directory) =>
+            path.join(directory, "candidate.png"),
+          previewCandidate: async () => undefined,
+          approveCandidate: async () => true,
+          processImage: async (_source, output) => {
+            await writeFile(output, "compressed image");
+            if (phase === "processing") process.emit("SIGINT");
+            if (phase === "data validation") {
+              /** Interrupts at the final async step before the data commit. */
+              vi.mocked(fs.readFile).mockImplementationOnce(async (...args) => {
+                const contents = await readFile(...args);
+                process.emit("SIGINT");
+                return contents;
+              });
+            }
+          },
+          confirmDeletion: async () => false,
+          log: () => undefined,
+        })).rejects.toThrow(/aborted/i);
+
+        await expect(readFile(dataPath, "utf8")).resolves.toBe(initialContents);
+        await expect(fs.readdir(previewDirectory)).resolves.toEqual([]);
+        await expect(fs.readdir(dataDirectory)).resolves.toEqual(["personal.json"]);
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      } finally {
+        vi.restoreAllMocks();
+        await rm(projectRoot, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("restores default termination when SIGINT arrives twice", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const answers = ["New game", "New details", "/tmp/candidate.png"];
+    const listenersBefore = process.listeners("SIGINT");
+    const kill = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "game",
+            kind: "game",
+            category: "Playing",
+            title: "Old game",
+            details: "Old details",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+
+      await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+        promptText: async () => answers.shift() ?? "",
+        acquireCandidate: async (_source, directory) =>
+          path.join(directory, "candidate.png"),
+        previewCandidate: async () => undefined,
+        approveCandidate: async () => true,
+        processImage: async (_source, output) => {
+          await writeFile(output, "compressed image");
+          // The first Ctrl-C defers; the second must hand control back to Node.
+          process.emit("SIGINT");
+          expect(kill).not.toHaveBeenCalled();
+          process.emit("SIGINT");
+        },
+        confirmDeletion: async () => false,
+        log: () => undefined,
+      })).rejects.toThrow(/aborted/i);
+
+      expect(kill).toHaveBeenCalledWith(process.pid, "SIGINT");
+      expect(process.listeners("SIGINT")).toEqual(listenersBefore);
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }

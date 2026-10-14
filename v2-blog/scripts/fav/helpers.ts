@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { renameSync } from "node:fs";
+import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export interface FavoriteOccupant {
@@ -65,6 +66,7 @@ export async function replaceFavoriteOccupant(
   dataPath: string,
   slot: FavoriteSlot,
   occupant: FavoriteOccupant,
+  signal?: AbortSignal,
 ): Promise<FavoriteRecord> {
   const currentOccupant = slot.favorite;
   const nextFavorite: FavoriteRecord = { ...currentOccupant, ...occupant };
@@ -80,12 +82,16 @@ export async function replaceFavoriteOccupant(
 
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, `${JSON.stringify(nextData, null, 2)}\n`);
+    await writeFile(temporaryPath, `${JSON.stringify(nextData, null, 2)}\n`, {
+      signal,
+    });
     // shortcut: edits between this check and rename may be lost, add locking for concurrent writers.
     if ((await readFile(dataPath, "utf8")) !== slot.originalContents) {
       throw new Error("Favorite data changed during selection; run fav again.");
     }
-    await rename(temporaryPath, dataPath);
+    signal?.throwIfAborted();
+    // Keep the abort check and commit in one turn so SIGINT cannot race the rename.
+    renameSync(temporaryPath, dataPath);
   } finally {
     await rm(temporaryPath, { force: true });
   }

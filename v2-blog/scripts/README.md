@@ -19,6 +19,9 @@ opens it with macOS `open`, and requires explicit approval. Only then does it
 resize/compress the image into `src/assets/images/previews/` and update
 `src/_data/personal.json`. It preserves each slot's `id`, `kind`, and `category`.
 
+Image sources are limited to 25 MiB. Downloads are capped while streaming;
+local file sizes are checked before copying to temp storage.
+
 After replacement, previous assets are checked for references across `src/`.
 Only unreferenced files are offered for deletion. The CLI never commits changes
 and refuses to run when `CI` is set.

@@ -132,25 +132,54 @@ export async function runSetFavorite(
       slug,
     );
     const processedAssetPath = path.join(temporaryDirectory, "approved.jpg");
-    await ports.processImage(candidatePath, processedAssetPath);
-    await mkdir(previewDirectory, { recursive: true });
-    await copyFile(processedAssetPath, committedAssetPath);
-
+    const controller = new AbortController();
+    /** Defers SIGINT termination until the pending write can roll back safely. */
+    function interruptCommit(): void {
+      if (controller.signal.aborted) {
+        // A second Ctrl-C means the author wants out now, so restore the
+        // default termination this listener suppressed.
+        process.off("SIGINT", interruptCommit);
+        process.kill(process.pid, "SIGINT");
+        return;
+      }
+      controller.abort();
+    }
+    process.on("SIGINT", interruptCommit);
     let previousOccupant: FavoriteRecord;
     try {
-      previousOccupant = await replaceFavoriteOccupant(
-        dataPath,
-        slot,
-        {
-          title,
-          details,
-          previewUrl: `/assets/images/previews/${path.basename(committedAssetPath)}`,
-          previewType: "image",
-        },
+      await ports.processImage(candidatePath, processedAssetPath);
+      controller.signal.throwIfAborted();
+      await mkdir(previewDirectory, { recursive: true });
+      controller.signal.throwIfAborted();
+      try {
+        await copyFile(processedAssetPath, committedAssetPath);
+        controller.signal.throwIfAborted();
+        previousOccupant = await replaceFavoriteOccupant(
+          dataPath,
+          slot,
+          {
+            title,
+            details,
+            previewUrl: `/assets/images/previews/${path.basename(committedAssetPath)}`,
+            previewType: "image",
+          },
+          controller.signal,
+        );
+      } catch (error) {
+        await rm(committedAssetPath, { force: true });
+        throw error;
+      }
+    } finally {
+      process.off("SIGINT", interruptCommit);
+    }
+
+    // Past the atomic rename the Favorite is committed, so a late interrupt
+    // cancels the optional cleanup rather than failing the whole run.
+    if (controller.signal.aborted) {
+      ports.log(
+        `Updated Favorite slot "${options.slotId}"; interrupted before unused-asset cleanup.`,
       );
-    } catch (error) {
-      await rm(committedAssetPath, { force: true });
-      throw error;
+      return "updated";
     }
 
     const previousAssetUrls = [

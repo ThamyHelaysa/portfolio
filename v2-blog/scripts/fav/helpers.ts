@@ -29,6 +29,7 @@ interface PersonalData {
 export interface FavoriteSlot {
   data: PersonalData;
   favorite: FavoriteRecord;
+  originalContents: string;
 }
 
 /**
@@ -38,7 +39,8 @@ export async function readFavoriteSlot(
   dataPath: string,
   slotId: string,
 ): Promise<FavoriteSlot> {
-  const data = JSON.parse(await readFile(dataPath, "utf8")) as PersonalData;
+  const originalContents = await readFile(dataPath, "utf8");
+  const data = JSON.parse(originalContents) as PersonalData;
   if (!Array.isArray(data.favorites)) {
     throw new Error(`Favorite data has no favorites array: ${dataPath}`);
   }
@@ -53,7 +55,7 @@ export async function readFavoriteSlot(
     );
   }
 
-  return { data, favorite };
+  return { data, favorite, originalContents };
 }
 
 /**
@@ -73,6 +75,9 @@ export async function replaceFavoriteOccupant(
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
     await writeFile(temporaryPath, `${JSON.stringify(slot.data, null, 2)}\n`);
+    if ((await readFile(dataPath, "utf8")) !== slot.originalContents) {
+      throw new Error("Favorite data changed during selection; run fav again.");
+    }
     await rename(temporaryPath, dataPath);
   } finally {
     await rm(temporaryPath, { force: true });

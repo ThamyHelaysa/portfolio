@@ -348,6 +348,64 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
+  it("preserves edits made during selection and removes the uncommitted image", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const initialData = {
+      info: { displayName: "Thamires" },
+      favorites: [
+        {
+          id: "game",
+          kind: "game",
+          category: "Playing",
+          title: "Old game",
+          details: "Old details",
+          previewUrl: "/assets/images/previews/old-game.jpg",
+          previewType: "image",
+        },
+      ],
+    };
+    const editedContents = JSON.stringify({
+      ...initialData,
+      info: { displayName: "Edited while selecting" },
+    });
+    const answers = ["New game", "Fresh details", "/tmp/new-game.png"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(dataPath, JSON.stringify(initialData));
+
+      await expect(
+        runSetFavorite(
+          { projectRoot, slotId: "game" },
+          {
+            promptText: async () => answers.shift() ?? "",
+            acquireCandidate: async (_source, directory) =>
+              path.join(directory, "candidate.png"),
+            previewCandidate: async () => undefined,
+            approveCandidate: async () => true,
+            processImage: async (_candidatePath, outputPath) => {
+              await writeFile(dataPath, editedContents);
+              await writeFile(outputPath, "compressed image");
+            },
+            confirmDeletion: async () => false,
+            log: () => undefined,
+          },
+        ),
+      ).rejects.toThrow("Favorite data changed during selection; run fav again.");
+
+      await expect(readFile(dataPath, "utf8")).resolves.toBe(editedContents);
+      await expect(
+        readFile(
+          path.join(projectRoot, "src", "assets", "images", "previews", "new-game.jpg"),
+        ),
+      ).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
   it("never offers deletion for an asset still referenced in source", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const sourceRoot = path.join(projectRoot, "src");

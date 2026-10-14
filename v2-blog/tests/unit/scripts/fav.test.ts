@@ -14,7 +14,10 @@ import {
   readFavoriteSlot,
   replaceFavoriteOccupant,
 } from "../../../scripts/fav/helpers.ts";
-import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
+import {
+  type FavoriteWorkflowPorts,
+  runSetFavorite,
+} from "../../../scripts/fav/workflow.ts";
 import { headingSlug } from "../../../src/_config/headingSlug.js";
 
 /** Keeps real I/O while allowing deterministic interrupts at async boundaries. */
@@ -28,6 +31,31 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   };
   return { ...mocked, default: mocked };
 });
+
+/**
+ * Completes the workflow ports so each test only spells out what it exercises.
+ *
+ * Manual is the default source, which keeps every test that is not about an
+ * adapter off the network.
+ */
+function favoritePorts(
+  overrides: Partial<FavoriteWorkflowPorts>,
+): FavoriteWorkflowPorts {
+  return {
+    promptText: async () => "",
+    chooseSource: async () => "manual",
+    pickCandidate: async () => null,
+    acquireCandidate: async (_source, directory) =>
+      path.join(directory, "candidate.png"),
+    previewCandidate: async () => undefined,
+    approveCandidate: async () => true,
+    processImage: async () => undefined,
+    processAudio: async () => undefined,
+    confirmDeletion: async () => false,
+    log: () => undefined,
+    ...overrides,
+  };
+}
 
 describe("Favorite CLI helpers", () => {
   it.each([
@@ -209,7 +237,7 @@ describe("Favorite CLI helpers", () => {
 
       const result = await runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async () => {
             events.push("acquire");
@@ -227,7 +255,7 @@ describe("Favorite CLI helpers", () => {
           },
           confirmDeletion: async () => false,
           log: () => undefined,
-        },
+        }),
       );
 
       expect(result).toBe("cancelled");
@@ -240,9 +268,15 @@ describe("Favorite CLI helpers", () => {
   });
 
   it.each([
-    ["album", 'Favorite slot "album" is not supported yet; see #149.'],
-    ["missing", "Unknown Favorite slot: missing"],
-  ])("refuses %s before any interactive work", async (slotId, message) => {
+    [
+      "album",
+      "video",
+      'Favorite slot "album" holds an unsupported preview type: video.',
+    ],
+    ["missing", "audio", "Unknown Favorite slot: missing"],
+  ])(
+    "refuses %s before any interactive work",
+    async (slotId, previewType, message) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const dataPath = path.join(dataDirectory, "personal.json");
@@ -262,7 +296,7 @@ describe("Favorite CLI helpers", () => {
                 title: "Cochise",
                 details: "Audioslave",
                 previewUrl: "/assets/audio/previews/cochise.mp3",
-                previewType: "audio",
+                previewType,
                 coverUrl: "/assets/images/previews/cochise.jpg",
               },
             ],
@@ -276,7 +310,7 @@ describe("Favorite CLI helpers", () => {
       await expect(
         runSetFavorite(
           { projectRoot, slotId },
-          {
+          favoritePorts({
             promptText: async () => {
               events.push("prompt");
               return "";
@@ -300,7 +334,7 @@ describe("Favorite CLI helpers", () => {
               return false;
             },
             log: () => undefined,
-          },
+          }),
         ),
       ).rejects.toThrow(message);
 
@@ -309,7 +343,8 @@ describe("Favorite CLI helpers", () => {
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }
-  });
+    },
+  );
 
   it.each([false, true])("keeps the committed Favorite consistent (SIGINT after commit: %s)", async (interrupt) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
@@ -357,7 +392,7 @@ describe("Favorite CLI helpers", () => {
       const parse = vi.spyOn(JSON, "parse");
       const update = runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async (_source, temporaryDirectory) => {
             const candidatePath = path.join(temporaryDirectory, "candidate.png");
@@ -386,7 +421,7 @@ describe("Favorite CLI helpers", () => {
             return false;
           },
           log: (message) => logged.push(message),
-        },
+        }),
       );
 
       await expect(update).resolves.toBe("updated");
@@ -451,7 +486,7 @@ describe("Favorite CLI helpers", () => {
       await expect(
         runSetFavorite(
           { projectRoot, slotId: "game" },
-          {
+          favoritePorts({
             promptText: async () => answers.shift() ?? "",
             acquireCandidate: async (_source, directory) =>
               path.join(directory, "candidate.png"),
@@ -463,7 +498,7 @@ describe("Favorite CLI helpers", () => {
             },
             confirmDeletion: async () => false,
             log: () => undefined,
-          },
+          }),
         ),
       ).rejects.toThrow("Favorite data changed during selection; run fav again.");
 
@@ -516,7 +551,7 @@ describe("Favorite CLI helpers", () => {
           });
         }
 
-        await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+        await expect(runSetFavorite({ projectRoot, slotId: "game" }, favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async (_source, directory) =>
             path.join(directory, "candidate.png"),
@@ -536,7 +571,7 @@ describe("Favorite CLI helpers", () => {
           },
           confirmDeletion: async () => false,
           log: () => undefined,
-        })).rejects.toThrow(/aborted/i);
+        }))).rejects.toThrow(/aborted/i);
 
         await expect(readFile(dataPath, "utf8")).resolves.toBe(initialContents);
         await expect(fs.readdir(previewDirectory)).resolves.toEqual([]);
@@ -574,7 +609,7 @@ describe("Favorite CLI helpers", () => {
         }),
       );
 
-      await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+      await expect(runSetFavorite({ projectRoot, slotId: "game" }, favoritePorts({
         promptText: async () => answers.shift() ?? "",
         acquireCandidate: async (_source, directory) =>
           path.join(directory, "candidate.png"),
@@ -589,11 +624,236 @@ describe("Favorite CLI helpers", () => {
         },
         confirmDeletion: async () => false,
         log: () => undefined,
-      })).rejects.toThrow(/aborted/i);
+      }))).rejects.toThrow(/aborted/i);
 
       expect(kill).toHaveBeenCalledWith(process.pid, "SIGINT");
       expect(process.listeners("SIGINT")).toEqual(listenersBefore);
     } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("fills the album slot from an iTunes pick", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-album-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const sources: string[] = [];
+    const approvals: string[] = [];
+    const prompts: string[] = [];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "album",
+            kind: "album",
+            category: "On Repeat",
+            title: "Old song",
+            details: "Old artist",
+            previewUrl: "/assets/audio/previews/old.preview.mp3",
+            previewType: "audio",
+            coverUrl: "/assets/images/previews/old-cover.jpg",
+          }],
+        }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({
+            results: [{
+              trackName: "Cochise",
+              artistName: "Audioslave",
+              collectionName: "Audioslave",
+              trackTimeMillis: 221978,
+              previewUrl: "https://audio.example/preview.m4a",
+              artworkUrl100: "https://images.example/a.jpg/100x100bb.jpg",
+            }],
+          })),
+        ),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "album" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return "audioslave cochise";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async (candidates) => candidates[0],
+          acquireCandidate: async (source, directory, options) => {
+            sources.push(source);
+            const candidatePath = path.join(
+              directory,
+              `${options?.name}.${options?.mediaType}`,
+            );
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          approveCandidate: async (_candidatePath, mediaType) => {
+            approvals.push(mediaType);
+            return true;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+          processAudio: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "excerpt mp3"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      // The pick carries both media URLs, so only the search was prompted.
+      expect(prompts).toEqual(["query"]);
+      expect(sources).toEqual([
+        "https://audio.example/preview.m4a",
+        "https://images.example/a.jpg/600x600bb.jpg",
+      ]);
+      expect(approvals).toEqual(["audio", "image"]);
+
+      const written = JSON.parse(await readFile(dataPath, "utf8"));
+      expect(written.favorites[0]).toEqual({
+        id: "album",
+        kind: "album",
+        category: "On Repeat",
+        title: "Cochise",
+        details: "Audioslave",
+        previewUrl: "/assets/audio/previews/cochise.preview.mp3",
+        previewType: "audio",
+        coverUrl: "/assets/images/previews/cochise-cover.jpg",
+      });
+      await expect(
+        readFile(
+          path.join(projectRoot, "src/assets/audio/previews/cochise.preview.mp3"),
+          "utf8",
+        ),
+      ).resolves.toBe("excerpt mp3");
+      await expect(
+        readFile(
+          path.join(projectRoot, "src/assets/images/previews/cochise-cover.jpg"),
+          "utf8",
+        ),
+      ).resolves.toBe("cover jpeg");
+    } finally {
+      vi.unstubAllGlobals();
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("prompts for the occupant text an ISBN lookup cannot supply", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-books-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const prompts: string[] = [];
+    const answers = ["9780140328721", "Matilda", "Roald Dahl"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "books",
+            kind: "book",
+            category: "Last Read",
+            title: "Old book",
+            details: "Old author",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "books" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return answers.shift() ?? "";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async (candidates) => candidates[0],
+          acquireCandidate: async (_source, directory) => {
+            const candidatePath = path.join(directory, "cover.jpg");
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      expect(prompts).toEqual(["query", "title", "details"]);
+      const written = JSON.parse(await readFile(dataPath, "utf8"));
+      expect(written.favorites[0]).toMatchObject({
+        title: "Matilda",
+        details: "Roald Dahl",
+        previewUrl: "/assets/images/previews/matilda.jpg",
+        previewType: "image",
+      });
+      expect(written.favorites[0]).not.toHaveProperty("coverUrl");
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to a manual source when no result is picked", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-fallback-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const prompts: string[] = [];
+    const answers = ["canterville", "The Canterville Ghost", "Oscar Wilde", "/tmp/cover.png"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "books",
+            kind: "book",
+            category: "Last Read",
+            title: "Old book",
+            details: "Old author",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({
+            docs: [{ title: "Some Book", author_name: ["A"], cover_i: 1 }],
+          })),
+        ),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "books" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return answers.shift() ?? "";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async () => null,
+          acquireCandidate: async (_source, directory) => {
+            const candidatePath = path.join(directory, "cover.jpg");
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      expect(prompts).toEqual(["query", "title", "details", "source"]);
+    } finally {
+      vi.unstubAllGlobals();
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
@@ -644,7 +904,7 @@ describe("Favorite CLI helpers", () => {
 
       await runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async (_source, temporaryDirectory) => {
             const candidatePath = path.join(temporaryDirectory, "candidate.png");
@@ -661,7 +921,7 @@ describe("Favorite CLI helpers", () => {
             return true;
           },
           log: () => undefined,
-        },
+        }),
       );
 
       expect(deletionOffered).toBe(false);

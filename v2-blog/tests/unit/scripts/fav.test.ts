@@ -17,6 +17,7 @@ import {
 import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
 import { headingSlug } from "../../../src/_config/headingSlug.js";
 
+/** Keeps real I/O while allowing deterministic interrupts at async boundaries. */
 vi.mock("node:fs/promises", async (importOriginal) => {
   const original = await importOriginal<typeof fs>();
   const mocked = {
@@ -367,6 +368,7 @@ describe("Favorite CLI helpers", () => {
           processImage: async (_candidatePath, outputPath) => {
             await writeFile(outputPath, "compressed image");
             if (interrupt) {
+              /** Interrupts after the atomic commit but before its promise resolves. */
               vi.mocked(fs.rm).mockImplementationOnce(async (...args) => {
                 await rm(...args);
                 process.emit("SIGINT");
@@ -497,6 +499,7 @@ describe("Favorite CLI helpers", () => {
         await mkdir(previewDirectory, { recursive: true });
         await writeFile(dataPath, initialContents);
         if (phase === "asset copy") {
+          /** Places SIGINT exactly between the asset copy and data write. */
           vi.mocked(fs.copyFile).mockImplementationOnce(async (...args) => {
             await copyFile(...args);
             process.emit("SIGINT");
@@ -513,6 +516,7 @@ describe("Favorite CLI helpers", () => {
             await writeFile(output, "compressed image");
             if (phase === "processing") process.emit("SIGINT");
             if (phase === "data validation") {
+              /** Interrupts at the final async step before the data commit. */
               vi.mocked(fs.readFile).mockImplementationOnce(async (...args) => {
                 const contents = await readFile(...args);
                 process.emit("SIGINT");

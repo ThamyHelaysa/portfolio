@@ -87,6 +87,46 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
+  it("leaves the slot snapshot reusable after a rejected write", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "fav-writer-"));
+    const dataPath = path.join(directory, "personal.json");
+    const occupant = {
+      id: "game",
+      kind: "game",
+      category: "Playing",
+      title: "Old game",
+      details: "Old details",
+      previewUrl: "/assets/images/previews/old.jpg",
+      previewType: "image",
+    };
+    const initialContents = `${JSON.stringify({ favorites: [occupant] }, null, 2)}\n`;
+    const replacement = {
+      title: "Pokémon Y",
+      details: "Nintendo 3DS",
+      previewUrl: "/assets/images/previews/pokemon-y.jpg",
+      previewType: "image",
+    } as const;
+
+    try {
+      await writeFile(dataPath, initialContents);
+      const slot = await readFavoriteSlot(dataPath, "game");
+
+      await writeFile(dataPath, `${initialContents}\n`);
+      await expect(
+        replaceFavoriteOccupant(dataPath, slot, replacement),
+      ).rejects.toThrow("Favorite data changed during selection; run fav again.");
+
+      expect(slot.favorite).toEqual(occupant);
+
+      await writeFile(dataPath, initialContents);
+      await expect(
+        replaceFavoriteOccupant(dataPath, slot, replacement),
+      ).resolves.toEqual(occupant);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it("finds asset path references across the source tree", async () => {
     const sourceRoot = await mkdtemp(path.join(tmpdir(), "fav-references-"));
 

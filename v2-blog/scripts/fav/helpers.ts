@@ -66,15 +66,21 @@ export async function replaceFavoriteOccupant(
   slot: FavoriteSlot,
   occupant: FavoriteOccupant,
 ): Promise<FavoriteRecord> {
-  const previousOccupant = { ...slot.favorite };
-  Object.assign(slot.favorite, occupant);
+  const currentOccupant = slot.favorite;
+  const nextFavorite: FavoriteRecord = { ...currentOccupant, ...occupant };
   if (occupant.coverUrl === undefined) {
-    delete slot.favorite.coverUrl;
+    delete nextFavorite.coverUrl;
   }
+  const nextData = {
+    ...slot.data,
+    favorites: slot.data.favorites.map((favorite) =>
+      favorite === currentOccupant ? nextFavorite : favorite,
+    ),
+  };
 
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, `${JSON.stringify(slot.data, null, 2)}\n`);
+    await writeFile(temporaryPath, `${JSON.stringify(nextData, null, 2)}\n`);
     if ((await readFile(dataPath, "utf8")) !== slot.originalContents) {
       throw new Error("Favorite data changed during selection; run fav again.");
     }
@@ -83,7 +89,7 @@ export async function replaceFavoriteOccupant(
     await rm(temporaryPath, { force: true });
   }
 
-  return previousOccupant;
+  return { ...currentOccupant };
 }
 
 /**

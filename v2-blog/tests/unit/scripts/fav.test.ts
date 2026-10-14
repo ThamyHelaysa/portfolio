@@ -325,6 +325,7 @@ describe("Favorite CLI helpers", () => {
     const oldAssetPath = path.join(previewDirectory, "old-game.jpg");
     const answers = ["Don’t Starve & Play", "Fresh details", "/tmp/new-game.png"];
     const deletionOffers: string[] = [];
+    const logged: string[] = [];
     const { rm } = await vi.importActual<typeof fs>("node:fs/promises");
 
     try {
@@ -379,12 +380,16 @@ describe("Favorite CLI helpers", () => {
             deletionOffers.push(assetUrl);
             return false;
           },
-          log: () => undefined,
+          log: (message) => logged.push(message),
         },
       );
 
-      if (interrupt) await expect(update).rejects.toThrow(/aborted/i);
-      else await expect(update).resolves.toBe("updated");
+      await expect(update).resolves.toBe("updated");
+      expect(logged.at(-1)).toBe(
+        interrupt
+          ? 'Updated Favorite slot "game"; interrupted before unused-asset cleanup.'
+          : 'Updated Favorite slot "game".',
+      );
       expect(
         parse.mock.calls.filter(([contents]) => contents === initialContents),
       ).toHaveLength(1);
@@ -538,6 +543,55 @@ describe("Favorite CLI helpers", () => {
       }
     },
   );
+
+  it("restores default termination when SIGINT arrives twice", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const answers = ["New game", "New details", "/tmp/candidate.png"];
+    const listenersBefore = process.listeners("SIGINT");
+    const kill = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "game",
+            kind: "game",
+            category: "Playing",
+            title: "Old game",
+            details: "Old details",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+
+      await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+        promptText: async () => answers.shift() ?? "",
+        acquireCandidate: async (_source, directory) =>
+          path.join(directory, "candidate.png"),
+        previewCandidate: async () => undefined,
+        approveCandidate: async () => true,
+        processImage: async (_source, output) => {
+          await writeFile(output, "compressed image");
+          // The first Ctrl-C defers; the second must hand control back to Node.
+          process.emit("SIGINT");
+          expect(kill).not.toHaveBeenCalled();
+          process.emit("SIGINT");
+        },
+        confirmDeletion: async () => false,
+        log: () => undefined,
+      })).rejects.toThrow(/aborted/i);
+
+      expect(kill).toHaveBeenCalledWith(process.pid, "SIGINT");
+      expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
 
   it("never offers deletion for an asset still referenced in source", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));

@@ -135,6 +135,13 @@ export async function runSetFavorite(
     const controller = new AbortController();
     /** Defers SIGINT termination until the pending write can roll back safely. */
     function interruptCommit(): void {
+      if (controller.signal.aborted) {
+        // A second Ctrl-C means the author wants out now, so restore the
+        // default termination this listener suppressed.
+        process.off("SIGINT", interruptCommit);
+        process.kill(process.pid, "SIGINT");
+        return;
+      }
       controller.abort();
     }
     process.on("SIGINT", interruptCommit);
@@ -165,7 +172,15 @@ export async function runSetFavorite(
     } finally {
       process.off("SIGINT", interruptCommit);
     }
-    controller.signal.throwIfAborted();
+
+    // Past the atomic rename the Favorite is committed, so a late interrupt
+    // cancels the optional cleanup rather than failing the whole run.
+    if (controller.signal.aborted) {
+      ports.log(
+        `Updated Favorite slot "${options.slotId}"; interrupted before unused-asset cleanup.`,
+      );
+      return "updated";
+    }
 
     const previousAssetUrls = [
       previousOccupant.previewUrl,

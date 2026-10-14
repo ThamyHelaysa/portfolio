@@ -32,6 +32,17 @@ describe("Favorite ffmpeg diagnostics", () => {
     expect(stderr).toHaveBeenCalledWith("ffmpeg error:", failure);
   });
 
+  it("skips diagnostics when the caller reports the failure itself", async () => {
+    const failure = new Error("spawn ffmpeg ENOENT");
+    execFileMock.mockImplementation((_file, _args, callback) => callback(failure));
+    const stderr = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await expect(
+      runFfmpeg(["-version"], { silent: true }),
+    ).rejects.toBe(failure);
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
   it("keeps successful ffmpeg runs quiet", async () => {
     execFileMock.mockImplementation((_file, _args, callback) => callback(null));
     const stderr = vi.spyOn(console, "error").mockImplementation(() => undefined);

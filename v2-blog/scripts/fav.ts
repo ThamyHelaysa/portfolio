@@ -198,7 +198,7 @@ async function checkRuntime(): Promise<void> {
   }
 
   try {
-    await runFfmpeg(["-version"]);
+    await runFfmpeg(["-version"], { silent: true });
   } catch {
     throw new Error(
       "Missing system dependency: ffmpeg. Install it with `brew install ffmpeg`.",

@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- CLI status and error output. */
 import { confirm, input } from "@inquirer/prompts";
 import { execFile } from "node:child_process";
 import {
@@ -10,6 +9,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { runFfmpeg } from "./fav/ffmpeg.ts";
 import {
   type FavoriteWorkflowPorts,
   runSetFavorite,
@@ -149,7 +149,7 @@ async function processImage(
   candidatePath: string,
   outputPath: string,
 ): Promise<void> {
-  await execFileAsync("ffmpeg", [
+  await runFfmpeg([
     "-hide_banner",
     "-loglevel",
     "error",
@@ -197,7 +197,7 @@ async function checkRuntime(): Promise<void> {
   }
 
   try {
-    await execFileAsync("ffmpeg", ["-version"]);
+    await runFfmpeg(["-version"], { silent: true });
   } catch {
     throw new Error(
       "Missing system dependency: ffmpeg. Install it with `brew install ffmpeg`.",

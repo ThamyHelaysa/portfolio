@@ -132,26 +132,40 @@ export async function runSetFavorite(
       slug,
     );
     const processedAssetPath = path.join(temporaryDirectory, "approved.jpg");
-    await ports.processImage(candidatePath, processedAssetPath);
-    await mkdir(previewDirectory, { recursive: true });
-    await copyFile(processedAssetPath, committedAssetPath);
-
+    const controller = new AbortController();
+    /** Defers SIGINT termination until the pending write can roll back safely. */
+    function interruptCommit(): void {
+      controller.abort();
+    }
+    process.on("SIGINT", interruptCommit);
     let previousOccupant: FavoriteRecord;
     try {
-      previousOccupant = await replaceFavoriteOccupant(
-        dataPath,
-        slot,
-        {
-          title,
-          details,
-          previewUrl: `/assets/images/previews/${path.basename(committedAssetPath)}`,
-          previewType: "image",
-        },
-      );
-    } catch (error) {
-      await rm(committedAssetPath, { force: true });
-      throw error;
+      await ports.processImage(candidatePath, processedAssetPath);
+      controller.signal.throwIfAborted();
+      await mkdir(previewDirectory, { recursive: true });
+      controller.signal.throwIfAborted();
+      try {
+        await copyFile(processedAssetPath, committedAssetPath);
+        controller.signal.throwIfAborted();
+        previousOccupant = await replaceFavoriteOccupant(
+          dataPath,
+          slot,
+          {
+            title,
+            details,
+            previewUrl: `/assets/images/previews/${path.basename(committedAssetPath)}`,
+            previewType: "image",
+          },
+          controller.signal,
+        );
+      } catch (error) {
+        await rm(committedAssetPath, { force: true });
+        throw error;
+      }
+    } finally {
+      process.off("SIGINT", interruptCommit);
     }
+    controller.signal.throwIfAborted();
 
     const previousAssetUrls = [
       previousOccupant.previewUrl,

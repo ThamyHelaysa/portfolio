@@ -1,14 +1,9 @@
 import { confirm, input } from "@inquirer/prompts";
 import { execFile } from "node:child_process";
-import {
-  copyFile,
-  stat,
-  writeFile,
-} from "node:fs/promises";
-import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { acquireCandidate } from "./fav/acquisition.ts";
 import { runFfmpeg } from "./fav/ffmpeg.ts";
 import {
   type FavoriteWorkflowPorts,
@@ -20,15 +15,6 @@ const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-const SUPPORTED_IMAGE_EXTENSIONS = new Set([
-  ".avif",
-  ".gif",
-  ".jpeg",
-  ".jpg",
-  ".png",
-  ".webp",
-]);
 
 /**
  * Rejects blank answers for required Favorite occupant fields.
@@ -50,79 +36,6 @@ async function promptRequiredText(
       validate: validateRequired,
     })
   ).trim();
-}
-
-/**
- * Returns a safe candidate suffix inferred from a source pathname.
- */
-function candidateExtension(pathname: string): string {
-  const extension = path.extname(pathname).toLowerCase();
-  return SUPPORTED_IMAGE_EXTENSIONS.has(extension) ? extension : ".img";
-}
-
-/**
- * Expands a user-home prefix and resolves a local source path.
- */
-function resolveLocalSource(source: string): string {
-  if (source === "~") {
-    return homedir();
-  }
-  if (source.startsWith(`~${path.sep}`)) {
-    return path.join(homedir(), source.slice(2));
-  }
-  return path.resolve(process.cwd(), source);
-}
-
-/**
- * Downloads or copies a manually supplied candidate into the OS temp area.
- */
-async function acquireCandidate(
-  source: string,
-  temporaryDirectory: string,
-): Promise<string> {
-  if (/^https?:\/\//i.test(source)) {
-    const url = new URL(source);
-    const candidatePath = path.join(
-      temporaryDirectory,
-      `candidate${candidateExtension(url.pathname)}`,
-    );
-    const response = await fetch(url, { redirect: "follow" });
-    if (!response.ok) {
-      throw new Error(
-        `Image download failed: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const declaredLength = Number(response.headers.get("content-length") ?? 0);
-    if (declaredLength > MAX_IMAGE_BYTES) {
-      throw new Error("Image exceeds 25 MB download limit.");
-    }
-
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > MAX_IMAGE_BYTES) {
-      throw new Error("Image exceeds 25 MB download limit.");
-    }
-    await writeFile(candidatePath, bytes);
-    return candidatePath;
-  }
-
-  const localPath = resolveLocalSource(source);
-  let localStats;
-  try {
-    localStats = await stat(localPath);
-  } catch {
-    throw new Error(`Local image not found: ${localPath}`);
-  }
-  if (!localStats.isFile()) {
-    throw new Error(`Local image is not a file: ${localPath}`);
-  }
-
-  const candidatePath = path.join(
-    temporaryDirectory,
-    `candidate${candidateExtension(localPath)}`,
-  );
-  await copyFile(localPath, candidatePath);
-  return candidatePath;
 }
 
 /**
@@ -233,5 +146,5 @@ async function main(): Promise<void> {
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`fav: ${message}`);
-  process.exitCode = 1;
+  process.exitCode = error instanceof Error && error.name === "AbortError" ? 130 : 1;
 });

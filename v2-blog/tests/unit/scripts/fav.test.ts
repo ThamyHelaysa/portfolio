@@ -5,6 +5,7 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -15,6 +16,17 @@ import {
 } from "../../../scripts/fav/helpers.ts";
 import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
 import { headingSlug } from "../../../src/_config/headingSlug.js";
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const original = await importOriginal<typeof fs>();
+  const mocked = {
+    ...original,
+    copyFile: vi.fn(original.copyFile),
+    readFile: vi.fn(original.readFile),
+    rm: vi.fn(original.rm),
+  };
+  return { ...mocked, default: mocked };
+});
 
 describe("Favorite CLI helpers", () => {
   it.each([
@@ -298,7 +310,7 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
-  it("validates personal.json once when committing an approved image", async () => {
+  it.each([false, true])("keeps the committed Favorite consistent (SIGINT after commit: %s)", async (interrupt) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const previewDirectory = path.join(
@@ -312,6 +324,7 @@ describe("Favorite CLI helpers", () => {
     const oldAssetPath = path.join(previewDirectory, "old-game.jpg");
     const answers = ["Don’t Starve & Play", "Fresh details", "/tmp/new-game.png"];
     const deletionOffers: string[] = [];
+    const { rm } = await vi.importActual<typeof fs>("node:fs/promises");
 
     try {
       await mkdir(dataDirectory, { recursive: true });
@@ -340,7 +353,7 @@ describe("Favorite CLI helpers", () => {
 
       const initialContents = await readFile(dataPath, "utf8");
       const parse = vi.spyOn(JSON, "parse");
-      const result = await runSetFavorite(
+      const update = runSetFavorite(
         { projectRoot, slotId: "game" },
         {
           promptText: async () => answers.shift() ?? "",
@@ -353,6 +366,12 @@ describe("Favorite CLI helpers", () => {
           approveCandidate: async () => true,
           processImage: async (_candidatePath, outputPath) => {
             await writeFile(outputPath, "compressed image");
+            if (interrupt) {
+              vi.mocked(fs.rm).mockImplementationOnce(async (...args) => {
+                await rm(...args);
+                process.emit("SIGINT");
+              });
+            }
           },
           confirmDeletion: async (assetUrl) => {
             deletionOffers.push(assetUrl);
@@ -362,7 +381,8 @@ describe("Favorite CLI helpers", () => {
         },
       );
 
-      expect(result).toBe("updated");
+      if (interrupt) await expect(update).rejects.toThrow(/aborted/i);
+      else await expect(update).resolves.toBe("updated");
       expect(
         parse.mock.calls.filter(([contents]) => contents === initialContents),
       ).toHaveLength(1);
@@ -380,7 +400,7 @@ describe("Favorite CLI helpers", () => {
         readFile(path.join(previewDirectory, "dont-starve-and-play.jpg"), "utf8"),
       ).resolves.toBe("compressed image");
       await expect(readFile(oldAssetPath, "utf8")).resolves.toBe("old image");
-      expect(deletionOffers).toEqual([
+      expect(deletionOffers).toEqual(interrupt ? [] : [
         "/assets/images/previews/old-game.jpg",
       ]);
     } finally {
@@ -445,6 +465,75 @@ describe("Favorite CLI helpers", () => {
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
+
+  it.each(["processing", "asset copy", "data validation"])(
+    "rolls back SIGINT during %s without leaving a new repo file",
+    async (phase) => {
+      const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+      const dataDirectory = path.join(projectRoot, "src", "_data");
+      const dataPath = path.join(dataDirectory, "personal.json");
+      const previewDirectory = path.join(
+        projectRoot, "src", "assets", "images", "previews",
+      );
+      const initialContents = JSON.stringify({
+        favorites: [{
+          id: "game",
+          kind: "game",
+          category: "Playing",
+          title: "Old game",
+          details: "Old details",
+          previewUrl: "/assets/images/previews/old.jpg",
+          previewType: "image",
+        }],
+      });
+      const answers = ["New game", "New details", "/tmp/candidate.png"];
+      const listenersBefore = process.listeners("SIGINT");
+      const { copyFile, readFile } = await vi.importActual<typeof fs>(
+        "node:fs/promises",
+      );
+
+      try {
+        await mkdir(dataDirectory, { recursive: true });
+        await mkdir(previewDirectory, { recursive: true });
+        await writeFile(dataPath, initialContents);
+        if (phase === "asset copy") {
+          vi.mocked(fs.copyFile).mockImplementationOnce(async (...args) => {
+            await copyFile(...args);
+            process.emit("SIGINT");
+          });
+        }
+
+        await expect(runSetFavorite({ projectRoot, slotId: "game" }, {
+          promptText: async () => answers.shift() ?? "",
+          acquireCandidate: async (_source, directory) =>
+            path.join(directory, "candidate.png"),
+          previewCandidate: async () => undefined,
+          approveCandidate: async () => true,
+          processImage: async (_source, output) => {
+            await writeFile(output, "compressed image");
+            if (phase === "processing") process.emit("SIGINT");
+            if (phase === "data validation") {
+              vi.mocked(fs.readFile).mockImplementationOnce(async (...args) => {
+                const contents = await readFile(...args);
+                process.emit("SIGINT");
+                return contents;
+              });
+            }
+          },
+          confirmDeletion: async () => false,
+          log: () => undefined,
+        })).rejects.toThrow(/aborted/i);
+
+        await expect(readFile(dataPath, "utf8")).resolves.toBe(initialContents);
+        await expect(fs.readdir(previewDirectory)).resolves.toEqual([]);
+        await expect(fs.readdir(dataDirectory)).resolves.toEqual(["personal.json"]);
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      } finally {
+        vi.restoreAllMocks();
+        await rm(projectRoot, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("never offers deletion for an asset still referenced in source", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));

@@ -26,46 +26,53 @@ interface PersonalData {
   [key: string]: unknown;
 }
 
-/**
- * Converts a Favorite title into a filesystem-safe asset slug.
- */
-export function slugFavoriteAsset(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export interface FavoriteSlot {
+  data: PersonalData;
+  favorite: FavoriteRecord;
 }
 
 /**
- * Atomically replaces occupant fields while preserving a Favorite slot's identity and display copy.
+ * Reads and validates one fixed Favorite slot before media work starts.
  */
-export async function replaceFavoriteOccupant(
+export async function readFavoriteSlot(
   dataPath: string,
   slotId: string,
-  occupant: FavoriteOccupant,
-): Promise<FavoriteRecord> {
+): Promise<FavoriteSlot> {
   const data = JSON.parse(await readFile(dataPath, "utf8")) as PersonalData;
   if (!Array.isArray(data.favorites)) {
     throw new Error(`Favorite data has no favorites array: ${dataPath}`);
   }
 
-  const favoriteIndex = data.favorites.findIndex(({ id }) => id === slotId);
-  if (favoriteIndex === -1) {
+  const favorite = data.favorites.find(({ id }) => id === slotId);
+  if (!favorite) {
     throw new Error(`Unknown Favorite slot: ${slotId}`);
   }
-
-  const previousOccupant = data.favorites[favoriteIndex];
-  const nextFavorite = { ...previousOccupant, ...occupant };
-  if (occupant.coverUrl === undefined) {
-    delete nextFavorite.coverUrl;
+  if (favorite.previewType !== "image") {
+    throw new Error(
+      `Favorite slot "${slotId}" is not supported yet; see #149.`,
+    );
   }
-  data.favorites[favoriteIndex] = nextFavorite;
+
+  return { data, favorite };
+}
+
+/**
+ * Atomically replaces a validated occupant while preserving slot identity and display copy.
+ */
+export async function replaceFavoriteOccupant(
+  dataPath: string,
+  slot: FavoriteSlot,
+  occupant: FavoriteOccupant,
+): Promise<FavoriteRecord> {
+  const previousOccupant = { ...slot.favorite };
+  Object.assign(slot.favorite, occupant);
+  if (occupant.coverUrl === undefined) {
+    delete slot.favorite.coverUrl;
+  }
 
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, `${JSON.stringify(data, null, 2)}\n`);
+    await writeFile(temporaryPath, `${JSON.stringify(slot.data, null, 2)}\n`);
     await rename(temporaryPath, dataPath);
   } finally {
     await rm(temporaryPath, { force: true });

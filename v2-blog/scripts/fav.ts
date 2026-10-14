@@ -10,6 +10,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { runFfmpeg } from "./fav/ffmpeg.ts";
 import {
   type FavoriteWorkflowPorts,
   runSetFavorite,
@@ -149,7 +150,7 @@ async function processImage(
   candidatePath: string,
   outputPath: string,
 ): Promise<void> {
-  await execFileAsync("ffmpeg", [
+  await runFfmpeg([
     "-hide_banner",
     "-loglevel",
     "error",
@@ -197,7 +198,7 @@ async function checkRuntime(): Promise<void> {
   }
 
   try {
-    await execFileAsync("ffmpeg", ["-version"]);
+    await runFfmpeg(["-version"]);
   } catch {
     throw new Error(
       "Missing system dependency: ffmpeg. Install it with `brew install ffmpeg`.",

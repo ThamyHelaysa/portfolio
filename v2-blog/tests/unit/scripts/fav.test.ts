@@ -7,17 +7,25 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   findSourceReferences,
+  readFavoriteSlot,
   replaceFavoriteOccupant,
-  slugFavoriteAsset,
 } from "../../../scripts/fav/helpers.ts";
 import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
+import { headingSlug } from "../../../src/_config/headingSlug.js";
 
 describe("Favorite CLI helpers", () => {
-  it("creates a stable asset slug from a Favorite title", () => {
-    expect(slugFavoriteAsset("Pokémon Y (3DS)")).toBe("pokemon-y-3ds");
+  it.each([
+    ["Pokémon Y (3DS)", "pokemon-y-3ds"],
+    ["Don't Starve", "dont-starve"],
+    ["Don’t Starve", "dont-starve"],
+    ["Cafe\u0301 & Tea", "cafe-and-tea"],
+    ["① Fullwidth Ａ", "fullwidth"],
+    ["東京", ""],
+  ])("creates the canonical slug for %s", (title, slug) => {
+    expect(headingSlug(title)).toBe(slug);
   });
 
   it("replaces only occupant fields in a Favorite slot", async () => {
@@ -50,7 +58,8 @@ describe("Favorite CLI helpers", () => {
     try {
       await writeFile(dataPath, `${JSON.stringify(initialData, null, 2)}\n`);
 
-      await replaceFavoriteOccupant(dataPath, "game", {
+      const slot = await readFavoriteSlot(dataPath, "game");
+      await replaceFavoriteOccupant(dataPath, slot, {
         title: "Pokémon Y",
         details: "Nintendo 3DS",
         previewUrl: "/assets/images/previews/pokemon-y.jpg",
@@ -177,7 +186,10 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
-  it("refuses a non-image Favorite before any interactive work", async () => {
+  it.each([
+    ["album", 'Favorite slot "album" is not supported yet; see #149.'],
+    ["missing", "Unknown Favorite slot: missing"],
+  ])("refuses %s before any interactive work", async (slotId, message) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const dataPath = path.join(dataDirectory, "personal.json");
@@ -210,7 +222,7 @@ describe("Favorite CLI helpers", () => {
 
       await expect(
         runSetFavorite(
-          { projectRoot, slotId: "album" },
+          { projectRoot, slotId },
           {
             promptText: async () => {
               events.push("prompt");
@@ -237,9 +249,7 @@ describe("Favorite CLI helpers", () => {
             log: () => undefined,
           },
         ),
-      ).rejects.toThrow(
-        'Favorite slot "album" is not supported yet; see #149.',
-      );
+      ).rejects.toThrow(message);
 
       expect(events).toEqual([]);
       await expect(readFile(dataPath, "utf8")).resolves.toBe(before);
@@ -248,7 +258,7 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
-  it("commits an approved image and updates the Favorite occupant", async () => {
+  it("validates personal.json once when committing an approved image", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const previewDirectory = path.join(
@@ -260,7 +270,7 @@ describe("Favorite CLI helpers", () => {
     );
     const dataPath = path.join(dataDirectory, "personal.json");
     const oldAssetPath = path.join(previewDirectory, "old-game.jpg");
-    const answers = ["New Game", "Fresh details", "/tmp/new-game.png"];
+    const answers = ["Don’t Starve & Play", "Fresh details", "/tmp/new-game.png"];
     const deletionOffers: string[] = [];
 
     try {
@@ -288,6 +298,8 @@ describe("Favorite CLI helpers", () => {
         )}\n`,
       );
 
+      const initialContents = await readFile(dataPath, "utf8");
+      const parse = vi.spyOn(JSON, "parse");
       const result = await runSetFavorite(
         { projectRoot, slotId: "game" },
         {
@@ -311,18 +323,21 @@ describe("Favorite CLI helpers", () => {
       );
 
       expect(result).toBe("updated");
+      expect(
+        parse.mock.calls.filter(([contents]) => contents === initialContents),
+      ).toHaveLength(1);
       const writtenData = JSON.parse(await readFile(dataPath, "utf8"));
       expect(writtenData.favorites[0]).toEqual({
         id: "game",
         kind: "game",
         category: "Playing",
-        title: "New Game",
+        title: "Don’t Starve & Play",
         details: "Fresh details",
-        previewUrl: "/assets/images/previews/new-game.jpg",
+        previewUrl: "/assets/images/previews/dont-starve-and-play.jpg",
         previewType: "image",
       });
       await expect(
-        readFile(path.join(previewDirectory, "new-game.jpg"), "utf8"),
+        readFile(path.join(previewDirectory, "dont-starve-and-play.jpg"), "utf8"),
       ).resolves.toBe("compressed image");
       await expect(readFile(oldAssetPath, "utf8")).resolves.toBe("old image");
       expect(deletionOffers).toEqual([

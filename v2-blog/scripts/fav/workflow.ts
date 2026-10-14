@@ -3,17 +3,17 @@ import {
   copyFile,
   mkdir,
   mkdtemp,
-  readFile,
   rm,
   stat,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { headingSlug } from "../../src/_config/headingSlug.js";
 import {
   type FavoriteRecord,
   findSourceReferences,
+  readFavoriteSlot,
   replaceFavoriteOccupant,
-  slugFavoriteAsset,
 } from "./helpers.ts";
 
 export interface SetFavoriteOptions {
@@ -35,28 +35,6 @@ export interface FavoriteWorkflowPorts {
 }
 
 export type SetFavoriteResult = "cancelled" | "updated";
-
-/**
- * Reads and validates one fixed Favorite slot before media work starts.
- */
-async function readFavoriteSlot(
-  dataPath: string,
-  slotId: string,
-): Promise<FavoriteRecord> {
-  const data = JSON.parse(await readFile(dataPath, "utf8")) as {
-    favorites?: FavoriteRecord[];
-  };
-  const favorite = data.favorites?.find(({ id }) => id === slotId);
-  if (!favorite) {
-    throw new Error(`Unknown Favorite slot: ${slotId}`);
-  }
-  if (favorite.previewType !== "image") {
-    throw new Error(
-      `Favorite slot "${slotId}" is not supported yet; see #149.`,
-    );
-  }
-  return favorite;
-}
 
 /**
  * Chooses a non-conflicting committed image path for a Favorite title.
@@ -123,7 +101,7 @@ export async function runSetFavorite(
 ): Promise<SetFavoriteResult> {
   const sourceRoot = path.join(options.projectRoot, "src");
   const dataPath = path.join(sourceRoot, "_data", "personal.json");
-  await readFavoriteSlot(dataPath, options.slotId);
+  const slot = await readFavoriteSlot(dataPath, options.slotId);
 
   const temporaryDirectory = await mkdtemp(path.join(tmpdir(), "fav-"));
 
@@ -148,7 +126,7 @@ export async function runSetFavorite(
       "images",
       "previews",
     );
-    const slug = slugFavoriteAsset(title) || options.slotId;
+    const slug = headingSlug(title) || options.slotId;
     const committedAssetPath = await findAvailableAssetPath(
       previewDirectory,
       slug,
@@ -162,7 +140,7 @@ export async function runSetFavorite(
     try {
       previousOccupant = await replaceFavoriteOccupant(
         dataPath,
-        options.slotId,
+        slot,
         {
           title,
           details,

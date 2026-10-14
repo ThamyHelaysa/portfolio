@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- CLI diagnostics. */
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 

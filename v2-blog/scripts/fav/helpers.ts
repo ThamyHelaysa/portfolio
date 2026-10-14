@@ -81,6 +81,7 @@ export async function replaceFavoriteOccupant(
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
     await writeFile(temporaryPath, `${JSON.stringify(nextData, null, 2)}\n`);
+    // shortcut: edits between this check and rename may be lost, add locking for concurrent writers.
     if ((await readFile(dataPath, "utf8")) !== slot.originalContents) {
       throw new Error("Favorite data changed during selection; run fav again.");
     }

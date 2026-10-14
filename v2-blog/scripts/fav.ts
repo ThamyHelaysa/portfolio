@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- CLI status and error output. */
 import { confirm, input } from "@inquirer/prompts";
 import { execFile } from "node:child_process";
 import {

@@ -63,7 +63,7 @@ export default [
     },
   },
   {
-    files: ["tests/**/*.{js,ts}"],
+    files: ["scripts/**/*.{js,ts}", "tests/**/*.{js,ts}"],
     rules: {
       "no-console": "off",
     },

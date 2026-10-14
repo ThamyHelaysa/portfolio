@@ -372,6 +372,11 @@ describe("Favorite CLI helpers", () => {
               /** Interrupts after the atomic commit but before its promise resolves. */
               vi.mocked(fs.rm).mockImplementationOnce(async (...args) => {
                 await rm(...args);
+                expect(JSON.parse(await readFile(dataPath, "utf8")).favorites[0])
+                  .toMatchObject({
+                    title: "Don’t Starve & Play",
+                    previewUrl: "/assets/images/previews/dont-starve-and-play.jpg",
+                  });
                 process.emit("SIGINT");
               });
             }

@@ -80,8 +80,11 @@ export async function acquireCandidate(
           await file.writeFile(value);
         }
       } finally {
-        await file.close();
-        await reader.cancel();
+        try {
+          await file.close();
+        } finally {
+          await reader.cancel();
+        }
       }
       return candidatePath;
     } catch (error) {
@@ -100,6 +103,9 @@ export async function acquireCandidate(
   }
   if (!localStats.isFile()) {
     throw new Error(`Local image is not a file: ${localPath}`);
+  }
+  if (localStats.size > MAX_IMAGE_BYTES) {
+    throw new Error("Local image exceeds 25 MB size limit.");
   }
 
   const candidatePath = path.join(

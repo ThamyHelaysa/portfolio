@@ -1,8 +1,16 @@
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat, truncate, writeFile } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { acquireCandidate } from "../../../scripts/fav/acquisition.ts";
+
+/** Keeps real files while allowing a close failure at the cleanup boundary. */
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const original = await importOriginal<typeof fs>();
+  const mocked = { ...original, open: vi.fn(original.open) };
+  return { ...mocked, default: mocked };
+});
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -57,6 +65,41 @@ describe("Favorite candidate acquisition", () => {
     }
   });
 
+  /** A close failure must still release the unfinished response stream. */
+  it("cancels the download even when closing the candidate fails", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "fav-acquisition-"));
+    const { open } = await vi.importActual<typeof fs>("node:fs/promises");
+    /** Closes the real handle before simulating an I/O cleanup failure. */
+    vi.mocked(fs.open).mockImplementationOnce(async (...args) => {
+      const file = await open(...args);
+      const close = file.close.bind(file);
+      /** Leaves no leaked file descriptor when the failure is injected. */
+      vi.spyOn(file, "close").mockImplementationOnce(async () => {
+        await close();
+        throw new Error("Candidate close failed");
+      });
+      return file;
+    });
+    const cancel = vi.fn();
+    const body = new ReadableStream({
+      /** Leaves unread media available when the download cap triggers cleanup. */
+      start(controller) {
+        controller.enqueue(new Uint8Array(25 * 1024 * 1024 + 1));
+      },
+      cancel,
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body)));
+
+    try {
+      await expect(acquireCandidate("https://example.com/cover", directory))
+        .rejects.toThrow("Candidate close failed");
+      expect(cancel).toHaveBeenCalledOnce();
+      await expect(readdir(directory)).resolves.toEqual([]);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it("aborts before reading a response declared over the cap", async () => {
     const directory = await mkdtemp(path.join(tmpdir(), "fav-acquisition-"));
     const fetch = vi.fn().mockResolvedValue(new Response("unused", {
@@ -104,6 +147,26 @@ describe("Favorite candidate acquisition", () => {
       const candidate = await acquireCandidate(source, directory);
       expect(path.basename(candidate)).toBe("candidate.jpg");
       await expect(readFile(candidate, "utf8")).resolves.toBe("local image");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  /** Checks the local size boundary without allocating large image buffers. */
+  it.each([26214400, 26214401])("checks a %s-byte local image before copying", async (size) => {
+    const directory = await mkdtemp(path.join(tmpdir(), "fav-acquisition-"));
+    const source = path.join(directory, "source.jpg");
+    try {
+      await writeFile(source, "");
+      await truncate(source, size);
+      if (size === 26214400) {
+        const candidate = await acquireCandidate(source, directory);
+        expect((await stat(candidate)).size).toBe(26214400);
+      } else {
+        await expect(acquireCandidate(source, directory))
+          .rejects.toThrow("Local image exceeds 25 MB size limit.");
+        await expect(readdir(directory)).resolves.toEqual(["source.jpg"]);
+      }
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

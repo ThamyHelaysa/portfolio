@@ -29,6 +29,7 @@
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --text-emphasis: 1.35em;
 
   --animate-dialog: fade-in 300ms ease-out both;
   --animate-backdrop: blur-in 400ms ease both;

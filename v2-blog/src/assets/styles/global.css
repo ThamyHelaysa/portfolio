@@ -46,10 +46,6 @@
     padding-block: calc(var(--spacing)*2.5);
   }
 
-  b, strong {
-    font-weight: 900;
-  }
-
 }
 
 @layer theme {

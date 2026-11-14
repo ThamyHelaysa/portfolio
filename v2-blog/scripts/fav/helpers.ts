@@ -3,11 +3,13 @@ import { renameSync } from "node:fs";
 import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+export type FavoritePreviewType = "audio" | "image";
+
 export interface FavoriteOccupant {
   title: string;
   details: string;
   previewUrl: string;
-  previewType: "image";
+  previewType: FavoritePreviewType;
   coverUrl?: string;
 }
 
@@ -26,6 +28,9 @@ interface PersonalData {
   favorites: FavoriteRecord[];
   [key: string]: unknown;
 }
+
+/** Preview types the set workflow knows how to acquire and commit. */
+const SUPPORTED_PREVIEW_TYPES = new Set<string>(["audio", "image"]);
 
 export interface FavoriteSlot {
   data: PersonalData;
@@ -50,9 +55,9 @@ export async function readFavoriteSlot(
   if (!favorite) {
     throw new Error(`Unknown Favorite slot: ${slotId}`);
   }
-  if (favorite.previewType !== "image") {
+  if (!SUPPORTED_PREVIEW_TYPES.has(favorite.previewType)) {
     throw new Error(
-      `Favorite slot "${slotId}" is not supported yet; see #149.`,
+      `Favorite slot "${slotId}" holds an unsupported preview type: ${favorite.previewType}.`,
     );
   }
 

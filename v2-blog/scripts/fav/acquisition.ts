@@ -2,22 +2,53 @@ import { copyFile, open, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 
-const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-const SUPPORTED_IMAGE_EXTENSIONS = new Set([
-  ".avif",
-  ".gif",
-  ".jpeg",
-  ".jpg",
-  ".png",
-  ".webp",
-]);
+const MAX_CANDIDATE_BYTES = 25 * 1024 * 1024;
+
+export type CandidateMediaType = "audio" | "image";
+
+export interface AcquireCandidateOptions {
+  /** Which media the source is expected to yield. Defaults to an image. */
+  mediaType?: CandidateMediaType;
+  /** Basename for the temp file, so one run can hold several candidates. */
+  name?: string;
+}
+
+/**
+ * Extensions a candidate may keep, and the fallback when the source has none.
+ *
+ * The fallback matters beyond tidiness: macOS picks the preview application
+ * from the suffix, so an unknown one would hand the candidate to the wrong
+ * viewer and the author would approve media they never saw.
+ */
+const MEDIA_SUFFIXES: Record<
+  CandidateMediaType,
+  { fallback: string; supported: Set<string> }
+> = {
+  audio: {
+    fallback: ".m4a",
+    supported: new Set([".aac", ".flac", ".m4a", ".mp3", ".ogg", ".wav"]),
+  },
+  image: {
+    fallback: ".jpg",
+    supported: new Set([".avif", ".gif", ".jpeg", ".jpg", ".png", ".webp"]),
+  },
+};
+
+const MEDIA_NOUNS: Record<CandidateMediaType, string> = {
+  audio: "Audio",
+  image: "Image",
+};
 
 /**
  * Returns a safe candidate suffix inferred from a source pathname.
  */
-function candidateExtension(pathname: string): string {
+function candidateExtension(
+  pathname: string,
+  mediaType: CandidateMediaType,
+): string {
+  const { fallback, supported } = MEDIA_SUFFIXES[mediaType];
   const extension = path.extname(pathname).toLowerCase();
-  return SUPPORTED_IMAGE_EXTENSIONS.has(extension) ? extension : ".jpg";
+  return supported.has(extension) ? extension : fallback;
 }
 
 /**
@@ -39,12 +70,17 @@ function resolveLocalSource(source: string): string {
 export async function acquireCandidate(
   source: string,
   temporaryDirectory: string,
+  options: AcquireCandidateOptions = {},
 ): Promise<string> {
+  const mediaType = options.mediaType ?? "image";
+  const name = options.name ?? "candidate";
+  const noun = MEDIA_NOUNS[mediaType];
+
   if (/^https?:\/\//i.test(source)) {
     const url = new URL(source);
     const candidatePath = path.join(
       temporaryDirectory,
-      `candidate${candidateExtension(url.pathname)}`,
+      `${name}${candidateExtension(url.pathname, mediaType)}`,
     );
     const controller = new AbortController();
     try {
@@ -54,16 +90,16 @@ export async function acquireCandidate(
       });
       if (!response.ok) {
         throw new Error(
-          `Image download failed: ${response.status} ${response.statusText}`,
+          `${noun} download failed: ${response.status} ${response.statusText}`,
         );
       }
 
       const declaredLength = Number(response.headers.get("content-length") ?? 0);
-      if (declaredLength > MAX_IMAGE_BYTES) {
-        throw new Error("Image exceeds 25 MB download limit.");
+      if (declaredLength > MAX_CANDIDATE_BYTES) {
+        throw new Error(`${noun} exceeds 25 MB download limit.`);
       }
       if (!response.body) {
-        throw new Error("Image download has no body.");
+        throw new Error(`${noun} download has no body.`);
       }
 
       let downloadedBytes = 0;
@@ -74,8 +110,8 @@ export async function acquireCandidate(
           const { done, value } = await reader.read();
           if (done) break;
           downloadedBytes += value.byteLength;
-          if (downloadedBytes > MAX_IMAGE_BYTES) {
-            throw new Error("Image exceeds 25 MB download limit.");
+          if (downloadedBytes > MAX_CANDIDATE_BYTES) {
+            throw new Error(`${noun} exceeds 25 MB download limit.`);
           }
           await file.writeFile(value);
         }
@@ -99,18 +135,18 @@ export async function acquireCandidate(
   try {
     localStats = await stat(localPath);
   } catch {
-    throw new Error(`Local image not found: ${localPath}`);
+    throw new Error(`Local ${noun.toLowerCase()} not found: ${localPath}`);
   }
   if (!localStats.isFile()) {
-    throw new Error(`Local image is not a file: ${localPath}`);
+    throw new Error(`Local ${noun.toLowerCase()} is not a file: ${localPath}`);
   }
-  if (localStats.size > MAX_IMAGE_BYTES) {
-    throw new Error("Local image exceeds 25 MB size limit.");
+  if (localStats.size > MAX_CANDIDATE_BYTES) {
+    throw new Error(`Local ${noun.toLowerCase()} exceeds 25 MB size limit.`);
   }
 
   const candidatePath = path.join(
     temporaryDirectory,
-    `candidate${candidateExtension(localPath)}`,
+    `${name}${candidateExtension(localPath, mediaType)}`,
   );
   await copyFile(localPath, candidatePath);
   return candidatePath;

@@ -84,3 +84,6 @@ HELPER_OPPORTUNITIES.md
 CI_CD_OPPORTUNITIES.md
 CI_IMPROVEMENTS.md
 CONSIDERATIONS.md
+
+# Licensed webfonts: must never be committed (EULA 2.11)
+/fonts/

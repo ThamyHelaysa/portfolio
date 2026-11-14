@@ -29,7 +29,11 @@ export class TerminalOverlay extends LitElement {
   @property({ type: Boolean, reflect: true }) open = false;
 
   static styles = css`
-    :host { display: contents; }
+    :host {
+      /* Preserve Terminal typography when the base shell disables synthesis. */
+      font-synthesis: weight style small-caps;
+      display: contents;
+    }
 
     /* The terminal window. Centered by the UA in the top layer when shown via
        showModal(); we override the UA dialog defaults (margin/padding/border). */

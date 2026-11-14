@@ -117,7 +117,7 @@ export class MenuMobile extends LitElement {
     const open = this.isOpen;
     return html`
       <button
-        class="btn sw:md:hidden sw:text-accent sw:font-sans sw:text-sm sw:font-bold sw:uppercase sw:tracking-widest sw:px-2 sw:py-1 sw:hover:opacity-70 sw:transition-opacity"
+        class="btn sw:md:hidden sw:text-accent sw:font-sans sw:text-sm sw:uppercase sw:tracking-widest sw:px-2 sw:py-1 sw:hover:opacity-70 sw:transition-opacity"
         aria-expanded="${String(open)}"
         aria-controls="mobile-menu"
         @click=${this._handleOpen}>
@@ -134,7 +134,7 @@ export class MenuMobile extends LitElement {
           <span class="sw:text-accent sw:font-serif sw:text-xl sw:tracking-tight">Menu</span>
           <button
             @click="${this._handleOpen}"
-            class="btn sw:text-accent sw:font-sans sw:text-sm sw:font-bold sw:uppercase sw:tracking-widest sw:p-2"
+            class="btn sw:text-accent sw:font-sans sw:text-sm sw:uppercase sw:tracking-widest sw:p-2"
             aria-label="Close menu"
           >
             Close
@@ -152,7 +152,7 @@ export class MenuMobile extends LitElement {
                 href="https://www.linkedin.com/in/thamy-helaysa"
                 target="_blank"
                 rel="noreferrer"
-                class="sw:py-3 sw:text-lg sw:font-serif sw:italic sw:text-accent/80 sw:hover:text-accent"
+                class="sw:py-3 sw:text-2xl sw:font-serif sw:text-accent/80 sw:hover:text-accent"
               >
                 LinkedIn &rarr;
               </a>

@@ -4,11 +4,6 @@
    `!important` needed. Utilities still override everything here. */
 @layer app {
 
-em {
-  font-family: var(--font-serif);
-  color: var(--color-accent-secondary);
-}
-
 blockquote {
   margin-block: calc(var(--spacing) * 10);
   padding-block: calc(var(--spacing) * 5);
@@ -36,7 +31,6 @@ article :is(h2, h3, h4):target {
 }
 
 article a {
-  font-weight: 900;
   text-decoration: underline;
   hyphens: auto;
   overflow-wrap: anywhere;
@@ -46,7 +40,7 @@ article a {
 code {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-normal);
 }
 
 li > code,
@@ -109,7 +103,7 @@ article details {
   padding-inline: calc(var(--spacing) * 4);
   border: 1px solid currentColor;
   font-family: monospace;
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-normal);
   &[open] summary {
     margin-block-end: calc(var(--spacing) * 5);
   }
@@ -125,8 +119,9 @@ figure,
   margin-block-end: calc(var(--spacing) * 10);
   figcaption {
     text-align: center;
-    font-size: var(--text-sm);
-    font-style: italic;
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-size: 1.35em;
   }
   .dark & {
     filter: grayscale(50%);

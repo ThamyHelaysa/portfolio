@@ -109,7 +109,7 @@ export class NoteModal extends LitElement {
             </div>
           </div>
 
-          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-primary/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:font-bold nm:z-20 nm:opacity-0">
+          <div id="containerNavigation" class="nm:px-8 nm:md:px-12 nm:hidden nm:md:flex nm:justify-between nm:items-center nm:absolute nm:w-full nm:h-[50px] nm:text-accent-primary/40 nm:bottom-0 nm:left-1/2 nm:-translate-1/2 nm:text-sm nm:font-sans nm:z-20 nm:opacity-0">
             <button id="btn-prev" type="button" @click=${this._prev} ?disabled=${isPrevDisabled}
               class="nm:px-3 nm:py-2 nm:uppercase nm:cursor-not-allowed nm:not-[disabled]:cursor-pointer nm:not-[disabled]:z-99">
                 &larr; Prev

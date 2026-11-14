@@ -247,6 +247,16 @@ export default function (eleventyConfig: any) {
   // Passthrough
   eleventyConfig.addPassthroughCopy({ "src/assets/images": "assets/images" });
   eleventyConfig.addPassthroughCopy("src/assets/fonts");
+  // Licensed webfonts live untracked in ./fonts (EULA: never in the public repo);
+  // builds without them fall back to the generic font stacks.
+  const hasLicensedFonts = fs.existsSync("./fonts");
+  // Lets the head skip font preloads that would 404 when the files are absent.
+  eleventyConfig.addGlobalData("hasLicensedFonts", hasLicensedFonts);
+  if (hasLicensedFonts) {
+    eleventyConfig.addPassthroughCopy({ "fonts/*.{woff,woff2}": "assets/fonts/licensed" });
+  } else {
+    console.warn("⚠️ ./fonts not found: licensed webfonts skipped, site will use fallback fonts.");
+  }
   eleventyConfig.addPassthroughCopy({
     "src/assets/videos": "assets/videos"
   });

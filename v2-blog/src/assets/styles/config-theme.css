@@ -20,8 +20,10 @@
   --color-code-bg: var(--color-code-bg);
   --color-code-border: var(--color-code-border);
 
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Lato", sans-serif;
+  /* Headings: Dreamer Culture; body (sans + mono): Ingram Mono */
+  --font-serif: "Dreamer Culture", serif;
+  --font-mono: "Ingram Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-sans: var(--font-mono);
 
   /* Animations */
   /* https://conorhaining.com/posts/view-transitions-for-your-static-site/ */

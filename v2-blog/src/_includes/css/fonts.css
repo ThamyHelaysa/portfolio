@@ -1,77 +1,47 @@
+/*
+Font: 		Dreamer Culture Regular
+Style: 		
+URL: 		https://youworkforthem.com/font/T33440/dreamer-culture
+Foundry: 	Bilberry Create Foundry
+Foundry: 	https://youworkforthem.com/designer/1280/bilberry-create-foundry
+Copyright:	
+Version: 	18
+Created:	April 02, 2026
+License: 	https://www.youworkforthem.com/font-license 
+License: 	The WebFont(s) listed in this document must follow the YouWorkForThem
+			WebFont license rules. All other parties are strictly restricted 
+			from using the WebFonts(s) listed without a purchased license. 
+			All details above must always remain unaltered and visible in your CSS.
+*/
 @font-face {
   font-display: swap;
-  font-family: 'Playfair Display';
+  font-family: 'Dreamer Culture';
   font-style: normal;
   font-weight: 400;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-regular.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-regular.ttf') format('truetype');
+  src: url('/assets/fonts/licensed/dreamer-culture-regular.woff2') format('woff2'),
+       url('/assets/fonts/licensed/dreamer-culture-regular.woff') format('woff');
 }
-@font-face {
-  font-family: 'Playfair-Fallback';
-  src: local('Times New Roman');
-  size-adjust: 107%;
-  ascent-override: 95%;
-  descent-override: 20%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 400;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-italic.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-italic.ttf') format('truetype');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 600;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-600.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-600.ttf') format('truetype');
-}
+
+/*
+Font: 		Ingram Mono
+Style: 		Regular
+URL: 		https://youworkforthem.com/font/T11571/ingram-mono
+Foundry: 	Typeface Design Studio
+Foundry: 	https://youworkforthem.com/designer/1740/typeface-design-studio
+Copyright:	Copyright (c) 2019 by Minor Praxis. All rights reserved.
+Version: 	18
+Created:	April 02, 2026
+License: 	https://www.youworkforthem.com/font-license 
+License: 	The WebFont(s) listed in this document must follow the YouWorkForThem
+			WebFont license rules. All other parties are strictly restricted 
+			from using the WebFonts(s) listed without a purchased license. 
+			All details above must always remain unaltered and visible in your CSS.
+*/
 @font-face {
   font-display: swap;
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 600;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-600italic.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-600italic.ttf') format('truetype');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 900;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900.ttf') format('truetype');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 900;
-  src: url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900italic.woff2') format('woff2'), 
-       url('/assets/fonts/pf-display-v40-latin/playfair-display-v40-latin-900italic.ttf') format('truetype');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Lato';
-  font-style: normal;
-  font-weight: 300;
-  src: url('/assets/fonts/lato-v25-latin/lato-v25-latin-300.woff2') format('woff2'); 
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Lato';
+  font-family: 'Ingram Mono';
   font-style: normal;
   font-weight: 400;
-  src: url('/assets/fonts/lato-v25-latin/lato-v25-latin-regular.woff2') format('woff2'); 
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Lato';
-  font-style: normal;
-  font-weight: 700;
-  src: url('/assets/fonts/lato-v25-latin/lato-v25-latin-700.woff2') format('woff2');
+  src: url('/assets/fonts/licensed/ingram-mono-regular.woff2') format('woff2'),
+       url('/assets/fonts/licensed/ingram-mono-regular.woff') format('woff');
 }

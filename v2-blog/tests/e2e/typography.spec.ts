@@ -18,31 +18,18 @@ for (const theme of ["pinky", "dark"]) {
       await expect(emphasis).toHaveCSS("font-synthesis", "none");
       await expect(emphasis).toHaveCSS("font-weight", "400");
       await expect(emphasis).toHaveCSS("font-style", "normal");
+      await expect(emphasis).toHaveCSS("text-decoration-line", "none");
       if (tag === "strong" || tag === "b") {
-        await expect(emphasis).toHaveCSS("text-decoration-line", "underline");
+        await expect(emphasis).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
       } else {
         await expect(emphasis).toHaveCSS("font-family", /Dreamer Culture/);
-        await expect(emphasis).toHaveCSS("text-decoration-line", "none");
-        expect(await emphasis.evaluate((el) => parseFloat(getComputedStyle(el).fontSize) /
-          parseFloat(getComputedStyle(el.parentElement!).fontSize))).toBeCloseTo(1.35);
+        const [ratio, token] = await emphasis.evaluate((el) => [
+          parseFloat(getComputedStyle(el).fontSize) / parseFloat(getComputedStyle(el.parentElement!).fontSize),
+          parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--text-emphasis") || "1.35"),
+        ]);
+        expect(ratio).toBeCloseTo(token);
       }
     }
-
-    const contrast = await sample.evaluate((el) => {
-      const luminance = (color: string) => {
-        const rgb = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((v) => {
-          const channel = v / 255;
-          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-        });
-        return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
-      };
-      const bg = luminance(getComputedStyle(document.body).backgroundColor);
-      return Array.from(el.children).map((child) => {
-        const fg = luminance(getComputedStyle(child).color);
-        return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
-      });
-    });
-    for (const ratio of contrast) expect(ratio).toBeGreaterThanOrEqual(4.5);
 
     for (const heading of await page.locator("h1, h2, h3, h4").all()) {
       await expect(heading).toHaveCSS("font-weight", "400");

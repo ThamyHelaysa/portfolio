@@ -227,14 +227,16 @@ meter-bar .mb-filled .mb-base {
 em, i {
   font-family: var(--font-serif);
   font-style: normal;
-  font-size: 1.35em;
+  font-size: var(--text-emphasis, 1.35em);
   letter-spacing: .5px;
 }
 
+/* Links own the underline; strong is a highlight so the two never look alike. */
 b, strong {
   font-weight: 400;
-  text-decoration: underline;
-  text-underline-offset: .2em;
+  background-color: var(--color-highlight, color-mix(in oklab, currentColor 15%, transparent));
+  padding-inline: .15em;
+  box-decoration-break: clone;
   letter-spacing: .5px;
 }
 

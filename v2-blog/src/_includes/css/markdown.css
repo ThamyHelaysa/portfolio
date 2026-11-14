@@ -121,7 +121,7 @@ figure,
     text-align: center;
     font-family: var(--font-serif);
     font-style: normal;
-    font-size: 1.35em;
+    font-size: var(--text-emphasis);
   }
   .dark & {
     filter: grayscale(50%);

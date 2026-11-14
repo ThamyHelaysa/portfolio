@@ -152,7 +152,7 @@ export class MenuMobile extends LitElement {
                 href="https://www.linkedin.com/in/thamy-helaysa"
                 target="_blank"
                 rel="noreferrer"
-                class="sw:py-3 sw:text-2xl sw:font-serif sw:text-accent/80 sw:hover:text-accent"
+                class="sw:py-3 sw:text-emphasis sw:font-serif sw:text-accent/80 sw:hover:text-accent"
               >
                 LinkedIn &rarr;
               </a>

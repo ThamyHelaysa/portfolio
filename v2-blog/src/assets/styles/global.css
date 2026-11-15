@@ -479,13 +479,16 @@
 
 /* Scramble-in (#207): the real text stays in flow, transparent, reserving its
    exact box; the aria-hidden layer on top scrambles into it, never moving
-   layout (proportional glyphs wrap/overflow inside the clipped layer). */
+   layout (proportional glyphs wrap/overflow inside the clipped layer).
+   Text is hidden via fill colour, not `color`, so the layer inherits the
+   host's live colour (e.g. a nav link's hover transition, #208). */
 [data-scramble="running"] {
   position: relative;
-  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .scramble-layer {
+  -webkit-text-fill-color: currentcolor;
   position: absolute;
   inset: 0;
   padding: inherit;

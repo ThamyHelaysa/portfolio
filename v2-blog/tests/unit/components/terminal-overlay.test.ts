@@ -1,16 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { gsapMock } = vi.hoisted(() => ({
-  gsapMock: {
-    to: vi.fn((_t, o?: { onUpdate?: () => void; onComplete?: () => void }) => {
-      o?.onUpdate?.();
-      o?.onComplete?.();
-      return {};
-    }),
-  },
-}));
-
-vi.mock("gsap", () => ({ gsap: gsapMock }));
+// Reduced motion: lines are written instantly, so assertions need no frame pumping.
+vi.mock("../../../src/_helpers/motion.ts", () => ({ prefersReducedMotion: () => true }));
 vi.mock("../../../src/_helpers/styleLoader.ts", () => ({
   adoptTailwind: () => Promise.resolve(),
 }));

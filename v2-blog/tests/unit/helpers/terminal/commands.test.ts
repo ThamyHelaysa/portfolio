@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const gsapMock = vi.hoisted(() => ({
-  to: vi.fn(),
-  timeline: vi.fn(),
-}));
-
-vi.mock("gsap", () => ({ gsap: gsapMock }));
-
 const { getThemeMock, setThemeMock } = vi.hoisted(() => ({
   getThemeMock: vi.fn(() => "pinky"),
   setThemeMock: vi.fn(),

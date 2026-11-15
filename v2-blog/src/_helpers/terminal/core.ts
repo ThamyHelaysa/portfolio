@@ -1,5 +1,3 @@
-import { gsap } from "gsap";
-
 import { parseCommand, ParsedCommand } from "./parser.ts";
 import { CommandHistory } from "./history.ts";
 import { type Block, type Cell, flattenBlock } from "./blocks.ts";
@@ -73,7 +71,7 @@ type TerminalCoreOptions = {
   logEl: () => HTMLElement | null;
   /** Whether typing animations are currently skipped. */
   skipAnimations: () => boolean;
-  /** Per-line typing animation; defaults to the gsap-based typewriter. */
+  /** Per-line typing animation; defaults to the rAF typewriter. */
   typeText?: (el: HTMLElement, text: string, durationSec: number) => Promise<void>;
   /**
    * Invoked after each written line, e.g. to keep the log scrolled to bottom
@@ -84,28 +82,36 @@ type TerminalCoreOptions = {
 };
 
 /**
- * Default typewriter animation used when the consumer doesn't inject one.
+ * Default typewriter animation used when the consumer doesn't inject one:
+ * reveals characters linearly over `durationSec` on animation frames.
+ * Stops early (with the full text) once `el` leaves the document, so a
+ * disconnected terminal leaves no frame loop behind.
  *
  * @param el - The element receiving the typed text.
  * @param fullText - The complete line of text to type.
  * @param durationSec - The animation duration in seconds.
  * @returns A promise resolved when the line is fully typed.
  */
-function typeTextWithGsap(el: HTMLElement, fullText: string, durationSec: number): Promise<void> {
+export function typeText(el: HTMLElement, fullText: string, durationSec: number): Promise<void> {
   return new Promise((resolve) => {
-    const state = { i: 0 };
-    gsap.to(state, {
-      i: fullText.length,
-      duration: durationSec,
-      ease: "none",
-      onUpdate: () => {
-        el.textContent = fullText.slice(0, Math.floor(state.i));
-      },
-      onComplete: () => {
-        el.textContent = fullText;
-        resolve();
-      },
-    });
+    const durationMs = durationSec * 1000;
+    let start: number | undefined;
+
+    const finish = () => {
+      el.textContent = fullText;
+      resolve();
+    };
+
+    const tick = (now: number) => {
+      start ??= now;
+      const progress = (now - start) / durationMs;
+      if (progress >= 1 || !el.isConnected) return finish();
+      el.textContent = fullText.slice(0, Math.floor(progress * fullText.length));
+      requestAnimationFrame(tick);
+    };
+
+    if (durationMs <= 0) return finish();
+    requestAnimationFrame(tick);
   });
 }
 
@@ -179,7 +185,7 @@ export class TerminalCore {
       if (this.opts.skipAnimations()) {
         p.textContent = line;
       } else {
-        await (this.opts.typeText ?? typeTextWithGsap)(p, line, duration);
+        await (this.opts.typeText ?? typeText)(p, line, duration);
       }
 
       this.opts.onLineWritten?.({ text: line, kind });

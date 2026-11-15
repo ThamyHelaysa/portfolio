@@ -49,7 +49,7 @@ Both layouts build the `Content-Security-Policy` meta tag **at build time** by h
 ## Components (`src/components/`, Lit 3)
 
 - **Shadow DOM components** (`theme-toggle`, `menu-mobile`, `note-modal`, …) load their Tailwind CSS at runtime via `adoptTailwind()` from `src/_helpers/styleLoader.ts` — constructable stylesheets shared across roots, request-coalesced fetches, `<style>`-tag fallback. Never inject shadow styles ad hoc.
-- **`terminal-shell`** renders in **light DOM** (`createRenderRoot() { return this }`) and is styled by the inline `terminal.css`. It implements the books CLI (`help`, `list`, `book`, …), uses GSAP, `IdentityManager`, batched book listing, and rAF/timer handles that must be cleaned up.
+- **`terminal-shell`** renders in **light DOM** (`createRenderRoot() { return this }`) and is styled by the inline `terminal.css`. It implements the books CLI (`help`, `list`, `book`, …), uses `IdentityManager`, batched book listing, and rAF/timer handles that must be cleaned up.
 - Theme: two themes, `pinky` and `dark`, applied to the document and persisted in `localStorage("theme")`; `inline-theme.js` boots the theme pre-paint to avoid a flash. Verify both themes when touching head/theme/CSS-token code.
 
 ## Helpers (`src/_helpers/`, all browser-side)
@@ -83,6 +83,6 @@ Both layouts build the `Content-Security-Policy` meta tag **at build time** by h
 - `src/_layouts/books.njk` duplicates the CSP machinery from `base.njk` — head changes usually need to land in both.
 - Changing a page's `permalink` can break the Lighthouse route list (`.lighthouserc*.json`) and the frontmatter tests.
 - Don't edit `dist/` — it's build output.
-- Component lifecycle: cleanup in `disconnectedCallback` must mirror setup (listeners, observers, rAF, timers, GSAP handles).
+- Component lifecycle: cleanup in `disconnectedCallback` must mirror setup (listeners, observers, rAF, timers, animation handles).
 - Dev-server watch doesn't track TS imports: editing only a `src/_helpers/*.ts` file does **not** rebuild the component bundles that import it — `touch` the importing `src/components/*.ts` file (or restart the server) and verify the change actually landed in `dist/` before browser-testing.
 - Multiple `<theme-toggle>` instances echo through `setTheme` via the `theme-change` event — any side effect added to the theme path must be idempotent under same-tick repeat calls (see the `pendingTheme` guard in `_helpers/theme.ts`).

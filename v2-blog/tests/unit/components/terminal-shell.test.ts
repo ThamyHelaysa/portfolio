@@ -1,20 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  gsapMock,
   getCachedNameMock,
   getFullIdentityMock,
   cacheNameMock,
   resizeObserveMock,
   resizeDisconnectMock,
 } = vi.hoisted(() => ({
-  gsapMock: {
-    to: vi.fn((_target, options?: { onUpdate?: () => void; onComplete?: () => void }) => {
-      options?.onUpdate?.();
-      options?.onComplete?.();
-      return {};
-    }),
-  },
   getCachedNameMock: vi.fn(() => null),
   getFullIdentityMock: vi.fn(() => "echo_shell::1111"),
   cacheNameMock: vi.fn(),
@@ -22,8 +14,13 @@ const {
   resizeDisconnectMock: vi.fn(),
 }));
 
-vi.mock("gsap", () => ({
-  gsap: gsapMock,
+// Reduced motion by default: lines are written instantly, so assertions need no frame pumping.
+const { prefersReducedMotionMock } = vi.hoisted(() => ({
+  prefersReducedMotionMock: vi.fn(() => true),
+}));
+
+vi.mock("../../../src/_helpers/motion.ts", () => ({
+  prefersReducedMotion: prefersReducedMotionMock,
 }));
 
 const { getThemeMock, setThemeMock } = vi.hoisted(() => ({
@@ -120,7 +117,6 @@ describe("terminal-shell startup phases", () => {
     setThemeMock.mockReset();
     resizeObserveMock.mockReset();
     resizeDisconnectMock.mockReset();
-    gsapMock.to.mockClear();
 
     Object.defineProperty(globalThis, "ResizeObserver", {
       configurable: true,
@@ -266,6 +262,7 @@ describe("terminal-shell startup phases", () => {
   });
 
   it("queues ascii rendering so listing output does not wait on art generation", async () => {
+    prefersReducedMotionMock.mockReturnValueOnce(false);
     const element = mountTerminalShell(listingMarkup());
     await element.updateComplete;
     (element as any)._ensureBookDataLoaded();
@@ -284,6 +281,26 @@ describe("terminal-shell startup phases", () => {
     await Promise.resolve();
 
     expect(renderSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("reveals ascii lines with a staggered fade and resolves once the last one is opaque", async () => {
+    const element = mountTerminalShell(listingMarkup());
+    await element.updateComplete;
+    vi.spyOn(element as any, "_getAsciiLines").mockResolvedValue(["a", "b", "c"]);
+    const step = (now: number) => rafQueue.splice(0).forEach((cb) => cb(now));
+
+    const reveal = (element as any)._renderAsciiForBook(1);
+    await Promise.resolve();
+    await Promise.resolve();
+    const lines = Array.from(element.querySelectorAll<HTMLElement>(".ascii-line"));
+
+    step(0);
+    step(40); // 80ms fade, 30ms stagger
+    expect(lines.map((l) => l.style.opacity)).toEqual(["0.5", "0.125", "0"]);
+
+    step(140); // last line: 60ms stagger + 80ms fade
+    await reveal;
+    expect(lines.map((l) => l.style.opacity)).toEqual(["1", "1", "1"]);
   });
 
   it("lists books as structured rows: muted id, linked title, author", async () => {

@@ -5,7 +5,7 @@ description: A tribute to the pile of digital distractions I’ve almost complet
 permalink: /games-that-i-may-or-may-not-play/
 ---
 
-<h1>{{ title }}</h1>
+<h1 data-scramble>{{ title }}</h1>
 
 {% for moodGroup in gameLog.moods %}
   {% set games = collections.games | gameLogByMood(moodGroup.value) %}

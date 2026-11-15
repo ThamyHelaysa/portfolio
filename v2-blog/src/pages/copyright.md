@@ -10,7 +10,7 @@ permalink: /copyrighty/
 
 <div class="max-w-4xl mx-auto">
 
-<h1>{{ title }}</h1>
+<h1 data-scramble>{{ title }}</h1>
 
 <div class="bg-background py-4 px-2 md:py-12 md:px-6">
 

@@ -11,7 +11,7 @@ pagination:
 
 <div class="max-w-4xl mx-auto">
 
-  <h1>{{ title }}</h1>
+  <h1 data-scramble>{{ title }}</h1>
 
   <ul class="space-y-6 border-y border-accent/10">
     {% for post in collections.published | reverse %}

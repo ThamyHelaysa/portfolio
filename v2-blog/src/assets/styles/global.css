@@ -476,3 +476,19 @@
     animation: none;
   }
 }
+
+/* Scramble-in (#207): the real text stays in flow, transparent, reserving its
+   exact box; the aria-hidden layer on top scrambles into it, never moving
+   layout (proportional glyphs wrap/overflow inside the clipped layer). */
+[data-scramble="running"] {
+  position: relative;
+  color: transparent;
+}
+
+.scramble-layer {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}

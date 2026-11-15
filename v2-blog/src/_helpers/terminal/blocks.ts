@@ -1,8 +1,7 @@
 /**
  * Structured terminal output (issue: richer log control). A small descriptor
  * model the core renders to DOM, so commands can emit columns, sections, and
- * tone-coloured cells instead of only flat text. Kept dependency-free (no gsap)
- * so data-layer modules like `site-index.ts` can build blocks without pulling
+ * tone-coloured cells instead of only flat text. Kept dependency-free so data-layer modules like `site-index.ts` can build blocks without pulling
  * in the rendering engine.
  */
 

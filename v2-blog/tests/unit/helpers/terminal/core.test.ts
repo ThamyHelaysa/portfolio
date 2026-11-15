@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CommandType, TerminalCore } from "../../../../src/_helpers/terminal/core.ts";
+import { CommandType, TerminalCore, typeText } from "../../../../src/_helpers/terminal/core.ts";
 
 function createCore(overrides?: Partial<ConstructorParameters<typeof TerminalCore>[0]>) {
   const logEl = document.createElement("pre");
@@ -202,5 +202,38 @@ describe("TerminalCore", () => {
     expect(list).not.toHaveBeenCalled();
     expect(core.history.prev()).toBeUndefined();
     expect(logEl.children).toHaveLength(0);
+  });
+});
+
+describe("typeText (default typewriter)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.replaceChildren();
+  });
+
+  it("types linearly over the duration and resolves with the full text", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation((cb) => frames.push(cb));
+    const el = document.createElement("p");
+    document.body.appendChild(el);
+    const step = (now: number) => frames.splice(0).forEach((cb) => cb(now));
+
+    const done = typeText(el, "abcdefghij", 1);
+    step(0);
+    step(500);
+    expect(el.textContent).toBe("abcde");
+    step(1000);
+    await done;
+
+    expect(el.textContent).toBe("abcdefghij");
+    expect(frames).toHaveLength(0);
+  });
+
+  it("resolves immediately with the full text for a zero duration", async () => {
+    const el = document.createElement("p");
+
+    await typeText(el, "instant", 0);
+
+    expect(el.textContent).toBe("instant");
   });
 });

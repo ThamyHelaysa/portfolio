@@ -1,6 +1,6 @@
 import { LitElement, PropertyValues, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { gsap } from 'gsap';
+import { prefersReducedMotion } from '../_helpers/motion.ts';
 import { getIdentity, getStoredIdentity, setIdentity } from '../_helpers/identity.ts';
 import { CommandType, TerminalCore } from '../_helpers/terminal/core.ts';
 import type { ParsedCommand } from '../_helpers/terminal/parser.ts';
@@ -12,6 +12,10 @@ import {
 } from '../_helpers/terminal/shell-state.ts';
 import { markUnlocked } from '../_helpers/terminal/unlock.ts';
 import { createSharedCommands } from '../_helpers/terminal/commands.ts';
+
+// ASCII cover reveal: each line fades in over ASCII_FADE_MS, ASCII_STAGGER_MS after the previous one.
+const ASCII_FADE_MS = 80;
+const ASCII_STAGGER_MS = 30;
 
 @customElement('terminal-shell')
 export class TerminalShell extends LitElement {
@@ -57,7 +61,7 @@ export class TerminalShell extends LitElement {
 
   @state() private shell: ShellState = createInitialShellState({
     isMobile: window.innerWidth <= 768,
-    skipAnimations: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false,
+    skipAnimations: prefersReducedMotion(),
   });
 
   /**
@@ -242,6 +246,8 @@ export class TerminalShell extends LitElement {
       cancelAnimationFrame(this._asciiRenderRaf);
       this._asciiRenderRaf = undefined;
     }
+    // The cancelled frame leaves its queue entry pending forever; start a fresh queue for a later reconnect.
+    this._asciiRenderQueue = Promise.resolve();
   }
 
   /**
@@ -625,15 +631,27 @@ export class TerminalShell extends LitElement {
 
     this._asciiArea.appendChild(container);
 
+    const totalMs = (nodes.length - 1) * ASCII_STAGGER_MS + ASCII_FADE_MS;
+
+    // Reuses _asciiRenderRaf (the render queue never overlaps defer + reveal) so disconnectedCallback cancels it.
     return new Promise<void>((resolve) => {
-      gsap.to(nodes, {
-        opacity: 1,
-        duration: 0.08,
-        stagger: 0.03,
-        ease: "none",
-        onUpdate: () => this._scrollToBottom(this._bootLog),
-        onComplete: () => resolve()
-      });
+      let start: number | undefined;
+      const tick = (now: number) => {
+        start ??= now;
+        const elapsed = now - start;
+        nodes.forEach((node, i) => {
+          node.style.opacity = String(Math.min(Math.max((elapsed - i * ASCII_STAGGER_MS) / ASCII_FADE_MS, 0), 1));
+        });
+        this._scrollToBottom(this._bootLog);
+
+        if (elapsed < totalMs) {
+          this._asciiRenderRaf = requestAnimationFrame(tick);
+        } else {
+          this._asciiRenderRaf = undefined;
+          resolve();
+        }
+      };
+      this._asciiRenderRaf = requestAnimationFrame(tick);
     });
   }
 

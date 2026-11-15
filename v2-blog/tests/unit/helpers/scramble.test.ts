@@ -38,9 +38,9 @@ describe("isScrambleable", () => {
     expect(isScrambleable(h1("Hello <em>you</em>"))).toBe(false);
   });
 
-  it("rejects text containing < or &", () => {
-    expect(isScrambleable(h1("a &lt; b"))).toBe(false);
-    expect(isScrambleable(h1("Tom &amp; Jerry"))).toBe(false);
+  it("accepts text containing < or &", () => {
+    expect(isScrambleable(h1("a &lt; b"))).toBe(true);
+    expect(isScrambleable(h1("Tom &amp; Jerry"))).toBe(true);
   });
 
   it("rejects empty text", () => {
@@ -88,6 +88,17 @@ describe("scrambleIn", () => {
     expect(layer).not.toBeNull();
     expect(el.firstChild?.nodeType).toBe(Node.TEXT_NODE);
     expect(el.firstChild?.textContent).toBe("About me");
+  });
+
+  it("settles on the original markup for text with & and <", () => {
+    const el = h1("Tom &amp; Jerry &lt;3");
+    const before = el.outerHTML;
+
+    scrambleIn(el);
+    let now = 0;
+    while (frames.length) frames.shift()!((now += 100));
+
+    expect(el.outerHTML).toBe(before);
   });
 
   it("settles on the exact original markup when done", () => {

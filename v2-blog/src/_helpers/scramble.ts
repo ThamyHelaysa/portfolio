@@ -25,10 +25,9 @@ export function scrambleFrame(chars: string[], t: number): string {
     .join("");
 }
 
-/** Plain-text elements only: no element children, no `<` or `&` in the text. */
+/** Plain-text elements only (no element children). Any character is fine: frames are written via `textContent`. */
 export function isScrambleable(el: Element): boolean {
-  const text = el.textContent ?? "";
-  return el.childElementCount === 0 && text.trim() !== "" && !/[<&]/.test(text);
+  return el.childElementCount === 0 && (el.textContent ?? "").trim() !== "";
 }
 
 /**

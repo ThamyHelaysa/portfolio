@@ -9,6 +9,8 @@
  * reveal on the same element cancels the previous run, and a disconnected
  * element snaps to its final text instead of leaking frames.
  */
+import { prefersReducedMotion } from "./motion.ts";
+import { scrambleFrame } from "./scramble.ts";
 
 const revealRaf = new WeakMap<HTMLElement, number>();
 const glitchAnim = new WeakMap<HTMLElement, Animation>();
@@ -53,12 +55,7 @@ function cancelGlitchAnimation(element: HTMLElement): void {
  */
 function triggerGlitchAnimation(element: HTMLElement): void {
   if (!element) return;
-
-  const reduceMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-
-  if (reduceMotion) return;
+  if (prefersReducedMotion()) return;
 
   if (!element.isConnected) {
     cancelGlitchAnimation(element);
@@ -105,17 +102,12 @@ function triggerGlitchAnimation(element: HTMLElement): void {
 export function animateIdentityReveal(element: HTMLElement, finalText: string): void {
   if (!element) return;
 
-  const reduceMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-
-  if (reduceMotion) {
+  if (prefersReducedMotion()) {
     snapToFinalText(element, finalText);
     triggerGlitchAnimation(element);
     return;
   }
 
-  const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
   const durationMs = 800;
 
   const prev = revealRaf.get(element);
@@ -123,9 +115,6 @@ export function animateIdentityReveal(element: HTMLElement, finalText: string): 
   cancelGlitchAnimation(element);
 
   const finalChars = Array.from(finalText); // handles unicode better than split('')
-  const len = finalChars.length;
-
-  const isSpace = finalChars.map(c => c === " ");
 
   let start = 0;
 
@@ -144,21 +133,8 @@ export function animateIdentityReveal(element: HTMLElement, finalText: string): 
     if (!start) start = now;
     const elapsed = now - start;
 
-    // norm progress 0..1
     const t = Math.min(1, elapsed / durationMs);
-    const eased = 1 - Math.pow(1 - t, 3); // easeoutcubic
-
-    const revealCount = Math.floor(len * eased);
-
-    // creates one string per frame
-    let out = "";
-    for (let i = 0; i < len; i++) {
-      if (i < revealCount) out += finalChars[i];
-      else if (isSpace[i]) out += " ";
-      else out += charset[(Math.random() * charset.length) | 0];
-    }
-
-    element.textContent = out;
+    element.textContent = scrambleFrame(finalChars, t);
 
     if (t < 1) {
       const id = requestAnimationFrame(tick);

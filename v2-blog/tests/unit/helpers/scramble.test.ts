@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { isScrambleable, scrambleIn } from "../../../src/_helpers/scramble.ts";
+import { isScrambleable, scrambleFrame, scrambleIn } from "../../../src/_helpers/scramble.ts";
 
 function h1(html: string): HTMLElement {
   document.body.innerHTML = `<h1 data-scramble>${html}</h1>`;
@@ -14,6 +14,20 @@ function setReducedMotion(matches: boolean) {
     value: vi.fn().mockImplementation(() => ({ matches })),
   });
 }
+
+describe("scrambleFrame", () => {
+  const chars = Array.from("ab cd");
+
+  it("keeps whitespace and scrambles everything else at t=0", () => {
+    const out = scrambleFrame(chars, 0);
+    expect(out).toHaveLength(5);
+    expect(out[2]).toBe(" ");
+  });
+
+  it("returns the final text at t=1", () => {
+    expect(scrambleFrame(chars, 1)).toBe("ab cd");
+  });
+});
 
 describe("isScrambleable", () => {
   it("accepts a heading with plain text only", () => {

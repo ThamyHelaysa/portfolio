@@ -11,6 +11,20 @@ import { prefersReducedMotion } from "./motion.ts";
 const GLYPHS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const DURATION_MS = 700;
 
+/**
+ * One scramble frame at progress `t` (0..1): resolves left to right with an
+ * ease-out cubic, whitespace kept, unresolved chars random. Shared with
+ * `identityReveal.ts`.
+ */
+export function scrambleFrame(chars: string[], t: number): string {
+  const revealed = Math.floor(chars.length * (1 - Math.pow(1 - t, 3)));
+  return chars
+    .map((char, i) =>
+      i < revealed || /\s/.test(char) ? char : GLYPHS[(Math.random() * GLYPHS.length) | 0],
+    )
+    .join("");
+}
+
 /** Plain-text elements only: no element children, no `<` or `&` in the text. */
 export function isScrambleable(el: Element): boolean {
   const text = el.textContent ?? "";
@@ -45,18 +59,12 @@ export function scrambleIn(el: HTMLElement): void {
   };
 
   let start: number | undefined;
-  /** Writes one scrambled frame; resolves left to right with an ease-out. */
+  /** Writes one scrambled frame into the layer. */
   const tick = (now: number) => {
     if (!el.isConnected) return finish();
     start ??= now;
     const t = Math.min(1, (now - start) / DURATION_MS);
-    const revealed = Math.floor(finalChars.length * (1 - Math.pow(1 - t, 3)));
-
-    layer.textContent = finalChars
-      .map((char, i) =>
-        i < revealed || /\s/.test(char) ? char : GLYPHS[(Math.random() * GLYPHS.length) | 0],
-      )
-      .join("");
+    layer.textContent = scrambleFrame(finalChars, t);
 
     if (t < 1) requestAnimationFrame(tick);
     else finish();

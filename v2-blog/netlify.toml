@@ -2,6 +2,10 @@
   publish = "dist"
   command = "npm run build"
 
+# Licensed webfonts from Netlify Blobs (production only), see plugins/fetch-fonts
+[[plugins]]
+  package = "./plugins/fetch-fonts"
+
 # The Lighthouse Plugin
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
@@ -13,4 +17,4 @@
   for = "/assets/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Origin = "https://t-helaysa.com"

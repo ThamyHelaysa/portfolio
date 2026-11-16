@@ -26,6 +26,8 @@
   --font-sans: var(--font-mono);
   /* Dreamer Culture reads small beside Ingram Mono; one knob for inline emphasis */
   --text-emphasis: 1.35em;
+  /* Header wordmark; no Tailwind step at 2rem (3xl = 1.875, 4xl = 2.25) */
+  --text-logo: 2rem;
   --color-highlight: color-mix(in oklab, var(--color-accent-primary) 18%, transparent);
 
   /* Animations */

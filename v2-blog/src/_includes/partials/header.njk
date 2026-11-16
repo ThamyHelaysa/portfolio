@@ -16,6 +16,7 @@
           {% set isCurrentPage = (page.url == link.url) %}
           <a
             href="{{ link.url }}"
+            data-scramble="hover"
             class="hover:text-accent transition-colors {% if isCurrentPage %}pointer-events-none text-accent {% else %}text-muted{% endif %}"
             {% if isCurrentPage %}aria-current="page"{% endif %}
             {% if link.url.startsWith("http") %}

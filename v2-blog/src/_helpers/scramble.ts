@@ -1,7 +1,8 @@
 /**
- * Scramble-in effect for `[data-scramble]` elements (#207).
+ * Scramble-in effect for `[data-scramble]` elements: titles on load (#207),
+ * nav links on hover/focus via `[data-scramble="hover"]` (#208).
  *
- * The real text never changes: it stays in flow (made transparent via CSS on
+ * The real text never changes: it stays in flow (text fill made transparent via CSS on
  * `[data-scramble="running"]`) so it keeps reserving its box and stays the
  * accessible text. An `aria-hidden` absolute layer on top scrambles into the
  * final string and is removed when done. Writes only `textContent`.
@@ -30,12 +31,16 @@ export function isScrambleable(el: Element): boolean {
   return el.childElementCount === 0 && (el.textContent ?? "").trim() !== "";
 }
 
+/** Cancels the in-flight run per element, so a re-trigger restarts cleanly. */
+const running = new WeakMap<HTMLElement, () => void>();
+
 /**
- * Runs the scramble-in once on `el`. No-op under reduced motion, for elements
- * the guard rejects, and while a run is already in flight on `el`.
+ * Runs the scramble-in once on `el`. Re-triggering while a run is in flight
+ * restarts it. No-op under reduced motion and for elements the guard rejects.
  */
 export function scrambleIn(el: HTMLElement): void {
-  if (prefersReducedMotion() || el.dataset.scramble === "running" || !isScrambleable(el)) return;
+  running.get(el)?.();
+  if (prefersReducedMotion() || !isScrambleable(el)) return;
 
   const finalText = el.textContent ?? "";
   const finalChars = Array.from(finalText);
@@ -44,18 +49,20 @@ export function scrambleIn(el: HTMLElement): void {
   layer.setAttribute("aria-hidden", "true");
   // Filled before append so the title never blanks for a frame.
   layer.textContent = finalText;
-  // The host goes transparent while running; the layer keeps the real colour.
-  layer.style.color = getComputedStyle(el).color;
 
   const previous = el.dataset.scramble ?? "";
   el.dataset.scramble = "running";
   el.append(layer);
 
-  /** Removes the layer and restores the host's original attribute value. */
+  let frame = 0;
+  /** Stops the loop, removes the layer and restores the host's original attribute value. */
   const finish = () => {
+    cancelAnimationFrame(frame);
     layer.remove();
     el.dataset.scramble = previous;
+    running.delete(el);
   };
+  running.set(el, finish);
 
   let start: number | undefined;
   /** Writes one scrambled frame into the layer. */
@@ -65,9 +72,25 @@ export function scrambleIn(el: HTMLElement): void {
     const t = Math.min(1, (now - start) / DURATION_MS);
     layer.textContent = scrambleFrame(finalChars, t);
 
-    if (t < 1) requestAnimationFrame(tick);
+    if (t < 1) frame = requestAnimationFrame(tick);
     else finish();
   };
 
-  requestAnimationFrame(tick);
+  frame = requestAnimationFrame(tick);
+}
+
+const FINE_POINTER = "(hover: hover) and (pointer: fine)";
+
+/**
+ * Scrambles `el` on hover and on keyboard focus (`:focus-visible`), only on
+ * fine-pointer devices; touch gets nothing. Used by `[data-scramble="hover"]`.
+ */
+export function bindHoverScramble(el: HTMLElement): void {
+  const run = () => {
+    if (window.matchMedia?.(FINE_POINTER)?.matches) scrambleIn(el);
+  };
+  el.addEventListener("pointerenter", run);
+  el.addEventListener("focus", () => {
+    if (el.matches(":focus-visible")) run();
+  });
 }

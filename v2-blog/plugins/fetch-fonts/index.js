@@ -3,8 +3,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { getStore } from "@netlify/blobs";
 
-export const STORE = "licensed-fonts";
-export const FILES = [
+// Netlify Build reads every export as an event handler: export only events.
+const STORE = "licensed-fonts";
+const FILES = [
   "dreamer-culture-regular.woff2",
   "dreamer-culture-regular.woff",
   "ingram-mono-regular.woff2",

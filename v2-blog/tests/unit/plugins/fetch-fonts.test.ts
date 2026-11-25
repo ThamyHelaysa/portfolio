@@ -5,7 +5,9 @@ vi.mock("@netlify/blobs", () => ({ getStore: () => ({ get }) }));
 // Never touch the real ./fonts (licensed files live there locally).
 vi.mock("node:fs/promises", () => ({ default: { mkdir, writeFile }, mkdir, writeFile }));
 
-import { FILES, onPreBuild } from "../../../plugins/fetch-fonts/index.js";
+import * as plugin from "../../../plugins/fetch-fonts/index.js";
+
+const { onPreBuild } = plugin;
 
 const run = () => {
   const failBuild = vi.fn();
@@ -18,6 +20,10 @@ const run = () => {
 describe("fetch-fonts plugin", () => {
   beforeEach(() => vi.stubEnv("CONTEXT", "production"));
 
+  it("exports only Netlify Build events, or the plugin fails to load", () => {
+    expect(Object.keys(plugin)).toEqual(["onPreBuild"]);
+  });
+
   it("skips outside production so previews use the fallback fonts", async () => {
     vi.stubEnv("CONTEXT", "deploy-preview");
     const failBuild = await run();
@@ -28,7 +34,7 @@ describe("fetch-fonts plugin", () => {
   it("writes every font file in production", async () => {
     get.mockResolvedValue(new ArrayBuffer(1));
     const failBuild = await run();
-    expect(writeFile).toHaveBeenCalledTimes(FILES.length);
+    expect(writeFile).toHaveBeenCalledTimes(4);
     expect(failBuild).not.toHaveBeenCalled();
   });
 

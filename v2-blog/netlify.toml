@@ -2,6 +2,9 @@
   publish = "dist"
   command = "npm run build"
 
+[build.environment]
+  NODE_VERSION = "24"
+
 # Licensed webfonts from Netlify Blobs (production only), see plugins/fetch-fonts
 [[plugins]]
   package = "./plugins/fetch-fonts"

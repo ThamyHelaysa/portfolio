@@ -1,6 +1,7 @@
 import { css, html, LitElement, PropertyValues } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import { adoptTailwind } from "../_helpers/styleLoader.ts";
+import { prefersReducedMotion } from "../_helpers/motion.ts";
 import { CommandType, TerminalCore } from "../_helpers/terminal/core.ts";
 import type { ParsedCommand } from "../_helpers/terminal/parser.ts";
 import {
@@ -29,7 +30,11 @@ export class TerminalOverlay extends LitElement {
   @property({ type: Boolean, reflect: true }) open = false;
 
   static styles = css`
-    :host { display: contents; }
+    :host {
+      /* Preserve Terminal typography when the base shell disables synthesis. */
+      font-synthesis: weight style small-caps;
+      display: contents;
+    }
 
     /* The terminal window. Centered by the UA in the top layer when shown via
        showModal(); we override the UA dialog defaults (margin/padding/border). */
@@ -402,8 +407,7 @@ export class TerminalOverlay extends LitElement {
   @query("#overlay-input") private _input!: HTMLTextAreaElement;
   @query("#overlay-form") private _form!: HTMLFormElement;
 
-  private _skipAnimations =
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  private _skipAnimations = prefersReducedMotion();
 
   /** Per-tab command-history store (survives full-page navigations). */
   private _session = new TerminalSession();

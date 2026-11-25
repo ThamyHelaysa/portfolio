@@ -10,7 +10,7 @@ export default {
       <div class="group bg-background flex flex-col gap-2 py-1 px-3">
         <a href="${url}" class="shrink-0 flex flex-col md:flex-row items-end gap-2 md:gap-4">
           <div class="flex flex-col flex-2/3 grow-0 shrink gap-1 md:gap-0">
-            <h3 id="${headingSlug(title)}" class="flex items-baseline gap-3 text-xl tracking-wider md:text-2xl font-bold text-accent mb-2 leading-tight">
+            <h3 id="${headingSlug(title)}" class="flex items-baseline gap-3 text-xl tracking-wider md:text-2xl text-accent mb-2 leading-tight">
               ${ordinal ? `<span aria-hidden="true" class="w-5 shrink-0 text-xs font-mono tabular-nums text-accent/40 transition-colors group-hover:text-accent">${ordinal}</span>` : ""}
                 ${title}
             </h3>

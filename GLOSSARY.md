@@ -88,6 +88,18 @@ _Avoid_: TOC HTML, outline markup, toc object
 One of the fixed set of "currently into" slots shown on the home page — Last Read, On Repeat, Playing, Studying. A Favorite names the current occupant of its slot (title, blurb, preview media); updating a Favorite means replacing the occupant, not adding to a list. Each Favorite carries a Media kind and its preview media.
 _Avoid_: favorites list (it's fixed slots, not a growing list), pick, highlight
 
+**Candidate**:
+Acquired media that has not been approved yet — downloaded or copied into an OS temp directory, never into the repo. The `fav` CLI shows every Candidate in the macOS viewer and requires an explicit y/n before it processes and commits one; a rejected Candidate leaves no trace in the working tree. A slot needing two assets (an album needs an Audio excerpt and a Cover) approves each Candidate separately.
+_Avoid_: upload, asset (that's the committed file), download
+
+**Source adapter**:
+A keyless lookup that turns a search query into Candidates for one Media kind — iTunes Search for `album`, OpenLibrary for `book`, RAWG for `game`. An adapter returns picks carrying prefilled occupant text and the media URLs to acquire; it never downloads, writes, or holds credentials beyond the gitignored RAWG key. Manual URL/local-path entry stays offered for every kind, so an adapter that finds nothing is never a dead end. See [ADR-0003](docs/adr/0003-preview-clips-committed-not-generated.md).
+_Avoid_: provider, integration, API client, scraper
+
+**Audio excerpt**:
+A short (~5s) faded cut of a track — the thing an audio Media preview plays. The audio counterpart of a Preview clip: the full track never ships, only the cut, at the same small committed bitrate as the excerpts already in `src/assets/audio/previews/`. A 30-second preview handed over by a Source adapter is still raw material, not the committed asset.
+_Avoid_: song, track (that's the whole recording), sample, snippet
+
 **Game log**:
 The all-time record of games played — one entry per game, carrying its platform, factual play state (status), a single Mood, and freeform prose (opinions, tips). Distinct from the `Playing` Favorite, which only names the current game.
 _Avoid_: games list, collection (overloaded by Eleventy), library

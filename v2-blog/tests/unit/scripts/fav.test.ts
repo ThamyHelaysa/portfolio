@@ -5,19 +5,68 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   findSourceReferences,
+  readFavoriteSlot,
   replaceFavoriteOccupant,
-  slugFavoriteAsset,
 } from "../../../scripts/fav/helpers.ts";
-import { runSetFavorite } from "../../../scripts/fav/workflow.ts";
+import {
+  type FavoriteWorkflowPorts,
+  runSetFavorite,
+} from "../../../scripts/fav/workflow.ts";
+import { headingSlug } from "../../../src/_config/headingSlug.js";
+
+/** Keeps real I/O while allowing deterministic interrupts at async boundaries. */
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const original = await importOriginal<typeof fs>();
+  const mocked = {
+    ...original,
+    copyFile: vi.fn(original.copyFile),
+    readFile: vi.fn(original.readFile),
+    rm: vi.fn(original.rm),
+  };
+  return { ...mocked, default: mocked };
+});
+
+/**
+ * Completes the workflow ports so each test only spells out what it exercises.
+ *
+ * Manual is the default source, which keeps every test that is not about an
+ * adapter off the network.
+ */
+function favoritePorts(
+  overrides: Partial<FavoriteWorkflowPorts>,
+): FavoriteWorkflowPorts {
+  return {
+    promptText: async () => "",
+    chooseSource: async () => "manual",
+    pickCandidate: async () => null,
+    acquireCandidate: async (_source, directory) =>
+      path.join(directory, "candidate.png"),
+    previewCandidate: async () => undefined,
+    approveCandidate: async () => true,
+    processImage: async () => undefined,
+    processAudio: async () => undefined,
+    confirmDeletion: async () => false,
+    log: () => undefined,
+    ...overrides,
+  };
+}
 
 describe("Favorite CLI helpers", () => {
-  it("creates a stable asset slug from a Favorite title", () => {
-    expect(slugFavoriteAsset("Pokémon Y (3DS)")).toBe("pokemon-y-3ds");
+  it.each([
+    ["Pokémon Y (3DS)", "pokemon-y-3ds"],
+    ["Don't Starve", "dont-starve"],
+    ["Don’t Starve", "dont-starve"],
+    ["Cafe\u0301 & Tea", "cafe-and-tea"],
+    ["① Fullwidth Ａ", "fullwidth"],
+    ["東京", ""],
+  ])("creates the canonical slug for %s", (title, slug) => {
+    expect(headingSlug(title)).toBe(slug);
   });
 
   it("replaces only occupant fields in a Favorite slot", async () => {
@@ -50,7 +99,8 @@ describe("Favorite CLI helpers", () => {
     try {
       await writeFile(dataPath, `${JSON.stringify(initialData, null, 2)}\n`);
 
-      await replaceFavoriteOccupant(dataPath, "game", {
+      const slot = await readFavoriteSlot(dataPath, "game");
+      await replaceFavoriteOccupant(dataPath, slot, {
         title: "Pokémon Y",
         details: "Nintendo 3DS",
         previewUrl: "/assets/images/previews/pokemon-y.jpg",
@@ -73,6 +123,46 @@ describe("Favorite CLI helpers", () => {
           initialData.favorites[1],
         ],
       });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("leaves the slot snapshot reusable after a rejected write", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "fav-writer-"));
+    const dataPath = path.join(directory, "personal.json");
+    const occupant = {
+      id: "game",
+      kind: "game",
+      category: "Playing",
+      title: "Old game",
+      details: "Old details",
+      previewUrl: "/assets/images/previews/old.jpg",
+      previewType: "image",
+    };
+    const initialContents = `${JSON.stringify({ favorites: [occupant] }, null, 2)}\n`;
+    const replacement = {
+      title: "Pokémon Y",
+      details: "Nintendo 3DS",
+      previewUrl: "/assets/images/previews/pokemon-y.jpg",
+      previewType: "image",
+    } as const;
+
+    try {
+      await writeFile(dataPath, initialContents);
+      const slot = await readFavoriteSlot(dataPath, "game");
+
+      await writeFile(dataPath, `${initialContents}\n`);
+      await expect(
+        replaceFavoriteOccupant(dataPath, slot, replacement),
+      ).rejects.toThrow("Favorite data changed during selection; run fav again.");
+
+      expect(slot.favorite).toEqual(occupant);
+
+      await writeFile(dataPath, initialContents);
+      await expect(
+        replaceFavoriteOccupant(dataPath, slot, replacement),
+      ).resolves.toEqual(occupant);
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
@@ -147,7 +237,7 @@ describe("Favorite CLI helpers", () => {
 
       const result = await runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async () => {
             events.push("acquire");
@@ -165,7 +255,7 @@ describe("Favorite CLI helpers", () => {
           },
           confirmDeletion: async () => false,
           log: () => undefined,
-        },
+        }),
       );
 
       expect(result).toBe("cancelled");
@@ -177,7 +267,16 @@ describe("Favorite CLI helpers", () => {
     }
   });
 
-  it("refuses a non-image Favorite before any interactive work", async () => {
+  it.each([
+    [
+      "album",
+      "video",
+      'Favorite slot "album" holds an unsupported preview type: video.',
+    ],
+    ["missing", "audio", "Unknown Favorite slot: missing"],
+  ])(
+    "refuses %s before any interactive work",
+    async (slotId, previewType, message) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const dataPath = path.join(dataDirectory, "personal.json");
@@ -197,7 +296,7 @@ describe("Favorite CLI helpers", () => {
                 title: "Cochise",
                 details: "Audioslave",
                 previewUrl: "/assets/audio/previews/cochise.mp3",
-                previewType: "audio",
+                previewType,
                 coverUrl: "/assets/images/previews/cochise.jpg",
               },
             ],
@@ -210,8 +309,8 @@ describe("Favorite CLI helpers", () => {
 
       await expect(
         runSetFavorite(
-          { projectRoot, slotId: "album" },
-          {
+          { projectRoot, slotId },
+          favoritePorts({
             promptText: async () => {
               events.push("prompt");
               return "";
@@ -235,20 +334,19 @@ describe("Favorite CLI helpers", () => {
               return false;
             },
             log: () => undefined,
-          },
+          }),
         ),
-      ).rejects.toThrow(
-        'Favorite slot "album" is not supported yet; see #149.',
-      );
+      ).rejects.toThrow(message);
 
       expect(events).toEqual([]);
       await expect(readFile(dataPath, "utf8")).resolves.toBe(before);
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }
-  });
+    },
+  );
 
-  it("commits an approved image and updates the Favorite occupant", async () => {
+  it.each([false, true])("keeps the committed Favorite consistent (SIGINT after commit: %s)", async (interrupt) => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
     const dataDirectory = path.join(projectRoot, "src", "_data");
     const previewDirectory = path.join(
@@ -260,8 +358,10 @@ describe("Favorite CLI helpers", () => {
     );
     const dataPath = path.join(dataDirectory, "personal.json");
     const oldAssetPath = path.join(previewDirectory, "old-game.jpg");
-    const answers = ["New Game", "Fresh details", "/tmp/new-game.png"];
+    const answers = ["Don’t Starve & Play", "Fresh details", "/tmp/new-game.png"];
     const deletionOffers: string[] = [];
+    const logged: string[] = [];
+    const { rm } = await vi.importActual<typeof fs>("node:fs/promises");
 
     try {
       await mkdir(dataDirectory, { recursive: true });
@@ -288,9 +388,11 @@ describe("Favorite CLI helpers", () => {
         )}\n`,
       );
 
-      const result = await runSetFavorite(
+      const initialContents = await readFile(dataPath, "utf8");
+      const parse = vi.spyOn(JSON, "parse");
+      const update = runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async (_source, temporaryDirectory) => {
             const candidatePath = path.join(temporaryDirectory, "candidate.png");
@@ -301,34 +403,457 @@ describe("Favorite CLI helpers", () => {
           approveCandidate: async () => true,
           processImage: async (_candidatePath, outputPath) => {
             await writeFile(outputPath, "compressed image");
+            if (interrupt) {
+              /** Interrupts after the atomic commit but before its promise resolves. */
+              vi.mocked(fs.rm).mockImplementationOnce(async (...args) => {
+                await rm(...args);
+                expect(JSON.parse(await readFile(dataPath, "utf8")).favorites[0])
+                  .toMatchObject({
+                    title: "Don’t Starve & Play",
+                    previewUrl: "/assets/images/previews/dont-starve-and-play.jpg",
+                  });
+                process.emit("SIGINT");
+              });
+            }
           },
           confirmDeletion: async (assetUrl) => {
             deletionOffers.push(assetUrl);
             return false;
           },
-          log: () => undefined,
-        },
+          log: (message) => logged.push(message),
+        }),
       );
 
-      expect(result).toBe("updated");
+      await expect(update).resolves.toBe("updated");
+      expect(logged.at(-1)).toBe(
+        interrupt
+          ? 'Updated Favorite slot "game"; interrupted before unused-asset cleanup.'
+          : 'Updated Favorite slot "game".',
+      );
+      expect(
+        parse.mock.calls.filter(([contents]) => contents === initialContents),
+      ).toHaveLength(1);
       const writtenData = JSON.parse(await readFile(dataPath, "utf8"));
       expect(writtenData.favorites[0]).toEqual({
         id: "game",
         kind: "game",
         category: "Playing",
-        title: "New Game",
+        title: "Don’t Starve & Play",
         details: "Fresh details",
-        previewUrl: "/assets/images/previews/new-game.jpg",
+        previewUrl: "/assets/images/previews/dont-starve-and-play.jpg",
         previewType: "image",
       });
       await expect(
-        readFile(path.join(previewDirectory, "new-game.jpg"), "utf8"),
+        readFile(path.join(previewDirectory, "dont-starve-and-play.jpg"), "utf8"),
       ).resolves.toBe("compressed image");
       await expect(readFile(oldAssetPath, "utf8")).resolves.toBe("old image");
-      expect(deletionOffers).toEqual([
+      expect(deletionOffers).toEqual(interrupt ? [] : [
         "/assets/images/previews/old-game.jpg",
       ]);
     } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("preserves edits made during selection and removes the uncommitted image", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-workflow-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const initialData = {
+      info: { displayName: "Thamires" },
+      favorites: [
+        {
+          id: "game",
+          kind: "game",
+          category: "Playing",
+          title: "Old game",
+          details: "Old details",
+          previewUrl: "/assets/images/previews/old-game.jpg",
+          previewType: "image",
+        },
+      ],
+    };
+    const editedContents = JSON.stringify({
+      ...initialData,
+      info: { displayName: "Edited while selecting" },
+    });
+    const answers = ["New game", "Fresh details", "/tmp/new-game.png"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(dataPath, JSON.stringify(initialData));
+
+      await expect(
+        runSetFavorite(
+          { projectRoot, slotId: "game" },
+          favoritePorts({
+            promptText: async () => answers.shift() ?? "",
+            acquireCandidate: async (_source, directory) =>
+              path.join(directory, "candidate.png"),
+            previewCandidate: async () => undefined,
+            approveCandidate: async () => true,
+            processImage: async (_candidatePath, outputPath) => {
+              await writeFile(dataPath, editedContents);
+              await writeFile(outputPath, "compressed image");
+            },
+            confirmDeletion: async () => false,
+            log: () => undefined,
+          }),
+        ),
+      ).rejects.toThrow("Favorite data changed during selection; run fav again.");
+
+      await expect(readFile(dataPath, "utf8")).resolves.toBe(editedContents);
+      await expect(
+        readFile(
+          path.join(projectRoot, "src", "assets", "images", "previews", "new-game.jpg"),
+        ),
+      ).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it.each(["processing", "asset copy", "data validation"])(
+    "rolls back SIGINT during %s without leaving a new repo file",
+    async (phase) => {
+      const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+      const dataDirectory = path.join(projectRoot, "src", "_data");
+      const dataPath = path.join(dataDirectory, "personal.json");
+      const previewDirectory = path.join(
+        projectRoot, "src", "assets", "images", "previews",
+      );
+      const initialContents = JSON.stringify({
+        favorites: [{
+          id: "game",
+          kind: "game",
+          category: "Playing",
+          title: "Old game",
+          details: "Old details",
+          previewUrl: "/assets/images/previews/old.jpg",
+          previewType: "image",
+        }],
+      });
+      const answers = ["New game", "New details", "/tmp/candidate.png"];
+      const listenersBefore = process.listeners("SIGINT");
+      const { copyFile, readFile } = await vi.importActual<typeof fs>(
+        "node:fs/promises",
+      );
+
+      try {
+        await mkdir(dataDirectory, { recursive: true });
+        await mkdir(previewDirectory, { recursive: true });
+        await writeFile(dataPath, initialContents);
+        if (phase === "asset copy") {
+          /** Places SIGINT exactly between the asset copy and data write. */
+          vi.mocked(fs.copyFile).mockImplementationOnce(async (...args) => {
+            await copyFile(...args);
+            process.emit("SIGINT");
+          });
+        }
+
+        await expect(runSetFavorite({ projectRoot, slotId: "game" }, favoritePorts({
+          promptText: async () => answers.shift() ?? "",
+          acquireCandidate: async (_source, directory) =>
+            path.join(directory, "candidate.png"),
+          previewCandidate: async () => undefined,
+          approveCandidate: async () => true,
+          processImage: async (_source, output) => {
+            await writeFile(output, "compressed image");
+            if (phase === "processing") process.emit("SIGINT");
+            if (phase === "data validation") {
+              /** Interrupts at the final async step before the data commit. */
+              vi.mocked(fs.readFile).mockImplementationOnce(async (...args) => {
+                const contents = await readFile(...args);
+                process.emit("SIGINT");
+                return contents;
+              });
+            }
+          },
+          confirmDeletion: async () => false,
+          log: () => undefined,
+        }))).rejects.toThrow(/aborted/i);
+
+        await expect(readFile(dataPath, "utf8")).resolves.toBe(initialContents);
+        await expect(fs.readdir(previewDirectory)).resolves.toEqual([]);
+        await expect(fs.readdir(dataDirectory)).resolves.toEqual(["personal.json"]);
+        expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+      } finally {
+        vi.restoreAllMocks();
+        await rm(projectRoot, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("restores default termination when SIGINT arrives twice", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-interrupt-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const answers = ["New game", "New details", "/tmp/candidate.png"];
+    const listenersBefore = process.listeners("SIGINT");
+    const kill = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "game",
+            kind: "game",
+            category: "Playing",
+            title: "Old game",
+            details: "Old details",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+
+      await expect(runSetFavorite({ projectRoot, slotId: "game" }, favoritePorts({
+        promptText: async () => answers.shift() ?? "",
+        acquireCandidate: async (_source, directory) =>
+          path.join(directory, "candidate.png"),
+        previewCandidate: async () => undefined,
+        approveCandidate: async () => true,
+        processImage: async (_source, output) => {
+          await writeFile(output, "compressed image");
+          // The first Ctrl-C defers; the second must hand control back to Node.
+          process.emit("SIGINT");
+          expect(kill).not.toHaveBeenCalled();
+          process.emit("SIGINT");
+        },
+        confirmDeletion: async () => false,
+        log: () => undefined,
+      }))).rejects.toThrow(/aborted/i);
+
+      expect(kill).toHaveBeenCalledWith(process.pid, "SIGINT");
+      expect(process.listeners("SIGINT")).toEqual(listenersBefore);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("fills the album slot from an iTunes pick", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-album-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const sources: string[] = [];
+    const approvals: string[] = [];
+    const prompts: string[] = [];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "album",
+            kind: "album",
+            category: "On Repeat",
+            title: "Old song",
+            details: "Old artist",
+            previewUrl: "/assets/audio/previews/old.preview.mp3",
+            previewType: "audio",
+            coverUrl: "/assets/images/previews/old-cover.jpg",
+          }],
+        }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({
+            results: [{
+              trackName: "Cochise",
+              artistName: "Audioslave",
+              collectionName: "Audioslave",
+              trackTimeMillis: 221978,
+              previewUrl: "https://audio.example/preview.m4a",
+              artworkUrl100: "https://images.example/a.jpg/100x100bb.jpg",
+            }],
+          })),
+        ),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "album" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return "audioslave cochise";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async (candidates) => candidates[0],
+          acquireCandidate: async (source, directory, options) => {
+            sources.push(source);
+            const candidatePath = path.join(
+              directory,
+              `${options?.name}.${options?.mediaType}`,
+            );
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          approveCandidate: async (_candidatePath, mediaType) => {
+            approvals.push(mediaType);
+            return true;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+          processAudio: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "excerpt mp3"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      // The pick carries both media URLs, so only the search was prompted.
+      expect(prompts).toEqual(["query"]);
+      expect(sources).toEqual([
+        "https://audio.example/preview.m4a",
+        "https://images.example/a.jpg/600x600bb.jpg",
+      ]);
+      expect(approvals).toEqual(["audio", "image"]);
+
+      const written = JSON.parse(await readFile(dataPath, "utf8"));
+      expect(written.favorites[0]).toEqual({
+        id: "album",
+        kind: "album",
+        category: "On Repeat",
+        title: "Cochise",
+        details: "Audioslave",
+        previewUrl: "/assets/audio/previews/cochise.preview.mp3",
+        previewType: "audio",
+        coverUrl: "/assets/images/previews/cochise-cover.jpg",
+      });
+      await expect(
+        readFile(
+          path.join(projectRoot, "src/assets/audio/previews/cochise.preview.mp3"),
+          "utf8",
+        ),
+      ).resolves.toBe("excerpt mp3");
+      await expect(
+        readFile(
+          path.join(projectRoot, "src/assets/images/previews/cochise-cover.jpg"),
+          "utf8",
+        ),
+      ).resolves.toBe("cover jpeg");
+    } finally {
+      vi.unstubAllGlobals();
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("prompts for the occupant text an ISBN lookup cannot supply", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-books-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const prompts: string[] = [];
+    const answers = ["9780140328721", "Matilda", "Roald Dahl"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "books",
+            kind: "book",
+            category: "Last Read",
+            title: "Old book",
+            details: "Old author",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "books" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return answers.shift() ?? "";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async (candidates) => candidates[0],
+          acquireCandidate: async (_source, directory) => {
+            const candidatePath = path.join(directory, "cover.jpg");
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      expect(prompts).toEqual(["query", "title", "details"]);
+      const written = JSON.parse(await readFile(dataPath, "utf8"));
+      expect(written.favorites[0]).toMatchObject({
+        title: "Matilda",
+        details: "Roald Dahl",
+        previewUrl: "/assets/images/previews/matilda.jpg",
+        previewType: "image",
+      });
+      expect(written.favorites[0]).not.toHaveProperty("coverUrl");
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to a manual source when no result is picked", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "fav-fallback-"));
+    const dataDirectory = path.join(projectRoot, "src", "_data");
+    const dataPath = path.join(dataDirectory, "personal.json");
+    const prompts: string[] = [];
+    const answers = ["canterville", "The Canterville Ghost", "Oscar Wilde", "/tmp/cover.png"];
+
+    try {
+      await mkdir(dataDirectory, { recursive: true });
+      await writeFile(
+        dataPath,
+        JSON.stringify({
+          favorites: [{
+            id: "books",
+            kind: "book",
+            category: "Last Read",
+            title: "Old book",
+            details: "Old author",
+            previewUrl: "/assets/images/previews/old.jpg",
+            previewType: "image",
+          }],
+        }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({
+            docs: [{ title: "Some Book", author_name: ["A"], cover_i: 1 }],
+          })),
+        ),
+      );
+
+      const result = await runSetFavorite(
+        { projectRoot, slotId: "books" },
+        favoritePorts({
+          promptText: async (field) => {
+            prompts.push(field);
+            return answers.shift() ?? "";
+          },
+          chooseSource: async (choices) => choices[0].id,
+          pickCandidate: async () => null,
+          acquireCandidate: async (_source, directory) => {
+            const candidatePath = path.join(directory, "cover.jpg");
+            await writeFile(candidatePath, "candidate");
+            return candidatePath;
+          },
+          processImage: async (_candidatePath, outputPath) =>
+            writeFile(outputPath, "cover jpeg"),
+        }),
+      );
+
+      expect(result).toBe("updated");
+      expect(prompts).toEqual(["query", "title", "details", "source"]);
+    } finally {
+      vi.unstubAllGlobals();
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
@@ -379,7 +904,7 @@ describe("Favorite CLI helpers", () => {
 
       await runSetFavorite(
         { projectRoot, slotId: "game" },
-        {
+        favoritePorts({
           promptText: async () => answers.shift() ?? "",
           acquireCandidate: async (_source, temporaryDirectory) => {
             const candidatePath = path.join(temporaryDirectory, "candidate.png");
@@ -396,7 +921,7 @@ describe("Favorite CLI helpers", () => {
             return true;
           },
           log: () => undefined,
-        },
+        }),
       );
 
       expect(deletionOffered).toBe(false);

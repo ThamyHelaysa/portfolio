@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { renameSync } from "node:fs";
+import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+
+export type FavoritePreviewType = "audio" | "image";
 
 export interface FavoriteOccupant {
   title: string;
   details: string;
   previewUrl: string;
-  previewType: "image";
+  previewType: FavoritePreviewType;
   coverUrl?: string;
 }
 
@@ -26,52 +29,79 @@ interface PersonalData {
   [key: string]: unknown;
 }
 
-/**
- * Converts a Favorite title into a filesystem-safe asset slug.
- */
-export function slugFavoriteAsset(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+/** Preview types the set workflow knows how to acquire and commit. */
+const SUPPORTED_PREVIEW_TYPES = new Set<string>(["audio", "image"]);
+
+export interface FavoriteSlot {
+  data: PersonalData;
+  favorite: FavoriteRecord;
+  originalContents: string;
 }
 
 /**
- * Atomically replaces occupant fields while preserving a Favorite slot's identity and display copy.
+ * Reads and validates one fixed Favorite slot before media work starts.
  */
-export async function replaceFavoriteOccupant(
+export async function readFavoriteSlot(
   dataPath: string,
   slotId: string,
-  occupant: FavoriteOccupant,
-): Promise<FavoriteRecord> {
-  const data = JSON.parse(await readFile(dataPath, "utf8")) as PersonalData;
+): Promise<FavoriteSlot> {
+  const originalContents = await readFile(dataPath, "utf8");
+  const data = JSON.parse(originalContents) as PersonalData;
   if (!Array.isArray(data.favorites)) {
     throw new Error(`Favorite data has no favorites array: ${dataPath}`);
   }
 
-  const favoriteIndex = data.favorites.findIndex(({ id }) => id === slotId);
-  if (favoriteIndex === -1) {
+  const favorite = data.favorites.find(({ id }) => id === slotId);
+  if (!favorite) {
     throw new Error(`Unknown Favorite slot: ${slotId}`);
   }
+  if (!SUPPORTED_PREVIEW_TYPES.has(favorite.previewType)) {
+    throw new Error(
+      `Favorite slot "${slotId}" holds an unsupported preview type: ${favorite.previewType}.`,
+    );
+  }
 
-  const previousOccupant = data.favorites[favoriteIndex];
-  const nextFavorite = { ...previousOccupant, ...occupant };
+  return { data, favorite, originalContents };
+}
+
+/**
+ * Atomically replaces a validated occupant while preserving slot identity and display copy.
+ */
+export async function replaceFavoriteOccupant(
+  dataPath: string,
+  slot: FavoriteSlot,
+  occupant: FavoriteOccupant,
+  signal?: AbortSignal,
+): Promise<FavoriteRecord> {
+  const currentOccupant = slot.favorite;
+  const nextFavorite: FavoriteRecord = { ...currentOccupant, ...occupant };
   if (occupant.coverUrl === undefined) {
     delete nextFavorite.coverUrl;
   }
-  data.favorites[favoriteIndex] = nextFavorite;
+  const nextData = {
+    ...slot.data,
+    favorites: slot.data.favorites.map((favorite) =>
+      favorite === currentOccupant ? nextFavorite : favorite,
+    ),
+  };
 
   const temporaryPath = `${dataPath}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, `${JSON.stringify(data, null, 2)}\n`);
-    await rename(temporaryPath, dataPath);
+    await writeFile(temporaryPath, `${JSON.stringify(nextData, null, 2)}\n`, {
+      signal,
+    });
+    // shortcut: edits between this check and rename may be lost, add locking for concurrent writers.
+    if ((await readFile(dataPath, "utf8")) !== slot.originalContents) {
+      throw new Error("Favorite data changed during selection; run fav again.");
+    }
+    signal?.throwIfAborted();
+    // Keep the abort check and commit in one turn so SIGINT cannot race the rename.
+    renameSync(temporaryPath, dataPath);
   } finally {
     await rm(temporaryPath, { force: true });
   }
 
-  return previousOccupant;
+  return { ...currentOccupant };
 }
 
 /**

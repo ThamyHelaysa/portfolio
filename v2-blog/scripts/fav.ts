@@ -1,34 +1,31 @@
-/* eslint-disable no-console -- CLI status and error output. */
-import { confirm, input } from "@inquirer/prompts";
+import { confirm, input, select } from "@inquirer/prompts";
 import { execFile } from "node:child_process";
-import {
-  copyFile,
-  stat,
-  writeFile,
-} from "node:fs/promises";
-import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import {
+  acquireCandidate,
+  type CandidateMediaType,
+} from "./fav/acquisition.ts";
+import { runFfmpeg } from "./fav/ffmpeg.ts";
+import type { SourceCandidate } from "./fav/sources.ts";
+import {
   type FavoriteWorkflowPorts,
+  type PromptField,
   runSetFavorite,
+  type SourceChoice,
 } from "./fav/workflow.ts";
+
+/** Seconds of the acquired audio that reach the committed excerpt. */
+const AUDIO_EXCERPT_SECONDS = 5;
+/** Fade applied at both ends, matching scripts/audio-preview.js. */
+const AUDIO_FADE_SECONDS = 0.3;
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-const SUPPORTED_IMAGE_EXTENSIONS = new Set([
-  ".avif",
-  ".gif",
-  ".jpeg",
-  ".jpg",
-  ".png",
-  ".webp",
-]);
 
 /**
  * Rejects blank answers for required Favorite occupant fields.
@@ -41,7 +38,7 @@ function validateRequired(value: string): true | string {
  * Prompts for one required text field.
  */
 async function promptRequiredText(
-  _field: "title" | "details" | "source",
+  _field: PromptField,
   message: string,
 ): Promise<string> {
   return (
@@ -53,76 +50,31 @@ async function promptRequiredText(
 }
 
 /**
- * Returns a safe candidate suffix inferred from a source pathname.
+ * Asks which acquisition source to use for this slot.
  */
-function candidateExtension(pathname: string): string {
-  const extension = path.extname(pathname).toLowerCase();
-  return SUPPORTED_IMAGE_EXTENSIONS.has(extension) ? extension : ".img";
+async function chooseSource(choices: SourceChoice[]): Promise<string> {
+  return select({
+    message: "Source",
+    choices: choices.map(({ id, label }) => ({ name: label, value: id })),
+  });
 }
 
 /**
- * Expands a user-home prefix and resolves a local source path.
+ * Presents search results and returns the pick, or null to go manual.
  */
-function resolveLocalSource(source: string): string {
-  if (source === "~") {
-    return homedir();
-  }
-  if (source.startsWith(`~${path.sep}`)) {
-    return path.join(homedir(), source.slice(2));
-  }
-  return path.resolve(process.cwd(), source);
-}
-
-/**
- * Downloads or copies a manually supplied candidate into the OS temp area.
- */
-async function acquireCandidate(
-  source: string,
-  temporaryDirectory: string,
-): Promise<string> {
-  if (/^https?:\/\//i.test(source)) {
-    const url = new URL(source);
-    const candidatePath = path.join(
-      temporaryDirectory,
-      `candidate${candidateExtension(url.pathname)}`,
-    );
-    const response = await fetch(url, { redirect: "follow" });
-    if (!response.ok) {
-      throw new Error(
-        `Image download failed: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const declaredLength = Number(response.headers.get("content-length") ?? 0);
-    if (declaredLength > MAX_IMAGE_BYTES) {
-      throw new Error("Image exceeds 25 MB download limit.");
-    }
-
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > MAX_IMAGE_BYTES) {
-      throw new Error("Image exceeds 25 MB download limit.");
-    }
-    await writeFile(candidatePath, bytes);
-    return candidatePath;
-  }
-
-  const localPath = resolveLocalSource(source);
-  let localStats;
-  try {
-    localStats = await stat(localPath);
-  } catch {
-    throw new Error(`Local image not found: ${localPath}`);
-  }
-  if (!localStats.isFile()) {
-    throw new Error(`Local image is not a file: ${localPath}`);
-  }
-
-  const candidatePath = path.join(
-    temporaryDirectory,
-    `candidate${candidateExtension(localPath)}`,
-  );
-  await copyFile(localPath, candidatePath);
-  return candidatePath;
+async function pickCandidate(
+  candidates: SourceCandidate[],
+): Promise<SourceCandidate | null> {
+  return select<SourceCandidate | null>({
+    message: "Result",
+    choices: [
+      ...candidates.map((candidate) => ({
+        name: candidate.label,
+        value: candidate,
+      })),
+      { name: "None of these — enter a source manually", value: null },
+    ],
+  });
 }
 
 /**
@@ -135,9 +87,12 @@ async function previewCandidate(candidatePath: string): Promise<void> {
 /**
  * Requires explicit approval after visual inspection.
  */
-async function approveCandidate(): Promise<boolean> {
+async function approveCandidate(
+  _candidatePath: string,
+  mediaType: CandidateMediaType,
+): Promise<boolean> {
   return confirm({
-    message: "Use this image?",
+    message: mediaType === "audio" ? "Use this audio?" : "Use this image?",
     default: false,
   });
 }
@@ -149,7 +104,7 @@ async function processImage(
   candidatePath: string,
   outputPath: string,
 ): Promise<void> {
-  await execFileAsync("ffmpeg", [
+  await runFfmpeg([
     "-hide_banner",
     "-loglevel",
     "error",
@@ -162,6 +117,42 @@ async function processImage(
     "1",
     "-q:v",
     "3",
+    "-map_metadata",
+    "-1",
+    outputPath,
+  ]);
+}
+
+/**
+ * Cuts a short faded excerpt from approved audio.
+ *
+ * Mirrors the bitrate, fade and duration of scripts/audio-preview.js so the
+ * committed file sits beside the excerpts already in the repo. Choosing the
+ * offset is #151's job; this takes the head of what the source handed over.
+ */
+async function processAudio(
+  candidatePath: string,
+  outputPath: string,
+): Promise<void> {
+  const fadeOutStart = Math.max(
+    0,
+    AUDIO_EXCERPT_SECONDS - AUDIO_FADE_SECONDS,
+  );
+  await runFfmpeg([
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-y",
+    "-ss",
+    "0",
+    "-t",
+    String(AUDIO_EXCERPT_SECONDS),
+    "-i",
+    candidatePath,
+    "-af",
+    `afade=t=in:d=${AUDIO_FADE_SECONDS},afade=t=out:st=${fadeOutStart}:d=${AUDIO_FADE_SECONDS}`,
+    "-b:a",
+    "96k",
     "-map_metadata",
     "-1",
     outputPath,
@@ -197,7 +188,7 @@ async function checkRuntime(): Promise<void> {
   }
 
   try {
-    await execFileAsync("ffmpeg", ["-version"]);
+    await runFfmpeg(["-version"], { silent: true });
   } catch {
     throw new Error(
       "Missing system dependency: ffmpeg. Install it with `brew install ffmpeg`.",
@@ -214,16 +205,19 @@ async function main(): Promise<void> {
   const [command, slotId, ...extraArgs] = process.argv.slice(2);
   if (command !== "set" || !slotId || extraArgs.length > 0) {
     throw new Error(
-      "Usage: npm run fav -- set <books|game|learning>",
+      "Usage: npm run fav -- set <album|books|game|learning>",
     );
   }
 
   const ports: FavoriteWorkflowPorts = {
     promptText: promptRequiredText,
+    chooseSource,
+    pickCandidate,
     acquireCandidate,
     previewCandidate,
     approveCandidate,
     processImage,
+    processAudio,
     confirmDeletion,
     log: logStatus,
   };
@@ -233,5 +227,5 @@ async function main(): Promise<void> {
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`fav: ${message}`);
-  process.exitCode = 1;
+  process.exitCode = error instanceof Error && error.name === "AbortError" ? 130 : 1;
 });

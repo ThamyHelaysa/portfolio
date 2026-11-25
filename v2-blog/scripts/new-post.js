@@ -12,21 +12,12 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { headingSlug } from "../src/_config/headingSlug.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const POSTS_DIR = path.join(__dirname, "..", "src", "posts");
-
-function slugify(title) {
-  return title
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // strip accents (pt-BR titles)
-    .toLowerCase()
-    .replace(/['’]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 function isoToday() {
   const d = new Date();
@@ -108,7 +99,7 @@ function main() {
     process.exit(1);
   }
 
-  const slug = slugify(title);
+  const slug = headingSlug(title);
   if (!slug) {
     console.error(`Could not build a slug from "${title}".`);
     process.exit(1);

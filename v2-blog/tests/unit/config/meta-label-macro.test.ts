@@ -1,7 +1,7 @@
 import path from "node:path";
 
 // @ts-expect-error nunjucks ships no types; runtime-only use in this test.
-import nunjucks from "nunjucks";
+import nunjucks from "@11ty/nunjucks";
 import { describe, expect, it } from "vitest";
 
 const includesDir = path.resolve(process.cwd(), "src/_includes");
@@ -16,8 +16,8 @@ const template = `
 `;
 
 describe("metadata label macro", () => {
-  it("renders caller content with its semantic tag and shared styling", () => {
-    expect(env.renderString(template)).toBe(
+  it("renders caller content with its semantic tag and shared styling", async () => {
+    expect(await env.renderString(template)).toBe(
       '<dt class="shrink-0 text-xs text-accent/60 uppercase tracking-widest">Desc&nbsp;/</dt>',
     );
   });

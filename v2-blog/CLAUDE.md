@@ -1,6 +1,6 @@
 # CLAUDE.md — v2-blog
 
-Personal portfolio/blog. Eleventy 3 + Nunjucks + TypeScript + Tailwind v4 + Lit web components. Static output to `dist/`, deployed on Netlify.
+Personal portfolio/blog. Eleventy 4 (alpha) + Nunjucks + TypeScript + Tailwind v4 + Lit web components. Static output to `dist/`, deployed on Netlify.
 
 **Read [AGENTS.md](./AGENTS.md) first** — it holds the workflow rules (git branching off `develop`, conventional commits, test priorities, dos/don'ts, CI troubleshooting). This file is the architecture reference.
 
